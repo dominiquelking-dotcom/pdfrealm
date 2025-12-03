@@ -51,36 +51,27 @@ app.post("/api/invoice/generate", (req, res) => {
     typeof amount === "number" ? amount : parseFloat(amount) || 0;
   const amtStr = amtNum ? `$${amtNum.toFixed(2)}` : "—";
 
-  // ---------- Header bar ----------
-  doc
-    .rect(50, 40, 512, 70)
-    .fill(primary);
+// ---------- Header bar ----------
+doc
+  .rect(50, 40, 512, 70)
+  .fill(primary);
 
-  doc
-    .fill("#ffffff")
-    .font("Helvetica-Bold")
-    .fontSize(16)
-    .text(from || "Your Business", 60, 50, {
-      width: 300,
-    });
+// Company name only (no "PDF Studio" text)
+doc
+  .fill("#ffffff")
+  .font("Helvetica-Bold")
+  .fontSize(16)
+  .text(from || "Your Business Name", 60, 60, { width: 300 });
 
-  doc
-    .font("Helvetica")
-    .fontSize(9)
-    .fill("#cbd5f5")
-    .text("MyFreightTracker PDF Studio", 60, 75);
+// Invoice title on the right
+doc
+  .font("Helvetica-Bold")
+  .fontSize(22)
+  .fill("#ffffff")
+  .text("INVOICE", 0, 48, { align: "right", width: 512 });
 
-  doc
-    .font("Helvetica-Bold")
-    .fontSize(22)
-    .fill("#ffffff")
-    .text("INVOICE", 0, 48, {
-      align: "right",
-      width: 512,
-    });
-
-  // reset fill for body
-  doc.fill(primary);
+// Reset fill for body text
+doc.fill(primary);
 
   let y = 130;
 
