@@ -1,1001 +1,655 @@
-<!DOCTYPE html>
+k<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>DocSuite – Simple Document Tools</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    :root {
-      --bg: #f5f5f7;
-      --bg-alt: #ffffff;
-      --border: #d0d0d7;
-      --accent: #2563eb;
-      --accent-soft: #dbeafe;
-      --text: #111827;
-      --muted: #6b7280;
-      --danger: #b91c1c;
-      --radius: 10px;
-    }
-
-    * {
-      box-sizing: border-box;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      backdrop-filter: blur(8px);
-      background: rgba(245, 245, 247, 0.9);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.75rem 1.5rem;
-    }
-
-    .logo {
-      font-weight: 700;
-      font-size: 1.1rem;
-      letter-spacing: 0.03em;
-    }
-
-    .logo span {
-      color: var(--accent);
-    }
-
-    .tabs {
-      display: flex;
-      gap: 0.4rem;
-      flex-wrap: wrap;
-    }
-
-    .tab-btn {
-      border: none;
-      background: transparent;
-      padding: 0.45rem 0.8rem;
-      border-radius: 999px;
-      font-size: 0.9rem;
-      color: var(--muted);
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s;
-    }
-
-    .tab-btn:hover {
-      background: var(--accent-soft);
-      color: var(--accent);
-    }
-
-    .tab-btn.active {
-      background: var(--accent);
-      color: white;
-    }
-
-    .main {
-      max-width: 1100px;
-      margin: 1rem auto;
-      display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(0, 2fr);
-      gap: 1rem;
-      padding: 0 1rem 1.5rem;
-    }
-
-    @media (max-width: 900px) {
-      .main {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .panel {
-      background: var(--bg-alt);
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      padding: 1rem;
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
-    }
-
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.75rem;
-      gap: 0.5rem;
-    }
-
-    .panel-title {
-      font-size: 0.95rem;
-      font-weight: 600;
-    }
-
-    .panel-sub {
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
-
-    .status-pill {
-      font-size: 0.75rem;
-      padding: 0.25rem 0.6rem;
-      border-radius: 999px;
-      background: #ecfdf3;
-      color: #166534;
-      border: 1px solid #bbf7d0;
-      white-space: nowrap;
-    }
-
-    .tool-list {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 0.5rem;
-    }
-
-    .tool-card {
-      padding: 0.6rem 0.7rem;
-      border-radius: 0.7rem;
-      border: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      transition: border 0.15s, background 0.15s, transform 0.05s;
-    }
-
-    .tool-card:hover {
-      border-color: var(--accent);
-      background: var(--accent-soft);
-      transform: translateY(-1px);
-    }
-
-    .tool-card.active {
-      border-color: var(--accent);
-      background: var(--accent-soft);
-    }
-
-    .tool-card-main {
-      display: flex;
-      flex-direction: column;
-      gap: 0.15rem;
-    }
-
-    .tool-card-name {
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
-
-    .tool-card-desc {
-      font-size: 0.78rem;
-      color: var(--muted);
-    }
-
-    .tool-chip {
-      font-size: 0.7rem;
-      padding: 0.2rem 0.55rem;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      white-space: nowrap;
-    }
-
-    .workspace-inner {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .workspace-title {
-      font-size: 1rem;
-      font-weight: 600;
-    }
-
-    .workspace-description {
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-
-    .workspace-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.4fr);
-      gap: 0.75rem;
-    }
-
-    @media (max-width: 800px) {
-      .workspace-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .form-section, .preview-section {
-      border-radius: 0.7rem;
-      border: 1px solid var(--border);
-      padding: 0.75rem;
-      background: #f9fafb;
-    }
-
-    .form-title, .preview-title {
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
-
-    .form-row {
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .form-row label {
-      font-size: 0.78rem;
-      color: var(--muted);
-    }
-
-    .form-row input,
-    .form-row textarea,
-    .form-row select {
-      font-size: 0.85rem;
-      padding: 0.4rem 0.5rem;
-      border-radius: 0.4rem;
-      border: 1px solid var(--border);
-      background: white;
-      outline: none;
-    }
-
-    .form-row input:focus,
-    .form-row textarea:focus,
-    .form-row select:focus {
-      border-color: var(--accent);
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 70px;
-    }
-
-    .workspace-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-top: 0.3rem;
-    }
-
-    .export-button {
-      border: none;
-      background: var(--accent);
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 999px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      transition: background 0.15s, transform 0.05s, box-shadow 0.1s;
-      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.35);
-    }
-
-    .export-button:hover {
-      background: #1d4ed8;
-      transform: translateY(-1px);
-    }
-
-    .export-button:active {
-      transform: translateY(0);
-      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
-    }
-
-    .helper-text {
-      font-size: 0.75rem;
-      color: var(--muted);
-    }
-
-    .note-danger {
-      color: var(--danger);
-    }
-
-    .preview-box {
-      font-size: 0.8rem;
-      color: var(--muted);
-      border-radius: 0.4rem;
-      border: 1px dashed var(--border);
-      padding: 0.6rem;
-      background: white;
-      min-height: 80px;
-      white-space: pre-wrap;
-    }
-
-    .pill-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem;
-      margin-top: 0.25rem;
-    }
-
-    .pill {
-      font-size: 0.7rem;
-      padding: 0.2rem 0.45rem;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      background: #f9fafb;
-    }
-  </style>
+  <title>MyFreightTracker PDF Studio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="logo">Doc<span>Suite</span></div>
-    <nav class="tabs">
-      <button class="tab-btn active" data-category="pdf">PDF Tools</button>
-      <button class="tab-btn" data-category="business">Business Docs</button>
-      <button class="tab-btn" data-category="money">Receipts & Paystubs</button>
-      <button class="tab-btn" data-category="convert">Converters</button>
+  <div class="app-shell">
+    <!-- HEADER -->
+    <header class="app-header">
+      <div class="brand">
+        <img
+          src="./myfreighttracker-logo.svg"
+          alt="MyFreightTracker logo"
+          class="brand-logo"
+        />
+        <div class="brand-text">
+          <div class="brand-line">
+            <span class="brand-main">MyFreight</span>
+            <span class="brand-accent">Tracker</span>
+          </div>
+          <div class="app-subtitle">
+            PDF tools for brokers, shippers &amp; carriers
+          </div>
+        </div>
+      </div>
+      <div class="app-badge">beta</div>
+    </header>
+
+    <!-- TOOL TABS -->
+    <nav class="tool-switcher">
+      <button class="tool-tab tool-tab-active" data-tool-target="pdf-studio">
+        PDF Studio
+      </button>
+      <button class="tool-tab" data-tool-target="invoice">
+        Invoice Generator
+      </button>
+      <button class="tool-tab" data-tool-target="receipt">
+        Receipt Generator
+      </button>
+      <button class="tool-tab" data-tool-target="paystub">
+        Paystub Generator
+      </button>
+      <button class="tool-tab" data-tool-target="word-to-pdf">
+        Word → PDF
+      </button>
+      <button class="tool-tab" data-tool-target="pdf-to-word">
+        PDF → Word
+      </button>
+      <button class="tool-tab" data-tool-target="merge-pdf">
+        Merge PDF
+      </button>
     </nav>
-  </header>
 
-  <main class="main">
-    <!-- LEFT: Tool list -->
-    <section class="panel" id="tool-panel">
-      <div class="panel-header">
-        <div>
-          <div class="panel-title">Tools</div>
-          <div class="panel-sub" id="panel-subtitle">PDF utilities and quick actions.</div>
-        </div>
-        <div class="status-pill">Prototype UI • No backend yet</div>
-      </div>
-      <div class="tool-list" id="tool-list">
-        <!-- Tool cards injected here -->
-      </div>
-    </section>
+    <main class="app-main">
+      <!-- ================================================================== -->
+      <!-- TOOL VIEW: PDF STUDIO (SIGN / ANNOTATE)                            -->
+      <!-- ================================================================== -->
+      <section class="layout tool-view" data-tool="pdf-studio">
+        <!-- LEFT: controls -->
+        <aside class="sidebar panel">
+          <div class="panel-header">Document details</div>
+          <div class="panel-body">
+            <div class="field">
+              <label class="field-label" for="pdfFile">PDF file</label>
+              <input
+                id="pdfFile"
+                type="file"
+                accept="application/pdf"
+                class="field-input"
+              />
+              <p class="field-help">
+                Rate cons, BOLs, contracts – anything in PDF.
+              </p>
+            </div>
 
-    <!-- RIGHT: Workspace -->
-    <section class="panel">
-      <div class="panel-header">
-        <div>
-          <div class="panel-title" id="workspace-tool-title">Select a tool to get started</div>
-          <div class="panel-sub" id="workspace-tool-subtitle">
-            Choose a tool from the left. When you click “Export”, this will eventually trigger the backend + $1.49 flow.
+            <div class="field">
+              <label class="field-label" for="docTitle">Document title</label>
+              <input
+                id="docTitle"
+                type="text"
+                class="field-input"
+                placeholder="e.g. Load 12345 – Carrier Rate Confirmation"
+              />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="docNotes">Notes / instructions</label>
+              <textarea
+                id="docNotes"
+                class="field-input field-textarea"
+                rows="3"
+                placeholder="Optional internal notes."
+              ></textarea>
+            </div>
+
+            <hr class="section-divider" />
+
+            <div class="field field-inline">
+              <div class="field-half">
+                <label class="field-label" for="signerName">Signer name</label>
+                <input
+                  id="signerName"
+                  type="text"
+                  class="field-input"
+                  placeholder="Required"
+                />
+              </div>
+              <div class="field-half">
+                <label class="field-label" for="signerTitle">
+                  Job title (optional)
+                </label>
+                <input
+                  id="signerTitle"
+                  type="text"
+                  class="field-input"
+                  placeholder="e.g. Dispatcher"
+                />
+              </div>
+            </div>
+
+            <p class="field-help">
+              Drag the cursive signature directly on the preview, then apply.
+            </p>
+
+            <div class="button-row">
+              <button id="applySignatureBtn" class="btn btn-primary" disabled>
+                Apply signature
+              </button>
+              <button id="downloadBtn" class="btn btn-secondary" disabled>
+                Download PDF
+              </button>
+            </div>
+
+            <div id="statusBar" class="status-bar status-info">
+              Load a PDF to get started.
+            </div>
           </div>
-        </div>
-      </div>
+        </aside>
 
-      <div class="workspace-inner" id="workspace-inner">
-        <!-- Workspace content injected here -->
-        <p class="helper-text">
-          This is the live <strong>front-end prototype</strong>. You can click tabs and tools, fill example forms,
-          and hit “Export” to see the flow. Next step: wire this to your Express backend + Stripe.
-        </p>
-      </div>
-    </section>
-  </main>
+        <!-- RIGHT: viewer -->
+        <section class="viewer panel">
+          <div class="panel-header">Preview &amp; signature placement</div>
+          <div class="panel-body viewer-body">
+            <div id="pdfPlaceholder" class="pdf-placeholder">
+              <p><strong>No document loaded.</strong></p>
+              <p>Choose a PDF on the left to preview and place your signature.</p>
+            </div>
 
+            <!-- PDF preview -->
+            <iframe
+              id="pdfFrame"
+              class="pdf-frame"
+              title="PDF preview"
+            ></iframe>
+
+            <!-- Draggable signature overlay -->
+            <div id="signatureOverlay" class="signature-overlay" style="display: none;">
+              <div class="signature-card">
+                <span id="signatureText" class="signature-text">Signature</span>
+                <span class="signature-hint">Drag me</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TOOL VIEW: INVOICE GENERATOR                                      -->
+      <!-- ================================================================== -->
+      <section class="layout tool-view" data-tool="invoice" style="display: none;">
+        <aside class="sidebar panel">
+          <div class="panel-header">Invoice details</div>
+          <div class="panel-body">
+            <div class="field">
+              <label class="field-label" for="invFrom">From (your business)</label>
+              <input
+                id="invFrom"
+                type="text"
+                class="field-input"
+                placeholder="Leatherneck Trucking LLC"
+              />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="invTo">Bill to (customer)</label>
+              <input
+                id="invTo"
+                type="text"
+                class="field-input"
+                placeholder="Customer / broker"
+              />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="invNumber">Invoice / load #</label>
+              <input
+                id="invNumber"
+                type="text"
+                class="field-input"
+                placeholder="e.g. Load 12345"
+              />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="invAmount">Total amount</label>
+              <input
+                id="invAmount"
+                type="number"
+                min="0"
+                step="0.01"
+                class="field-input"
+                placeholder="1200.00"
+              />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="invNotes">Line items / notes</label>
+              <textarea
+                id="invNotes"
+                class="field-input field-textarea"
+                rows="4"
+                placeholder="Detention, TONU, linehaul, fuel, etc."
+              ></textarea>
+            </div>
+
+            <div class="button-row">
+              <button class="btn btn-primary" disabled>
+                Export PDF – $1.49
+              </button>
+            </div>
+
+            <div class="status-bar status-info">
+              Visual only for now – export wiring comes next.
+            </div>
+          </div>
+        </aside>
+
+        <section class="viewer panel">
+          <div class="panel-header">Invoice preview</div>
+          <div class="panel-body viewer-body">
+            <div class="pdf-placeholder">
+              <p><strong>Invoice preview mock.</strong></p>
+              <p>
+                Here we'll render a simple invoice layout using your
+                shipper/broker details and totals. Export will generate a PDF.
+              </p>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TOOL VIEW: RECEIPT GENERATOR                                      -->
+      <!-- ================================================================== -->
+      <section class="layout tool-view" data-tool="receipt" style="display: none;">
+        <aside class="sidebar panel">
+          <div class="panel-header">Receipt details</div>
+          <div class="panel-body">
+            <div class="field">
+              <label class="field-label" for="recFrom">From</label>
+              <input
+                id="recFrom"
+                type="text"
+                class="field-input"
+                placeholder="Your name / company"
+              />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="recTo">Received from</label>
+              <input
+                id="recTo"
+                type="text"
+                class="field-input"
+                placeholder="Customer"
+              />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="recAmount">Amount</label>
+              <input
+                id="recAmount"
+                type="number"
+                min="0"
+                step="0.01"
+                class="field-input"
+                placeholder="75.00"
+              />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="recReason">For</label>
+              <textarea
+                id="recReason"
+                class="field-input field-textarea"
+                rows="3"
+                placeholder="Rent, delivery, lumper, etc."
+              ></textarea>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="recMethod">Payment method</label>
+              <select id="recMethod" class="field-input">
+                <option>Cash</option>
+                <option>Card</option>
+                <option>Zelle</option>
+                <option>Cash App</option>
+                <option>ACH</option>
+                <option>Other</option>
+              </select>
+            </div>
+
+            <div class="button-row">
+              <button class="btn btn-primary" disabled>
+                Export PDF – $1.49
+              </button>
+            </div>
+
+            <div class="status-bar status-info">
+              Visual only – wiring to /api/receipt/generate comes next.
+            </div>
+          </div>
+        </aside>
+
+        <section class="viewer panel">
+          <div class="panel-header">Receipt preview</div>
+          <div class="panel-body viewer-body">
+            <div class="pdf-placeholder">
+              <p><strong>Receipt preview mock.</strong></p>
+              <p>
+                Final PDF will show "Received from", amount, purpose and payment
+                method in a clean trucking-friendly format.
+              </p>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TOOL VIEW: PAYSTUB GENERATOR                                      -->
+      <!-- ================================================================== -->
+      <section class="layout tool-view" data-tool="paystub" style="display: none;">
+        <aside class="sidebar panel">
+          <div class="panel-header">Paystub details</div>
+          <div class="panel-body">
+            <div class="field">
+              <label class="field-label" for="psEmployee">Employee</label>
+              <input
+                id="psEmployee"
+                type="text"
+                class="field-input"
+                placeholder="Driver name"
+              />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="psEmployer">Employer</label>
+              <input
+                id="psEmployer"
+                type="text"
+                class="field-input"
+                placeholder="Your company"
+              />
+            </div>
+
+            <div class="field field-inline">
+              <div class="field-half">
+                <label class="field-label" for="psGross">Gross pay</label>
+                <input
+                  id="psGross"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  class="field-input"
+                  placeholder="1800.00"
+                />
+              </div>
+              <div class="field-half">
+                <label class="field-label" for="psDeductions">Deductions</label>
+                <input
+                  id="psDeductions"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  class="field-input"
+                  placeholder="250.00"
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="psPeriod">Pay period</label>
+              <input
+                id="psPeriod"
+                type="text"
+                class="field-input"
+                placeholder="01/01/2025 – 01/15/2025"
+              />
+            </div>
+
+            <p class="field-help">
+              For business/internal use only – not a replacement for full
+              payroll systems.
+            </p>
+
+            <div class="button-row">
+              <button class="btn btn-primary" disabled>
+                Export PDF – $1.49
+              </button>
+            </div>
+
+            <div class="status-bar status-info">
+              Visual only – export wiring will hit /api/paystub/generate.
+            </div>
+          </div>
+        </aside>
+
+        <section class="viewer panel">
+          <div class="panel-header">Paystub preview</div>
+          <div class="panel-body viewer-body">
+            <div class="pdf-placeholder">
+              <p><strong>Paystub preview mock.</strong></p>
+              <p>
+                Net pay, gross, deductions and period will be laid out in a
+                simple, driver-friendly PDF.
+              </p>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TOOL VIEW: WORD → PDF                                             -->
+      <!-- ================================================================== -->
+      <section class="layout tool-view" data-tool="word-to-pdf" style="display: none;">
+        <aside class="sidebar panel">
+          <div class="panel-header">Word → PDF</div>
+          <div class="panel-body">
+            <div class="field">
+              <label class="field-label" for="w2pFile">Word file (.docx)</label>
+              <input
+                id="w2pFile"
+                type="file"
+                accept=".doc,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                class="field-input"
+              />
+              <p class="field-help">
+                Rate confirmations, contracts or templates exported from Word.
+              </p>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="w2pTitle">Output filename</label>
+              <input
+                id="w2pTitle"
+                type="text"
+                class="field-input"
+                placeholder="Optional – otherwise we use the original name"
+              />
+            </div>
+
+            <div class="button-row">
+              <button class="btn btn-primary" disabled>
+                Convert to PDF – $1.49
+              </button>
+            </div>
+
+            <div class="status-bar status-info">
+              Once wired, this tool will upload your DOCX to the backend and
+              return a clean PDF.
+            </div>
+          </div>
+        </aside>
+
+        <section class="viewer panel">
+          <div class="panel-header">Conversion status</div>
+          <div class="panel-body viewer-body">
+            <div class="pdf-placeholder">
+              <p><strong>No file selected.</strong></p>
+              <p>
+                Choose a Word document on the left. We’ll show status here and
+                provide a PDF download link once complete.
+              </p>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TOOL VIEW: PDF → WORD                                             -->
+      <!-- ================================================================== -->
+      <section class="layout tool-view" data-tool="pdf-to-word" style="display: none;">
+        <aside class="sidebar panel">
+          <div class="panel-header">PDF → Word</div>
+          <div class="panel-body">
+            <div class="field">
+              <label class="field-label" for="p2wFile">PDF file</label>
+              <input
+                id="p2wFile"
+                type="file"
+                accept="application/pdf"
+                class="field-input"
+              />
+              <p class="field-help">
+                Good for contracts or templates you need to edit in Word.
+              </p>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="p2wTitle">Output filename</label>
+              <input
+                id="p2wTitle"
+                type="text"
+                class="field-input"
+                placeholder="Optional – otherwise we use the original name"
+              />
+            </div>
+
+            <div class="button-row">
+              <button class="btn btn-primary" disabled>
+                Convert to Word – $1.49
+              </button>
+            </div>
+
+            <div class="status-bar status-info">
+              Visual only – later this calls /api/convert/pdf-to-word and
+              returns a DOCX.
+            </div>
+          </div>
+        </aside>
+
+        <section class="viewer panel">
+          <div class="panel-header">Conversion status</div>
+          <div class="panel-body viewer-body">
+            <div class="pdf-placeholder">
+              <p><strong>No file selected.</strong></p>
+              <p>
+                When wired, we’ll show progress and provide a Word download
+                link here.
+              </p>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TOOL VIEW: MERGE PDF                                              -->
+      <!-- ================================================================== -->
+      <section class="layout tool-view" data-tool="merge-pdf" style="display: none;">
+        <aside class="sidebar panel">
+          <div class="panel-header">Merge PDFs</div>
+          <div class="panel-body">
+            <div class="field">
+              <label class="field-label" for="mergeFiles">PDF files</label>
+              <input
+                id="mergeFiles"
+                type="file"
+                accept="application/pdf"
+                class="field-input"
+                multiple
+              />
+              <p class="field-help">
+                Combine rate cons, BOLs and invoices into a single packet.
+              </p>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="mergeNotes">Notes / order</label>
+              <textarea
+                id="mergeNotes"
+                class="field-input field-textarea"
+                rows="3"
+                placeholder="Optional: describe order (e.g. rate con first, then BOL, then invoice)"
+              ></textarea>
+            </div>
+
+            <div class="button-row">
+              <button class="btn btn-primary" disabled>
+                Merge &amp; export – $1.49
+              </button>
+            </div>
+
+            <div class="status-bar status-info">
+              We’ll eventually show file order and a single merged PDF download
+              here.
+            </div>
+          </div>
+        </aside>
+
+        <section class="viewer panel">
+          <div class="panel-header">Merge status</div>
+          <div class="panel-body viewer-body">
+            <div class="pdf-placeholder">
+              <p><strong>No files selected.</strong></p>
+              <p>
+                Upload multiple PDFs on the left. The final merged document
+                will be downloadable as a single PDF.
+              </p>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <span>MyFreightTracker PDF Studio (beta)</span>
+      <span class="footer-meta">
+        Local-only signing &middot; Not a legal e-signature service &middot; Pay-per-export tools coming soon
+      </span>
+    </footer>
+  </div>
+
+  <!-- TOOL SWITCHER SCRIPT (visual only, no backend calls yet) -->
   <script>
-    // ---------- DATA MODELS ----------
+    document.addEventListener("DOMContentLoaded", () => {
+      const tabs = document.querySelectorAll(".tool-tab");
+      const views = document.querySelectorAll(".tool-view");
 
-    const categories = {
-      pdf: {
-        subtitle: "PDF utilities and quick actions.",
-        tools: [
-          {
-            id: "pdf-maker",
-            name: "PDF Maker",
-            desc: "Create a simple multi-page PDF from typed content.",
-            chip: "Core",
-            type: "pdf-maker"
-          },
-          {
-            id: "pdf-merge",
-            name: "Merge PDFs",
-            desc: "Combine multiple PDFs into a single file.",
-            chip: "Utility",
-            type: "pdf-merge"
-          },
-          {
-            id: "pdf-split",
-            name: "Split PDF",
-            desc: "Split a PDF into individual pages or ranges.",
-            chip: "Utility",
-            type: "pdf-split"
-          },
-          {
-            id: "pdf-sign",
-            name: "Sign PDF",
-            desc: "Add a drawn or typed signature onto a PDF.",
-            chip: "Signature",
-            type: "pdf-sign"
+      function activateTool(toolId) {
+        views.forEach((view) => {
+          if (view.dataset.tool === toolId) {
+            view.style.display = "flex"; // layout uses flex
+          } else {
+            view.style.display = "none";
           }
-        ]
-      },
-      business: {
-        subtitle: "Invoices, quotes, and basic business docs.",
-        tools: [
-          {
-            id: "invoice-maker",
-            name: "Invoice Generator",
-            desc: "Create professional invoices you can email or print.",
-            chip: "Business",
-            type: "invoice"
-          },
-          {
-            id: "quote-maker",
-            name: "Quote / Estimate",
-            desc: "Send simple quotes to customers as PDFs.",
-            chip: "Business",
-            type: "quote"
-          },
-          {
-            id: "bol-maker",
-            name: "Bill of Lading",
-            desc: "Generate basic BOLs for freight and shipments.",
-            chip: "Logistics",
-            type: "bol"
-          }
-        ]
-      },
-      money: {
-        subtitle: "Receipts, paystubs, and transaction docs.",
-        tools: [
-          {
-            id: "receipt-maker",
-            name: "Receipt Generator",
-            desc: "Create simple receipts for cash or card payments.",
-            chip: "Money",
-            type: "receipt"
-          },
-          {
-            id: "paystub-maker",
-            name: "Paystub Generator",
-            desc: "Generate paystubs with earnings and deductions.",
-            chip: "Money",
-            type: "paystub"
-          }
-        ]
-      },
-      convert: {
-        subtitle: "Convert between Word, PDF, and images.",
-        tools: [
-          {
-            id: "word-to-pdf",
-            name: "Word → PDF",
-            desc: "Upload a .docx and convert to PDF.",
-            chip: "Convert",
-            type: "word-to-pdf"
-          },
-          {
-            id: "pdf-to-word",
-            name: "PDF → Word",
-            desc: "Turn a PDF back into an editable .docx.",
-            chip: "Convert",
-            type: "pdf-to-word"
-          },
-          {
-            id: "images-to-pdf",
-            name: "Images → PDF",
-            desc: "Combine JPG/PNG images into a single PDF.",
-            chip: "Convert",
-            type: "images-to-pdf"
-          }
-        ]
-      }
-    };
-
-    let currentCategory = "pdf";
-    let currentTool = null;
-
-    // ---------- RENDERING ----------
-
-    function renderToolList() {
-      const panelSubtitle = document.getElementById("panel-subtitle");
-      const listEl = document.getElementById("tool-list");
-      const { subtitle, tools } = categories[currentCategory];
-
-      panelSubtitle.textContent = subtitle;
-      listEl.innerHTML = "";
-
-      tools.forEach((tool) => {
-        const card = document.createElement("div");
-        card.className = "tool-card" + (currentTool && currentTool.id === tool.id ? " active" : "");
-        card.dataset.toolId = tool.id;
-
-        card.innerHTML = `
-          <div class="tool-card-main">
-            <div class="tool-card-name">${tool.name}</div>
-            <div class="tool-card-desc">${tool.desc}</div>
-          </div>
-          <div class="tool-chip">${tool.chip}</div>
-        `;
-
-        card.addEventListener("click", () => {
-          currentTool = tool;
-          renderToolList();
-          renderWorkspace();
         });
 
-        listEl.appendChild(card);
+        tabs.forEach((tab) => {
+          tab.classList.toggle(
+            "tool-tab-active",
+            tab.dataset.toolTarget === toolId
+          );
+        });
+      }
+
+      tabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          activateTool(tab.dataset.toolTarget);
+        });
       });
 
-      // If nothing selected yet in this category, auto-select first
-      if (!currentTool || !categories[currentCategory].tools.some(t => t.id === currentTool.id)) {
-        currentTool = tools[0];
-        renderToolList();
-        renderWorkspace();
-      }
-    }
-
-    function renderWorkspace() {
-      const titleEl = document.getElementById("workspace-tool-title");
-      const subtitleEl = document.getElementById("workspace-tool-subtitle");
-      const innerEl = document.getElementById("workspace-inner");
-
-      if (!currentTool) {
-        titleEl.textContent = "Select a tool to get started";
-        subtitleEl.textContent = "Choose a tool from the left.";
-        innerEl.innerHTML = `<p class="helper-text">No tool selected yet.</p>`;
-        return;
-      }
-
-      titleEl.textContent = currentTool.name;
-      subtitleEl.textContent = currentTool.desc;
-
-      innerEl.innerHTML = getWorkspaceTemplate(currentTool.type);
-      wireWorkspacePreview(currentTool.type);
-    }
-
-    // ---------- WORKSPACE TEMPLATES ----------
-
-    function getWorkspaceTemplate(type) {
-      switch (type) {
-        case "invoice":
-          return invoiceTemplate();
-        case "receipt":
-          return receiptTemplate();
-        case "paystub":
-          return paystubTemplate();
-        case "word-to-pdf":
-        case "pdf-to-word":
-        case "images-to-pdf":
-        case "pdf-merge":
-        case "pdf-split":
-        case "pdf-sign":
-        case "pdf-maker":
-        case "quote":
-        case "bol":
-        default:
-          return genericFileToolTemplate(type);
-      }
-    }
-
-    function invoiceTemplate() {
-      return `
-        <div class="workspace-inner">
-          <div class="workspace-description">
-            Fill out the invoice details on the left. The preview updates as you type. In the real app,
-            clicking <strong>Export PDF</strong> would generate the file and trigger the $1.49 payment flow.
-          </div>
-
-          <div class="workspace-grid">
-            <div class="form-section">
-              <div class="form-title">Invoice details</div>
-
-              <div class="form-row">
-                <label for="inv-from">From (Your business)</label>
-                <input id="inv-from" type="text" placeholder="Leatherneck Trucking LLC" />
-              </div>
-
-              <div class="form-row">
-                <label for="inv-to">Bill to (Client)</label>
-                <input id="inv-to" type="text" placeholder="Client name or company" />
-              </div>
-
-              <div class="form-row">
-                <label for="inv-desc">Description</label>
-                <textarea id="inv-desc" placeholder="Line items, services, load details, etc."></textarea>
-              </div>
-
-              <div class="form-row">
-                <label for="inv-total">Total amount</label>
-                <input id="inv-total" type="number" min="0" step="0.01" placeholder="1200.00" />
-              </div>
-
-              <div class="form-row">
-                <label for="inv-notes">Notes (optional)</label>
-                <textarea id="inv-notes" placeholder="Payment terms, thank you note, etc."></textarea>
-              </div>
-            </div>
-
-            <div class="preview-section">
-              <div class="preview-title">Live invoice preview (text-only mock)</div>
-              <div id="preview-box" class="preview-box">
-From: —
-To: —
-Amount: —
----
-Line items will appear here.
-              </div>
-
-              <div class="pill-row">
-                <span class="pill">No account required</span>
-                <span class="pill">One-time $1.49 export</span>
-                <span class="pill">PDF download</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="workspace-footer">
-            <div class="helper-text">
-              This button is currently a demo. In production, it will:
-              1) Call <code>/api/invoice/generate</code>,
-              2) Create a Stripe checkout session,
-              3) Redirect to payment,
-              4) Return to a download link.
-            </div>
-            <button class="export-button" id="export-btn">
-              <span>Export PDF – $1.49</span>
-            </button>
-          </div>
-        </div>
-      `;
-    }
-
-    function receiptTemplate() {
-      return `
-        <div class="workspace-inner">
-          <div class="workspace-description">
-            Simple receipt builder. Great for quick cash/card receipt PDFs.
-          </div>
-
-          <div class="workspace-grid">
-            <div class="form-section">
-              <div class="form-title">Receipt details</div>
-
-              <div class="form-row">
-                <label for="rec-from">From (Business / Person)</label>
-                <input id="rec-from" type="text" placeholder="Your name or business" />
-              </div>
-
-              <div class="form-row">
-                <label for="rec-to">Received from</label>
-                <input id="rec-to" type="text" placeholder="Customer name" />
-              </div>
-
-              <div class="form-row">
-                <label for="rec-amount">Amount</label>
-                <input id="rec-amount" type="number" min="0" step="0.01" placeholder="75.00" />
-              </div>
-
-              <div class="form-row">
-                <label for="rec-reason">For (description)</label>
-                <textarea id="rec-reason" placeholder="Rent, services, parts, etc."></textarea>
-              </div>
-
-              <div class="form-row">
-                <label for="rec-method">Payment method</label>
-                <select id="rec-method">
-                  <option>Cash</option>
-                  <option>Card</option>
-                  <option>Zelle</option>
-                  <option>Cash App</option>
-                  <option>Other</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="preview-section">
-              <div class="preview-title">Live receipt preview (text-only mock)</div>
-              <div id="preview-box" class="preview-box">
-Receipt
-From: —
-Received from: —
-Amount: —
-Reason: —
-Method: —
-              </div>
-
-              <div class="pill-row">
-                <span class="pill">Small business friendly</span>
-                <span class="pill">Instant PDF</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="workspace-footer">
-            <div class="helper-text">
-              Demo-only for now. Export will eventually create a PDF + payment request.
-            </div>
-            <button class="export-button" id="export-btn">
-              <span>Export PDF – $1.49</span>
-            </button>
-          </div>
-        </div>
-      `;
-    }
-
-    function paystubTemplate() {
-      return `
-        <div class="workspace-inner">
-          <div class="workspace-description">
-            Basic paystub generator. In production, you’ll show a disclaimer that this is for
-            informational/business use only and not a replacement for official payroll.
-          </div>
-
-          <div class="workspace-grid">
-            <div class="form-section">
-              <div class="form-title">Paystub details</div>
-
-              <div class="form-row">
-                <label for="ps-employee">Employee name</label>
-                <input id="ps-employee" type="text" placeholder="John Doe" />
-              </div>
-
-              <div class="form-row">
-                <label for="ps-employer">Employer</label>
-                <input id="ps-employer" type="text" placeholder="Leatherneck Trucking LLC" />
-              </div>
-
-              <div class="form-row">
-                <label for="ps-gross">Gross pay</label>
-                <input id="ps-gross" type="number" min="0" step="0.01" placeholder="1800.00" />
-              </div>
-
-              <div class="form-row">
-                <label for="ps-deductions">Deductions (total)</label>
-                <input id="ps-deductions" type="number" min="0" step="0.01" placeholder="250.00" />
-              </div>
-
-              <div class="form-row">
-                <label for="ps-period">Pay period</label>
-                <input id="ps-period" type="text" placeholder="01/01/2025 - 01/15/2025" />
-              </div>
-            </div>
-
-            <div class="preview-section">
-              <div class="preview-title">Live paystub preview (text-only mock)</div>
-              <div id="preview-box" class="preview-box">
-Paystub
-Employee: —
-Employer: —
-Gross: —
-Deductions: —
-Net: —
-Period: —
-              </div>
-
-              <div class="pill-row">
-                <span class="pill">For business/internal use</span>
-                <span class="pill note-danger">Add legal disclaimer in production</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="workspace-footer">
-            <div class="helper-text">
-              Export will eventually connect to <code>/api/paystub/generate</code> + Stripe.
-            </div>
-            <button class="export-button" id="export-btn">
-              <span>Export PDF – $1.49</span>
-            </button>
-          </div>
-        </div>
-      `;
-    }
-
-    function genericFileToolTemplate(type) {
-      const labelMap = {
-        "word-to-pdf": "Upload a .docx file and convert to PDF.",
-        "pdf-to-word": "Upload a PDF and convert to an editable Word document.",
-        "images-to-pdf": "Upload one or more images and combine into a single PDF.",
-        "pdf-merge": "Upload multiple PDFs and merge them into one.",
-        "pdf-split": "Upload a PDF and choose ranges to split.",
-        "pdf-sign": "Upload a PDF, add signature, then export.",
-        "pdf-maker": "Type your content and we generate a simple PDF.",
-        "quote": "Create a basic PDF quote/estimate for a customer.",
-        "bol": "Generate a simple Bill of Lading PDF."
-      };
-
-      const helper = labelMap[type] || "Upload your file(s) and configure options.";
-
-      return `
-        <div class="workspace-inner">
-          <div class="workspace-description">
-            ${helper}
-          </div>
-
-          <div class="workspace-grid">
-            <div class="form-section">
-              <div class="form-title">Upload & options</div>
-
-              <div class="form-row">
-                <label for="file-input">File(s)</label>
-                <input id="file-input" type="file" ${type === "images-to-pdf" || type === "pdf-merge" ? "multiple" : ""} />
-              </div>
-
-              <div class="form-row">
-                <label for="options-notes">Notes / options (optional)</label>
-                <textarea id="options-notes" placeholder="Additional instructions, page ranges, etc."></textarea>
-              </div>
-
-              <div class="form-row">
-                <label>Information</label>
-                <div class="helper-text">
-                  In the real app, files would be uploaded to the backend, processed by
-                  <code>/api/${type}</code> routes, and a Stripe checkout session created for $1.49.
-                </div>
-              </div>
-            </div>
-
-            <div class="preview-section">
-              <div class="preview-title">Preview / status</div>
-              <div id="preview-box" class="preview-box">
-No live preview yet. Once wired, this panel can show:
-- File names
-- Page count
-- A thumbnail or status messages
-              </div>
-
-              <div class="pill-row">
-                <span class="pill">Backend pending</span>
-                <span class="pill">Stripe checkout next</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="workspace-footer">
-            <div class="helper-text">
-              Clicking export currently simulates the flow with an alert.
-              When wired up, this will:
-              1) Upload file(s),
-              2) Call the converter route,
-              3) Start Stripe checkout,
-              4) Return to a download page.
-            </div>
-            <button class="export-button" id="export-btn">
-              <span>Export PDF – $1.49</span>
-            </button>
-          </div>
-        </div>
-      `;
-    }
-
-    // ---------- PREVIEW & EXPORT HANDLERS ----------
-
-    function wireWorkspacePreview(type) {
-      const previewBox = document.getElementById("preview-box");
-      const exportBtn = document.getElementById("export-btn");
-
-      if (!previewBox || !exportBtn) return;
-
-      if (type === "invoice") {
-        const from = document.getElementById("inv-from");
-        const to = document.getElementById("inv-to");
-        const desc = document.getElementById("inv-desc");
-        const total = document.getElementById("inv-total");
-        const notes = document.getElementById("inv-notes");
-
-        const update = () => {
-          const f = from.value || "—";
-          const t = to.value || "—";
-          const d = desc.value || "Line items will appear here.";
-          const tot = total.value ? `$${Number(total.value).toFixed(2)}` : "—";
-          const n = notes.value || "—";
-
-          previewBox.textContent =
-`INVOICE
-
-From: ${f}
-To: ${t}
-Amount due: ${tot}
-
-Details:
-${d}
-
-Notes:
-${n}`;
-        };
-
-        [from, to, desc, total, notes].forEach(el => el.addEventListener("input", update));
-        update();
-      }
-
-      if (type === "receipt") {
-        const from = document.getElementById("rec-from");
-        const to = document.getElementById("rec-to");
-        const amount = document.getElementById("rec-amount");
-        const reason = document.getElementById("rec-reason");
-        const method = document.getElementById("rec-method");
-
-        const update = () => {
-          const f = from.value || "—";
-          const t = to.value || "—";
-          const a = amount.value ? `$${Number(amount.value).toFixed(2)}` : "—";
-          const r = reason.value || "—";
-          const m = method.value || "—";
-
-          previewBox.textContent =
-`RECEIPT
-
-From: ${f}
-Received from: ${t}
-Amount: ${a}
-For: ${r}
-Payment method: ${m}`;
-        };
-
-        [from, to, amount, reason, method].forEach(el => el.addEventListener("input", update));
-        update();
-      }
-
-      if (type === "paystub") {
-        const emp = document.getElementById("ps-employee");
-        const er = document.getElementById("ps-employer");
-        const gross = document.getElementById("ps-gross");
-        const ded = document.getElementById("ps-deductions");
-        const period = document.getElementById("ps-period");
-
-        const update = () => {
-          const e = emp.value || "—";
-          const erVal = er.value || "—";
-          const g = gross.value ? Number(gross.value) : 0;
-          const d = ded.value ? Number(ded.value) : 0;
-          const net = g - d;
-          const p = period.value || "—";
-
-          const gStr = g ? `$${g.toFixed(2)}` : "—";
-          const dStr = d ? `$${d.toFixed(2)}` : "—";
-          const nStr = g || d ? `$${net.toFixed(2)}` : "—";
-
-          previewBox.textContent =
-`PAYSTUB
-
-Employee: ${e}
-Employer: ${erVal}
-Gross pay: ${gStr}
-Deductions: ${dStr}
-Net pay: ${nStr}
-Pay period: ${p}`;
-        };
-
-        [emp, er, gross, ded, period].forEach(el => el.addEventListener("input", update));
-        update();
-      }
-
-      // Fake export handler for now
-      exportBtn.addEventListener("click", () => {
-        alert(
-          "Export is not wired up yet.\n\nIn the real app, this would:\n" +
-          "1) Call the appropriate /api/... route to generate a PDF,\n" +
-          "2) Create a Stripe checkout for $1.49,\n" +
-          "3) Redirect the user to payment,\n" +
-          "4) Return them to a download link."
-        );
-      });
-    }
-
-    // ---------- TAB HANDLERS ----------
-
-    document.querySelectorAll(".tab-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-
-        currentCategory = btn.dataset.category;
-        currentTool = null;
-        renderToolList();
-      });
+      // Default: PDF Studio active
+      activateTool("pdf-studio");
     });
-
-    // ---------- INITIALIZE ----------
-
-    renderToolList();
   </script>
+
+  <!-- Local pdf-lib served from node_modules via /vendor/pdf-lib -->
+  <script src="/vendor/pdf-lib/pdf-lib.min.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>
+
