@@ -1,10 +1,54 @@
-<!DOCTYPE html>
+k<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>MyFreightTracker PDF Studio</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="./styles.css" />
+
+  <!-- Small bit of extra styling just for the tool tabs -->
+  <style>
+    .tool-switcher {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem 0.75rem;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      background: rgba(248, 250, 252, 0.9);
+    }
+
+    .tool-tab {
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: #ffffff;
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      line-height: 1.4;
+      white-space: nowrap;
+    }
+
+    .tool-tab-active {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #2563eb;
+    }
+
+    .tool-view {
+      /* your existing .layout uses flex so we keep display:flex here */
+      display: none;
+    }
+
+    .tool-view-active {
+      display: flex;
+    }
+
+    @media (max-width: 800px) {
+      .tool-view-active {
+        flex-direction: column;
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="app-shell">
@@ -29,148 +73,86 @@
       <div class="app-badge">beta</div>
     </header>
 
-    <!-- TOOL TABS -->
+    <!-- TOOL TABS (no PDF logic, just switching views) -->
     <nav class="tool-switcher">
-      <button class="tool-tab tool-tab-active" data-tool-target="pdf-studio">
-        PDF Studio
+      <button class="tool-tab tool-tab-active" data-tool="pdf-studio">
+        PDF Studio (Sign / Annotate)
       </button>
-      <button class="tool-tab" data-tool-target="invoice">
+      <button class="tool-tab" data-tool="invoice">
         Invoice Generator
       </button>
-      <button class="tool-tab" data-tool-target="receipt">
+      <button class="tool-tab" data-tool="receipt">
         Receipt Generator
       </button>
-      <button class="tool-tab" data-tool-target="paystub">
+      <button class="tool-tab" data-tool="paystub">
         Paystub Generator
       </button>
-      <button class="tool-tab" data-tool-target="word-to-pdf">
+      <button class="tool-tab" data-tool="word-to-pdf">
         Word → PDF
       </button>
-      <button class="tool-tab" data-tool-target="pdf-to-word">
+      <button class="tool-tab" data-tool="pdf-to-word">
         PDF → Word
       </button>
-      <button class="tool-tab" data-tool-target="merge-pdf">
+      <button class="tool-tab" data-tool="merge-pdf">
         Merge PDF
       </button>
     </nav>
 
     <main class="app-main">
-      <!-- ================================================================== -->
-      <!-- TOOL VIEW: PDF STUDIO (SIGN / ANNOTATE)                            -->
-      <!-- ================================================================== -->
-      <section class="layout tool-view" data-tool="pdf-studio">
-        <!-- LEFT: controls -->
+      <!-- =============================================================== -->
+      <!-- PDF STUDIO (just a description for now, NOT the real signer)   -->
+      <!-- =============================================================== -->
+      <section class="layout tool-view tool-view-active" data-tool-view="pdf-studio">
         <aside class="sidebar panel">
-          <div class="panel-header">Document details</div>
+          <div class="panel-header">PDF Studio</div>
           <div class="panel-body">
-            <div class="field">
-              <label class="field-label" for="pdfFile">PDF file</label>
-              <input
-                id="pdfFile"
-                type="file"
-                accept="application/pdf"
-                class="field-input"
-              />
-              <p class="field-help">
-                Rate cons, BOLs, contracts – anything in PDF.
-              </p>
-            </div>
-
-            <div class="field">
-              <label class="field-label" for="docTitle">Document title</label>
-              <input
-                id="docTitle"
-                type="text"
-                class="field-input"
-                placeholder="e.g. Load 12345 – Carrier Rate Confirmation"
-              />
-            </div>
-
-            <div class="field">
-              <label class="field-label" for="docNotes">Notes / instructions</label>
-              <textarea
-                id="docNotes"
-                class="field-input field-textarea"
-                rows="3"
-                placeholder="Optional internal notes."
-              ></textarea>
-            </div>
-
-            <hr class="section-divider" />
-
-            <div class="field field-inline">
-              <div class="field-half">
-                <label class="field-label" for="signerName">Signer name</label>
-                <input
-                  id="signerName"
-                  type="text"
-                  class="field-input"
-                  placeholder="Required"
-                />
-              </div>
-              <div class="field-half">
-                <label class="field-label" for="signerTitle">
-                  Job title (optional)
-                </label>
-                <input
-                  id="signerTitle"
-                  type="text"
-                  class="field-input"
-                  placeholder="e.g. Dispatcher"
-                />
-              </div>
-            </div>
-
             <p class="field-help">
-              Drag the cursive signature directly on the preview, then apply.
+              This will be your full PDF signer / annotator. Load a PDF, place a
+              signature, add notes, and export a clean copy for your broker,
+              shipper or carrier.
             </p>
 
+            <div class="field">
+              <label class="field-label">What it will do</label>
+              <ul class="field-help">
+                <li>Open rate cons, BOLs, contracts and docs.</li>
+                <li>Drop a cursive signature on the page.</li>
+                <li>Save a signed copy locally or export as a new PDF.</li>
+              </ul>
+            </div>
+
             <div class="button-row">
-              <button id="applySignatureBtn" class="btn btn-primary" disabled>
-                Apply signature
-              </button>
-              <button id="downloadBtn" class="btn btn-secondary" disabled>
-                Download PDF
+              <button class="btn btn-primary" disabled>
+                Launch PDF Studio (coming soon)
               </button>
             </div>
 
-            <div id="statusBar" class="status-bar status-info">
-              Load a PDF to get started.
+            <div class="status-bar status-info">
+              This is the visual hub only. The real signer will live on its own
+              route or page and plug into this suite.
             </div>
           </div>
         </aside>
 
-        <!-- RIGHT: viewer -->
         <section class="viewer panel">
-          <div class="panel-header">Preview &amp; signature placement</div>
+          <div class="panel-header">Preview</div>
           <div class="panel-body viewer-body">
-            <div id="pdfPlaceholder" class="pdf-placeholder">
-              <p><strong>No document loaded.</strong></p>
-              <p>Choose a PDF on the left to preview and place your signature.</p>
-            </div>
-
-            <!-- PDF preview -->
-            <iframe
-              id="pdfFrame"
-              class="pdf-frame"
-              title="PDF preview"
-            ></iframe>
-
-            <!-- Draggable signature overlay -->
-            <div id="signatureOverlay" class="signature-overlay" style="display: none;">
-              <div class="signature-card">
-                <span id="signatureText" class="signature-text">Signature</span>
-                <span class="signature-hint">Drag me</span>
-              </div>
+            <div class="pdf-placeholder">
+              <p><strong>PDF Studio coming soon.</strong></p>
+              <p>
+                This panel will show the live PDF preview with your signature
+                overlay. Right now it's just a placeholder so the layout matches
+                the rest of the tools.
+              </p>
             </div>
           </div>
         </section>
       </section>
 
-      <!-- ================================================================== -->
-      <!-- TOOL VIEW: INVOICE GENERATOR                                      -->
-      <!-- ================================================================== -->
-      <section class="layout tool-view" data-tool="invoice" style="display: none;">
+      <!-- =============================================================== -->
+      <!-- INVOICE GENERATOR                                               -->
+      <!-- =============================================================== -->
+      <section class="layout tool-view" data-tool-view="invoice">
         <aside class="sidebar panel">
           <div class="panel-header">Invoice details</div>
           <div class="panel-body">
@@ -190,7 +172,7 @@
                 id="invTo"
                 type="text"
                 class="field-input"
-                placeholder="Customer / broker"
+                placeholder="Broker / shipper"
               />
             </div>
 
@@ -222,18 +204,18 @@
                 id="invNotes"
                 class="field-input field-textarea"
                 rows="4"
-                placeholder="Detention, TONU, linehaul, fuel, etc."
+                placeholder="Detention, TONU, fuel, accessorials, etc."
               ></textarea>
             </div>
 
             <div class="button-row">
               <button class="btn btn-primary" disabled>
-                Export PDF – $1.49
+                Export invoice PDF – $1.49
               </button>
             </div>
 
             <div class="status-bar status-info">
-              Visual only for now – export wiring comes next.
+              Visual only right now. Later this posts to <code>/api/invoice/generate</code>.
             </div>
           </div>
         </aside>
@@ -244,18 +226,18 @@
             <div class="pdf-placeholder">
               <p><strong>Invoice preview mock.</strong></p>
               <p>
-                Here we'll render a simple invoice layout using your
-                shipper/broker details and totals. Export will generate a PDF.
+                This will render a simple invoice layout you can download as a
+                PDF. For now it's just a placeholder while we wire the backend.
               </p>
             </div>
           </div>
         </section>
       </section>
 
-      <!-- ================================================================== -->
-      <!-- TOOL VIEW: RECEIPT GENERATOR                                      -->
-      <!-- ================================================================== -->
-      <section class="layout tool-view" data-tool="receipt" style="display: none;">
+      <!-- =============================================================== -->
+      <!-- RECEIPT GENERATOR                                               -->
+      <!-- =============================================================== -->
+      <section class="layout tool-view" data-tool-view="receipt">
         <aside class="sidebar panel">
           <div class="panel-header">Receipt details</div>
           <div class="panel-body">
@@ -297,7 +279,7 @@
                 id="recReason"
                 class="field-input field-textarea"
                 rows="3"
-                placeholder="Rent, delivery, lumper, etc."
+                placeholder="Rent, lumper, delivery, etc."
               ></textarea>
             </div>
 
@@ -315,12 +297,12 @@
 
             <div class="button-row">
               <button class="btn btn-primary" disabled>
-                Export PDF – $1.49
+                Export receipt PDF – $1.49
               </button>
             </div>
 
             <div class="status-bar status-info">
-              Visual only – wiring to /api/receipt/generate comes next.
+              Will eventually call <code>/api/receipt/generate</code> and return a PDF.
             </div>
           </div>
         </aside>
@@ -331,18 +313,18 @@
             <div class="pdf-placeholder">
               <p><strong>Receipt preview mock.</strong></p>
               <p>
-                Final PDF will show "Received from", amount, purpose and payment
-                method in a clean trucking-friendly format.
+                Final layout will show "Received from", amount, purpose and
+                payment method in a clean trucking-friendly format.
               </p>
             </div>
           </div>
         </section>
       </section>
 
-      <!-- ================================================================== -->
-      <!-- TOOL VIEW: PAYSTUB GENERATOR                                      -->
-      <!-- ================================================================== -->
-      <section class="layout tool-view" data-tool="paystub" style="display: none;">
+      <!-- =============================================================== -->
+      <!-- PAYSTUB GENERATOR                                               -->
+      <!-- =============================================================== -->
+      <section class="layout tool-view" data-tool-view="paystub">
         <aside class="sidebar panel">
           <div class="panel-header">Paystub details</div>
           <div class="panel-body">
@@ -408,12 +390,12 @@
 
             <div class="button-row">
               <button class="btn btn-primary" disabled>
-                Export PDF – $1.49
+                Export paystub PDF – $1.49
               </button>
             </div>
 
             <div class="status-bar status-info">
-              Visual only – export wiring will hit /api/paystub/generate.
+              Later this will hit <code>/api/paystub/generate</code>.
             </div>
           </div>
         </aside>
@@ -432,10 +414,10 @@
         </section>
       </section>
 
-      <!-- ================================================================== -->
-      <!-- TOOL VIEW: WORD → PDF                                             -->
-      <!-- ================================================================== -->
-      <section class="layout tool-view" data-tool="word-to-pdf" style="display: none;">
+      <!-- =============================================================== -->
+      <!-- WORD → PDF                                                       -->
+      <!-- =============================================================== -->
+      <section class="layout tool-view" data-tool-view="word-to-pdf">
         <aside class="sidebar panel">
           <div class="panel-header">Word → PDF</div>
           <div class="panel-body">
@@ -469,8 +451,7 @@
             </div>
 
             <div class="status-bar status-info">
-              Once wired, this tool will upload your DOCX to the backend and
-              return a clean PDF.
+              Will call <code>/api/convert/word-to-pdf</code> once wired up.
             </div>
           </div>
         </aside>
@@ -481,18 +462,18 @@
             <div class="pdf-placeholder">
               <p><strong>No file selected.</strong></p>
               <p>
-                Choose a Word document on the left. We’ll show status here and
-                provide a PDF download link once complete.
+                When wired, we’ll show upload status and a PDF download link
+                here.
               </p>
             </div>
           </div>
         </section>
       </section>
 
-      <!-- ================================================================== -->
-      <!-- TOOL VIEW: PDF → WORD                                             -->
-      <!-- ================================================================== -->
-      <section class="layout tool-view" data-tool="pdf-to-word" style="display: none;">
+      <!-- =============================================================== -->
+      <!-- PDF → WORD                                                       -->
+      <!-- =============================================================== -->
+      <section class="layout tool-view" data-tool-view="pdf-to-word">
         <aside class="sidebar panel">
           <div class="panel-header">PDF → Word</div>
           <div class="panel-body">
@@ -505,7 +486,7 @@
                 class="field-input"
               />
               <p class="field-help">
-                Good for contracts or templates you need to edit in Word.
+                Convert a contract or template back into something editable.
               </p>
             </div>
 
@@ -526,8 +507,7 @@
             </div>
 
             <div class="status-bar status-info">
-              Visual only – later this calls /api/convert/pdf-to-word and
-              returns a DOCX.
+              Will call <code>/api/convert/pdf-to-word</code> later.
             </div>
           </div>
         </aside>
@@ -538,18 +518,17 @@
             <div class="pdf-placeholder">
               <p><strong>No file selected.</strong></p>
               <p>
-                When wired, we’ll show progress and provide a Word download
-                link here.
+                Once wired, you’ll get a DOCX download link here.
               </p>
             </div>
           </div>
         </section>
       </section>
 
-      <!-- ================================================================== -->
-      <!-- TOOL VIEW: MERGE PDF                                              -->
-      <!-- ================================================================== -->
-      <section class="layout tool-view" data-tool="merge-pdf" style="display: none;">
+      <!-- =============================================================== -->
+      <!-- MERGE PDF                                                        -->
+      <!-- =============================================================== -->
+      <section class="layout tool-view" data-tool-view="merge-pdf">
         <aside class="sidebar panel">
           <div class="panel-header">Merge PDFs</div>
           <div class="panel-body">
@@ -559,8 +538,8 @@
                 id="mergeFiles"
                 type="file"
                 accept="application/pdf"
-                class="field-input"
                 multiple
+                class="field-input"
               />
               <p class="field-help">
                 Combine rate cons, BOLs and invoices into a single packet.
@@ -584,8 +563,7 @@
             </div>
 
             <div class="status-bar status-info">
-              We’ll eventually show file order and a single merged PDF download
-              here.
+              Later this will send the PDFs to <code>/api/pdf/merge</code>.
             </div>
           </div>
         </aside>
@@ -596,8 +574,7 @@
             <div class="pdf-placeholder">
               <p><strong>No files selected.</strong></p>
               <p>
-                Upload multiple PDFs on the left. The final merged document
-                will be downloadable as a single PDF.
+                Final view will show file order and provide a single merged PDF.
               </p>
             </div>
           </div>
@@ -613,43 +590,31 @@
     </footer>
   </div>
 
-  <!-- TOOL SWITCHER SCRIPT (visual only, no backend calls yet) -->
+  <!-- Simple tab switching, NO pdf-lib/app.js -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const tabs = document.querySelectorAll(".tool-tab");
       const views = document.querySelectorAll(".tool-view");
 
-      function activateTool(toolId) {
-        views.forEach((view) => {
-          if (view.dataset.tool === toolId) {
-            view.style.display = "flex"; // layout uses flex
-          } else {
-            view.style.display = "none";
-          }
+      function showTool(id) {
+        views.forEach(view => {
+          view.classList.toggle("tool-view-active", view.dataset.toolView === id);
         });
-
-        tabs.forEach((tab) => {
-          tab.classList.toggle(
-            "tool-tab-active",
-            tab.dataset.toolTarget === toolId
-          );
+        tabs.forEach(tab => {
+          tab.classList.toggle("tool-tab-active", tab.dataset.tool === id);
         });
       }
 
-      tabs.forEach((tab) => {
+      tabs.forEach(tab => {
         tab.addEventListener("click", () => {
-          activateTool(tab.dataset.toolTarget);
+          showTool(tab.dataset.tool);
         });
       });
 
-      // Default: PDF Studio active
-      activateTool("pdf-studio");
+      // Default tool
+      showTool("pdf-studio");
     });
   </script>
-
-  <!-- Local pdf-lib served from node_modules via /vendor/pdf-lib -->
-  <script src="/vendor/pdf-lib/pdf-lib.min.js"></script>
-  <script src="./app.js"></script>
 </body>
 </html>
 
