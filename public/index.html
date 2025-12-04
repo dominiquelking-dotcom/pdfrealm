@@ -211,52 +211,128 @@
       <!-- =============================================================== -->
       <!-- PDF STUDIO (placeholder for full tool)                          -->
       <!-- =============================================================== -->
-      <section class="layout tool-view tool-view-active" data-tool-view="pdf-studio">
-        <aside class="sidebar panel">
-          <div class="panel-header">PDF Studio</div>
-          <div class="panel-body">
-            <p class="field-help">
-              This will be your full PDF signer / annotator. Load a PDF, place a
-              signature, add notes, and export a clean copy for your broker,
-              shipper or carrier.
-            </p>
+      <section
+  class="layout tool-view"
+  data-tool-view="pdf-studio"
+  id="pdfStudioView"
+  >
+   <!-- Top bar -->
+  <header class="pdfstudio-topbar">
+    <div class="pdfstudio-topbar-left">
+      <label class="btn primary">
+        <span>Upload PDF</span>
+        <input
+          id="pdfStudioUploadInput"
+          type="file"
+          accept="application/pdf"
+          style="display:none"
+        />
+      </label>
 
-            <div class="field">
-              <label class="field-label">What it will do</label>
-              <ul class="field-help">
-                <li>Open rate cons, BOLs, contracts and docs.</li>
-                <li>Drop a cursive signature on the page.</li>
-                <li>Add initials, stamps, notes and more.</li>
-                <li>Save as templates or reuse signatures instantly.</li>
-              </ul>
-            </div>
+      <button id="pdfStudioTemplateBtn" class="btn secondary">
+        Start from template
+      </button>
+    </div>
 
-            <div class="button-row">
-              <button class="btn btn-primary" disabled>
-                Launch full PDF Studio (coming soon)
-              </button>
-            </div>
+    <div class="pdfstudio-topbar-center">
+      <span id="pdfStudioFilename" class="pdfstudio-filename">
+        No file loaded
+      </span>
+      <span id="pdfStudioPageInfo" class="pdfstudio-pageinfo">
+        –
+      </span>
+    </div>
 
-            <div class="status-bar status-info">
-              This is the visual hub only. Quick Sign is live today. Full Studio will add
-              multi-signer, stamps, templates and more.
-            </div>
-          </div>
-        </aside>
+    <div class="pdfstudio-topbar-right">
+      <button id="pdfStudioZoomOutBtn" class="icon-btn" title="Zoom out">−</button>
+      <button id="pdfStudioZoomInBtn" class="icon-btn" title="Zoom in">+</button>
+      <button id="pdfStudioDownloadBtn" class="btn ghost">
+        Download PDF
+      </button>
+    </div>
+  </header>
 
-        <section class="viewer panel">
-          <div class="panel-header">Preview</div>
-          <div class="panel-body viewer-body">
-            <div class="pdf-placeholder">
-              <p><strong>PDF Studio coming soon.</strong></p>
-              <p>
-                This panel will show the live PDF preview with signature, text and stamp tools.
-                Right now it's just a placeholder while the advanced studio is being built.
-              </p>
-            </div>
-          </div>
-        </section>
-      </section>
+  <div class="pdfstudio-body">
+    <!-- Left: thumbnails -->
+    <aside class="pdfstudio-sidebar" id="pdfStudioThumbs">
+      <div class="pdfstudio-sidebar-empty">
+        <p>No pages yet.</p>
+        <p class="hint">Upload a PDF to begin.</p>
+      </div>
+    </aside>
+
+    <!-- Center: main canvas -->
+    <main class="pdfstudio-canvas-wrap">
+      <div id="pdfStudioCanvasContainer" class="pdfstudio-canvas-container">
+        <div class="pdfstudio-empty-state">
+          <h3>PDF Studio</h3>
+          <p>
+            Upload a PDF or start from a legal template to begin editing.
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right: tools -->
+    <aside class="pdfstudio-tools" id="pdfStudioTools">
+      <h4>Tools</h4>
+
+      <div class="pdfstudio-tool-group">
+        <div class="group-title">Basic</div>
+        <button class="tool-btn tool-active" data-tool-mode="select">
+          Select / Move
+        </button>
+        <button class="tool-btn" data-tool-mode="text">
+          Text
+        </button>
+        <button class="tool-btn" data-tool-mode="highlight">
+          Highlight
+        </button>
+        <button class="tool-btn" data-tool-mode="pen">
+          Freehand
+        </button>
+        <button class="tool-btn" data-tool-mode="note">
+          Sticky note
+        </button>
+      </div>
+
+      <div class="pdfstudio-tool-group">
+        <div class="group-title">Sign & Mark</div>
+        <button class="tool-btn" data-tool-mode="signature">
+          Signature
+        </button>
+        <button class="tool-btn" data-tool-mode="stamp-ok">
+          Stamp: RECEIVED
+        </button>
+        <button class="tool-btn" data-tool-mode="stamp-delivered">
+          Stamp: DELIVERED
+        </button>
+        <button class="tool-btn" data-tool-mode="stamp-freight">
+          Stamp: DETENTION / TONU
+        </button>
+      </div>
+
+      <div class="pdfstudio-tool-group">
+        <div class="group-title">More</div>
+        <button class="tool-btn" data-tool-mode="redact">
+          Redact
+        </button>
+        <button class="tool-btn" data-tool-mode="shape-rect">
+          Rectangle
+        </button>
+        <button class="tool-btn" data-tool-mode="shape-ellipse">
+          Circle
+        </button>
+      </div>
+
+      <div class="pdfstudio-hint">
+        PDF Studio is in beta.  
+        Fill, sign & mark up any PDF in seconds.
+      </div>
+    </aside>
+  </div>
+</section>
+
 
       <!-- =============================================================== -->
       <!-- QUICK SIGN                                                      -->
@@ -865,6 +941,47 @@
   </script>
 
   <script src="./app.js"></script>
+
+<!-- PDF.js (viewer library) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.js"></script>
+
+<!-- PDF Studio logic -->
+<script src="./pdf-studio.js"></script>
+
+<script>
+  // Your existing tab-switch logic here, unchanged
+  document.addEventListener("DOMContentLoaded", () => {
+    const tabs = document.querySelectorAll(".tool-tab");
+    const views = document.querySelectorAll(".tool-view");
+
+    function showTool(id) {
+      views.forEach(view => {
+        view.classList.toggle(
+          "tool-view-active",
+          view.dataset.toolView === id
+        );
+      });
+      tabs.forEach(tab => {
+        tab.classList.toggle(
+          "tool-tab-active",
+          tab.dataset.tool === id
+        );
+      });
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        showTool(tab.dataset.tool);
+      });
+    });
+
+    // Default tool
+    showTool("pdf-studio");
+  });
+</script>
+</body>
+</html>
+
 </body>
 </html>
 
