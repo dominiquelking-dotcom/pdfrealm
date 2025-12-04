@@ -6,7 +6,10 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "docx": "^9.5.1",
     "express": "^5.0.0",
+    "multer": "^2.0.2",
+    "pdf-lib": "^1.17.1",
     "pdfkit": "^0.17.2"
   }
 }
