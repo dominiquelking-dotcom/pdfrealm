@@ -24,9 +24,12 @@ async function jsonToPdf(url, payload, filename) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("app.js loaded, wiring buttons…");
+
   // ---------------- Invoice ----------------
   const invoiceBtn = document.getElementById("invoiceExportBtn");
   if (invoiceBtn) {
+    console.log("Found invoiceExportBtn");
     invoiceBtn.addEventListener("click", async () => {
       const from = document.getElementById("invFrom")?.value || "";
       const to = document.getElementById("invTo")?.value || "";
@@ -51,12 +54,16 @@ document.addEventListener("DOMContentLoaded", () => {
         invoiceBtn.textContent = "Export invoice PDF – $1.49";
       }
     });
+  } else {
+    console.warn("invoiceExportBtn not found");
   }
 
   // ---------------- Receipt ----------------
   const receiptBtn = document.getElementById("receiptExportBtn");
   if (receiptBtn) {
+    console.log("Found receiptExportBtn");
     receiptBtn.addEventListener("click", async () => {
+      console.log("Receipt button clicked");
       const from = document.getElementById("recFrom")?.value || "";
       const to = document.getElementById("recTo")?.value || "";
       const amountRaw = document.getElementById("recAmount")?.value || "";
@@ -80,6 +87,8 @@ document.addEventListener("DOMContentLoaded", () => {
         receiptBtn.textContent = "Export receipt PDF – $1.49";
       }
     });
+  } else {
+    console.warn("receiptExportBtn not found");
   }
 
   // ---------------- Paystub ----------------
@@ -226,4 +235,3 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-
