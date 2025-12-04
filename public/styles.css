@@ -1,4 +1,16 @@
-/* ===== Base layout ===== */
+/* ===========================
+   Brand + Global
+   =========================== */
+
+/* Brand colors */
+:root {
+  --brand-green: #22c55e;
+  --brand-dark: #0f172a;
+  --brand-light: #e5e7eb;
+  --brand-bg: #020617;
+  --border-subtle: #1f2937;
+  --text-muted: #9ca3af;
+}
 
 *,
 *::before,
@@ -10,355 +22,874 @@ html,
 body {
   margin: 0;
   padding: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
-  background: #0f172a;
-  color: #0f172a;
+  height: 100%;
 }
 
 body {
-  min-height: 100vh;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background: var(--brand-bg);
+  color: var(--brand-light);
 }
+
+/* Simple link styling */
+a {
+  color: var(--brand-green);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* ===========================
+   App Shell
+   =========================== */
 
 .app-shell {
   min-height: 100vh;
-  max-width: 1200px;
-  margin: 0 auto;
-  background: #f8fafc;
   display: flex;
   flex-direction: column;
 }
 
-/* ===== Header / brand ===== */
+/* Header */
 
 .app-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.9rem 1.3rem;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.3);
-  background: linear-gradient(90deg, #0f172a, #020617);
-  color: #e5e7eb;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(90deg, #020617, #0f172a);
+  color: var(--brand-light);
+  border-bottom: 1px solid #1f2937;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.7rem;
+  gap: 0.75rem;
 }
 
 .brand-logo {
   width: 40px;
   height: 40px;
-  border-radius: 0.5rem;
-  background: #111827;
-  object-fit: contain;
 }
 
 .brand-text {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
 }
 
 .brand-line {
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  font-size: 1rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
 }
 
 .brand-main {
-  color: #e5e7eb;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #ffffff;
 }
 
 .brand-accent {
-  color: #38bdf8;
-  margin-left: 0.2rem;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--brand-green);
 }
 
 .app-subtitle {
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   color: #9ca3af;
 }
 
 .app-badge {
   font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  padding: 0.2rem 0.6rem;
+  padding: 0.25rem 0.6rem;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.7);
-  color: #e5e7eb;
+  background: rgba(34, 197, 94, 0.14);
+  border: 1px solid var(--brand-green);
+  color: var(--brand-green);
 }
 
-/* ===== Main area ===== */
+/* Main layout */
 
 .app-main {
   flex: 1;
-  padding: 0.75rem 1rem 1rem;
+  padding: 1.25rem 1.5rem 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-/* layout for each tool view */
+/* Generic two-column layout (used for tools page) */
 .layout {
-  display: flex;
-  gap: 0.9rem;
+  display: grid;
+  grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+  gap: 1rem;
 }
 
-.sidebar {
-  flex: 0 0 330px;
-}
-
-.viewer {
-  flex: 1;
-}
-
-@media (max-width: 900px) {
-  .layout {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    flex: 1 1 auto;
-  }
-}
-
-/* ===== Panels ===== */
+/* Panels */
 
 .panel {
-  background: #ffffff;
+  background: #020617;
   border-radius: 0.75rem;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+  border: 1px solid #1f2937;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.75);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .panel-header {
-  padding: 0.7rem 0.9rem;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #1f2937;
   font-size: 0.9rem;
-  font-weight: 600;
-  color: #0f172a;
-  background: #f9fafb;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
 }
 
 .panel-body {
-  padding: 0.8rem 0.9rem 0.9rem;
+  padding: 0.9rem 1rem 1rem;
 }
 
-/* viewer body matches panel spacing */
-.viewer-body {
-  min-height: 260px;
-}
+/* Sidebar form */
 
-/* ===== Form fields / text ===== */
-
-.field {
-  margin-bottom: 0.7rem;
+.sidebar .field {
+  margin-bottom: 0.75rem;
 }
 
 .field-label {
   display: block;
   font-size: 0.8rem;
   font-weight: 500;
-  color: #0f172a;
   margin-bottom: 0.25rem;
+  color: #cbd5f5;
 }
 
 .field-input {
   width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid #1f2937;
+  background: #020617;
+  padding: 0.5rem 0.6rem;
+  color: #e5e7eb;
   font-size: 0.85rem;
-  padding: 0.4rem 0.55rem;
-  border-radius: 0.45rem;
-  border: 1px solid rgba(148, 163, 184, 0.9);
-  outline: none;
-  background: #ffffff;
+}
+
+.field-input::placeholder {
+  color: #6b7280;
 }
 
 .field-input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.25);
+  outline: 2px solid var(--brand-green);
+  outline-offset: 1px;
+  border-color: var(--brand-green);
 }
 
 .field-textarea {
   resize: vertical;
-  min-height: 70px;
+  min-height: 3rem;
 }
 
 .field-help {
   margin: 0.25rem 0 0;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #6b7280;
-}
-
-.field-help li {
-  margin-left: 1rem;
 }
 
 .field-inline {
   display: flex;
-  gap: 0.6rem;
+  gap: 0.75rem;
 }
 
 .field-half {
   flex: 1;
 }
 
-@media (max-width: 640px) {
-  .field-inline {
-    flex-direction: column;
-  }
-}
-
-/* ===== Buttons ===== */
+/* ===========================
+   Buttons
+   =========================== */
 
 .button-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-top: 0.5rem;
+  margin: 0.5rem 0 0.75rem;
 }
 
 .btn {
   border-radius: 999px;
-  padding: 0.4rem 0.9rem;
   border: 1px solid transparent;
+  padding: 0.45rem 0.9rem;
   font-size: 0.85rem;
+  font-weight: 500;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
-  white-space: nowrap;
+  transition: background 0.12s ease, border-color 0.12s ease,
+    transform 0.06s ease, box-shadow 0.12s ease;
 }
 
-.btn-primary {
-  background: #2563eb;
-  color: #ffffff;
-  border-color: #2563eb;
-  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.35);
+/* supports both class="btn btn-primary" and class="btn primary" */
+.btn-primary,
+.btn.primary {
+  background: var(--brand-green);
+  border-color: var(--brand-green);
+  color: #0f172a;
+  box-shadow: 0 10px 25px rgba(34, 197, 94, 0.45);
 }
 
-.btn-primary:hover {
-  background: #1d4ed8;
+.btn-primary:hover:not(:disabled),
+.btn.primary:hover:not(:disabled) {
+  background: #16a34a;
+  border-color: #16a34a;
+  transform: translateY(-1px);
 }
 
-.btn-primary:disabled {
-  opacity: 0.55;
-  cursor: default;
+.btn-secondary,
+.btn.secondary {
+  background: transparent;
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+
+.btn-secondary:hover:not(:disabled),
+.btn.secondary:hover:not(:disabled) {
+  border-color: #9ca3af;
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.btn-ghost,
+.btn.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: #e5e7eb;
+}
+.btn-ghost:hover:not(:disabled),
+.btn.ghost:hover:not(:disabled) {
+  background: rgba(15, 23, 42, 0.7);
+  border-color: #374151;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
   box-shadow: none;
 }
 
-.btn-secondary {
-  background: #ffffff;
-  color: #0f172a;
-  border-color: rgba(148, 163, 184, 0.9);
+/* Small circular icon button (used for zoom) */
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid #4b5563;
+  background: transparent;
+  color: #e5e7eb;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease,
+    transform 0.06s ease;
+}
+.icon-btn:hover {
+  background: rgba(15, 23, 42, 0.7);
+  border-color: #9ca3af;
+  transform: translateY(-1px);
 }
 
-.btn-secondary:hover {
-  background: #e5e7eb;
-}
-
-/* ===== Status bar ===== */
+/* ===========================
+   Status bar
+   =========================== */
 
 .status-bar {
-  margin-top: 0.7rem;
-  font-size: 0.8rem;
+  margin-top: 0.4rem;
   padding: 0.45rem 0.6rem;
   border-radius: 0.5rem;
+  font-size: 0.78rem;
   border: 1px solid transparent;
 }
 
 .status-info {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-  color: #1d4ed8;
+  background: rgba(15, 23, 42, 0.9);
+  border-color: #1f2937;
+  color: #9ca3af;
 }
 
-/* ===== Placeholder viewer ===== */
-
-.pdf-placeholder {
-  border-radius: 0.6rem;
-  border: 2px dashed rgba(148, 163, 184, 0.8);
-  padding: 1rem;
-  background: #f9fafb;
-  font-size: 0.85rem;
-  color: #4b5563;
+.status-success {
+  background: rgba(22, 163, 74, 0.15);
+  border-color: #16a34a;
+  color: #bbf7d0;
 }
 
-/* ===== Footer ===== */
+.status-error {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: #ef4444;
+  color: #fecaca;
+}
 
-.app-footer {
-  border-top: 1px solid rgba(148, 163, 184, 0.3);
-  padding: 0.5rem 1.3rem;
+/* ===========================
+   Hero / Landing
+   =========================== */
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  padding: 1.5rem 1.75rem;
+  border-radius: 1rem;
+  background: radial-gradient(circle at top left, #0b1120, #020617 55%);
+  border: 1px solid #1f2937;
+  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.85);
+  margin-bottom: 1.5rem;
+}
+
+.hero-kicker {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #9ca3af;
+  margin-bottom: 0.75rem;
+}
+
+.hero-title {
+  font-size: clamp(1.9rem, 3vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 0.6rem;
+}
+
+.hero-subtitle {
+  font-size: 0.95rem;
+  color: #9ca3af;
+  max-width: 36rem;
+  margin-bottom: 1rem;
+}
+
+.hero-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.hero-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+}
+
+.metric-pill {
+  border-radius: 999px;
+  border: 1px solid #1f2937;
+  padding: 0.35rem 0.65rem;
+  background: rgba(15, 23, 42, 0.8);
+  color: #9ca3af;
+}
+
+/* hero right card */
+
+.hero-card {
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 0.85rem;
+  border: 1px solid #1f2937;
+  padding: 1rem 1rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.hero-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.hero-card-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   font-size: 0.8rem;
-  color: #6b7280;
-  background: #f9fafb;
+  color: #9ca3af;
 }
 
-.footer-meta {
+.hero-card-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  padding: 0.3rem 0.65rem;
+  font-size: 0.75rem;
+  color: #bbf7d0;
+  background: rgba(22, 163, 74, 0.08);
+}
+
+/* ===========================
+   Sections / Comparison
+   =========================== */
+
+.section {
+  margin-top: 1.75rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.75rem;
+}
+
+.section-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.section-subtitle {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.comparison-table-wrap {
+  border-radius: 0.75rem;
+  border: 1px solid #1f2937;
+  overflow: hidden;
+  background: #020617;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.75);
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.comparison-table thead {
+  background: #0b1120;
+}
+
+.comparison-table th,
+.comparison-table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #1f2937;
+}
+
+.comparison-table th {
+  font-weight: 600;
+  text-align: left;
+  color: #e5e7eb;
+}
+
+.comparison-table tbody tr:nth-child(even) {
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.comparison-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
+}
+
+.comparison-badge-good {
+  background: rgba(22, 163, 74, 0.15);
+  color: #bbf7d0;
+  border: 1px solid #16a34a;
+}
+
+.comparison-badge-warn {
+  background: rgba(234, 179, 8, 0.1);
+  color: #facc15;
+  border: 1px solid rgba(250, 204, 21, 0.6);
+}
+
+.comparison-badge-bad {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fecaca;
+  border: 1px solid #ef4444;
+}
+
+/* ===========================
+   Tool Tabs (Tools Shell)
+   =========================== */
+
+.tool-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.tool-tab {
+  font-size: 0.8rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid #1f2937;
+  background: rgba(15, 23, 42, 0.9);
+  color: #9ca3af;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: background 0.12s ease, border-color 0.12s ease,
+    transform 0.06s ease;
+}
+
+.tool-tab:hover {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: #374151;
+  transform: translateY(-1px);
+}
+
+.tool-tab-active {
+  border-color: var(--brand-green);
+  background: rgba(22, 163, 74, 0.15);
+  color: #bbf7d0;
+  box-shadow: 0 12px 26px rgba(22, 163, 74, 0.5);
+}
+
+/* Only show active tool view */
+.tool-view {
+  display: none;
+  margin-top: 0.75rem;
+}
+.tool-view-active {
+  display: block;
+}
+
+/* ===========================
+   PDF Studio Layout
+   =========================== */
+
+.pdfstudio-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.75rem;
+  border: 1px solid #1f2937;
+  background: linear-gradient(90deg, #020617, #020617, #0b1120);
+  margin-bottom: 0.85rem;
+}
+
+.pdfstudio-topbar-left,
+.pdfstudio-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pdfstudio-topbar-center {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.pdfstudio-filename {
+  font-size: 0.85rem;
+  color: #e5e7eb;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pdfstudio-pageinfo {
   font-size: 0.75rem;
   color: #9ca3af;
 }
 
-@media (max-width: 640px) {
-  .app-footer {
-    flex-direction: column;
-    gap: 0.25rem;
-    align-items: flex-start;
-  }
+/* body grid: thumbnails / canvas / tools */
+
+.pdfstudio-body {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 260px;
+  gap: 0.75rem;
+  align-items: flex-start;
 }
 
-/* ===== Quick Sign viewer ===== */
+/* Left sidebar (thumbnails) */
 
-.qs-viewer-wrapper {
-  position: relative;
+.pdfstudio-sidebar {
+  border-radius: 0.75rem;
+  border: 1px solid #1f2937;
+  background: #020617;
+  padding: 0.5rem;
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+}
+
+.pdfstudio-sidebar-empty {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.pdfstudio-thumb {
+  border-radius: 0.5rem;
+  border: 1px solid #111827;
+  padding: 0.25rem;
+  margin-bottom: 0.4rem;
+  background: #020617;
+  cursor: pointer;
+  transition: border-color 0.12s ease, transform 0.06s ease,
+    box-shadow 0.12s ease;
+}
+
+.pdfstudio-thumb:hover {
+  border-color: #4b5563;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.8);
+}
+
+.pdfstudio-thumb-canvas {
   width: 100%;
-  height: 450px;
+  display: block;
+}
+
+/* center canvas */
+
+.pdfstudio-canvas-wrap {
+  border-radius: 0.75rem;
+  border: 1px solid #1f2937;
+  background: radial-gradient(circle at top left, #0b1120, #020617 55%);
+  padding: 0.5rem;
+  min-height: 60vh;
+  overflow: auto;
+}
+
+.pdfstudio-canvas-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.pdfstudio-page-canvas {
+  border-radius: 0.75rem;
+  border: 1px solid #111827;
+  background: #020617;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.9);
+}
+
+.pdfstudio-empty-state {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.85rem;
+  padding: 2rem 1rem;
+}
+
+/* right tools */
+
+.pdfstudio-tools {
+  border-radius: 0.75rem;
+  border: 1px solid #1f2937;
+  background: #020617;
+  padding: 0.6rem 0.7rem 0.7rem;
+  font-size: 0.8rem;
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+}
+
+.pdfstudio-tools h4 {
+  margin: 0 0 0.4rem;
+  font-size: 0.9rem;
+}
+
+.pdfstudio-tool-group {
+  margin-bottom: 0.75rem;
+}
+
+.group-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.tool-btn {
+  width: 100%;
+  border-radius: 0.6rem;
+  border: 1px solid #1f2937;
+  padding: 0.35rem 0.6rem;
+  margin-bottom: 0.3rem;
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5e7eb;
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease,
+    transform 0.06s ease;
+}
+.tool-btn:hover {
+  border-color: #4b5563;
+  background: rgba(15, 23, 42, 0.98);
+  transform: translateY(-1px);
+}
+.tool-btn.tool-active {
+  border-color: var(--brand-green);
+  background: rgba(22, 163, 74, 0.15);
+  color: #bbf7d0;
+  box-shadow: 0 10px 25px rgba(22, 163, 74, 0.4);
+}
+
+.pdfstudio-hint {
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* ===========================
+   Quick Sign / Viewer (old)
+   =========================== */
+
+.viewer-body {
+  padding: 0.75rem;
+  background: radial-gradient(circle at top left, #0b1120, #020617 55%);
+  position: relative; /* for absolute overlay */
+  min-height: 110vh;
+}
+
+.pdf-placeholder {
+  border-radius: 0.75rem;
+  border: 1px dashed #374151;
+  padding: 1.1rem;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.85rem;
 }
 
 .pdf-frame {
+  margin-top: 0.75rem;
   width: 100%;
-  height: 100%;
-  border: none;
-  border-radius: 0.6rem;
-  background: #0f172a;
+  height: 220vh; /* larger preview for easier placement */
+  border-radius: 0.75rem;
+  border: 1px solid #111827;
+  background: #020617;
 }
 
-/* ===== Draggable signature overlay ===== */
+/* Signature overlay */
 
 .signature-overlay {
   position: absolute;
   top: 60%;
-  left: 50%;
+  left: 60%;
   transform: translate(-50%, -50%);
-  cursor: grab;
+  cursor: move;
+  z-index: 10;
   user-select: none;
 }
 
 .signature-card {
-  background: #ffffff;
-  border-radius: 0.75rem;
-  border: 1px solid rgba(148, 163, 184, 0.9);
-  padding: 0.4rem 0.9rem;
-  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.25);
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  padding: 0.15rem 0.75rem 0.25rem;
   display: inline-flex;
-  flex-direction: column;
-  gap: 0.1rem;
+  align-items: baseline;
+  gap: 0.5rem;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.8);
 }
 
 .signature-text {
-  font-size: 1.1rem;
-  font-family: "Segoe Script", "Lucida Handwriting", cursive;
-  color: #111827;
+  font-size: 1.3rem;
+  font-weight: 400;
+  font-family: "Segoe Script", "Lucida Handwriting", "Brush Script MT",
+    cursive;
+  color: var(--brand-light);
+  white-space: nowrap;
 }
 
 .signature-hint {
   font-size: 0.7rem;
   color: #6b7280;
-  text-align: right;
+}
+
+/* ===========================
+   Footer
+   =========================== */
+
+.app-footer {
+  padding: 0.65rem 1.5rem;
+  border-top: 1px solid #1f2937;
+  color: #6b7280;
+  font-size: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: #020617;
+}
+
+.footer-meta {
+  color: #4b5563;
+}
+
+/* Divider */
+
+.section-divider {
+  border: 0;
+  border-top: 1px solid #1f2937;
+  margin: 0.5rem 0 0.75rem;
+}
+
+/* ===========================
+   Responsive
+   =========================== */
+
+@media (max-width: 1024px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pdfstudio-body {
+    grid-template-columns: 200px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    grid-auto-flow: row;
+  }
+
+  .pdfstudio-tools {
+    grid-column: 1 / -1;
+    max-height: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pdf-frame {
+    height: 110vh;
+  }
+}
+
+@media (max-width: 600px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+
+  .app-main {
+    padding: 0.75rem;
+  }
+
+  .hero {
+    padding: 1.1rem 1.1rem;
+  }
+
+  .pdfstudio-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pdfstudio-sidebar {
+    max-height: 220px;
+  }
 }
 
