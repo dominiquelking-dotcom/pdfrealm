@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -35,7 +36,6 @@
     }
 
     .tool-view {
-      /* your existing .layout uses flex so we keep display:flex here */
       display: none;
     }
 
@@ -73,10 +73,13 @@
       <div class="app-badge">beta</div>
     </header>
 
-    <!-- TOOL TABS (no PDF logic, just switching views) -->
+    <!-- TOOL TABS -->
     <nav class="tool-switcher">
       <button class="tool-tab tool-tab-active" data-tool="pdf-studio">
         PDF Studio (Sign / Annotate)
+      </button>
+      <button class="tool-tab" data-tool="quick-sign">
+        Quick Sign
       </button>
       <button class="tool-tab" data-tool="invoice">
         Invoice Generator
@@ -100,7 +103,7 @@
 
     <main class="app-main">
       <!-- =============================================================== -->
-      <!-- PDF STUDIO (just a description for now, NOT the real signer)   -->
+      <!-- PDF STUDIO (placeholder for full tool)                          -->
       <!-- =============================================================== -->
       <section class="layout tool-view tool-view-active" data-tool-view="pdf-studio">
         <aside class="sidebar panel">
@@ -117,19 +120,20 @@
               <ul class="field-help">
                 <li>Open rate cons, BOLs, contracts and docs.</li>
                 <li>Drop a cursive signature on the page.</li>
-                <li>Save a signed copy locally or export as a new PDF.</li>
+                <li>Add initials, stamps, notes and more.</li>
+                <li>Save as templates or reuse signatures instantly.</li>
               </ul>
             </div>
 
             <div class="button-row">
               <button class="btn btn-primary" disabled>
-                Launch PDF Studio (coming soon)
+                Launch full PDF Studio (coming soon)
               </button>
             </div>
 
             <div class="status-bar status-info">
-              This is the visual hub only. The real signer will live on its own
-              route or page and plug into this suite.
+              This is the visual hub only. Quick Sign is live today. Full Studio will add
+              multi-signer, stamps, templates and more.
             </div>
           </div>
         </aside>
@@ -140,10 +144,88 @@
             <div class="pdf-placeholder">
               <p><strong>PDF Studio coming soon.</strong></p>
               <p>
-                This panel will show the live PDF preview with your signature
-                overlay. Right now it's just a placeholder so the layout matches
-                the rest of the tools.
+                This panel will show the live PDF preview with signature, text and stamp tools.
+                Right now it's just a placeholder while the advanced studio is being built.
               </p>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- =============================================================== -->
+      <!-- QUICK SIGN                                                      -->
+      <!-- =============================================================== -->
+      <section class="layout tool-view" data-tool-view="quick-sign">
+        <aside class="sidebar panel">
+          <div class="panel-header">Quick Sign</div>
+          <div class="panel-body">
+            <div class="field">
+              <label class="field-label" for="qsFile">PDF file</label>
+              <input
+                id="qsFile"
+                type="file"
+                accept="application/pdf"
+                class="field-input"
+              />
+              <p class="field-help">
+                Upload any PDF with a signature block. Drag your signature to the correct spot
+                in the preview on the right, then apply.
+              </p>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="qsSignerName">Signer name</label>
+              <input
+                id="qsSignerName"
+                type="text"
+                class="field-input"
+                placeholder="e.g. Ashley King"
+              />
+              <p class="field-help">
+                This name will be rendered in a cursive-style font on the document.
+              </p>
+            </div>
+
+            <div class="button-row">
+              <button id="qsApplyBtn" class="btn btn-primary">
+                Apply &amp; download signed PDF
+              </button>
+            </div>
+
+            <div id="qsStatus" class="status-bar status-info">
+              1) Choose PDF &nbsp; 2) Drag signature on the preview &nbsp; 3) Click "Apply".
+            </div>
+          </div>
+        </aside>
+
+        <section class="viewer panel">
+          <div class="panel-header">Quick Sign preview</div>
+          <div class="panel-body viewer-body">
+            <div id="qsPdfPlaceholder" class="pdf-placeholder">
+              <p><strong>No document loaded.</strong></p>
+              <p>
+                Upload a PDF on the left. Once loaded, a signature card will appear here
+                that you can drag into position over the signature line.
+              </p>
+            </div>
+
+            <div id="qsViewerWrapper" class="qs-viewer-wrapper" style="display:none;">
+              <iframe
+                id="qsPdfFrame"
+                class="pdf-frame"
+                title="Quick Sign PDF preview"
+              ></iframe>
+
+              <div
+                id="qsSignatureOverlay"
+                class="signature-overlay"
+                style="display:none;"
+              >
+                <div class="signature-card">
+                  <span id="qsSignatureText" class="signature-text">Signature</span>
+                  <span class="signature-hint">Drag me</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -210,12 +292,12 @@
 
             <div class="button-row">
               <button id="invoiceExportBtn" class="btn btn-primary">
-              Export invoice PDF – $1.49
+                Export invoice PDF – $1.49
               </button>
             </div>
 
             <div class="status-bar status-info">
-              Visual only right now. Later this posts to <code>/api/invoice/generate</code>.
+              Live invoice PDF export. Later this can be tied to payments and customer records.
             </div>
           </div>
         </aside>
@@ -226,8 +308,8 @@
             <div class="pdf-placeholder">
               <p><strong>Invoice preview mock.</strong></p>
               <p>
-                This will render a simple invoice layout you can download as a
-                PDF. For now it's just a placeholder while we wire the backend.
+                The generated PDF includes your business info, bill-to details,
+                a details/notes section and a highlighted total due.
               </p>
             </div>
           </div>
@@ -296,11 +378,13 @@
             </div>
 
             <div class="button-row">
-            <button id="receiptExportBtn" class="btn btn-primary">
-             Export receipt PDF – $1.49
-            </button>
+              <button id="receiptExportBtn" class="btn btn-primary">
+                Export receipt PDF – $1.49
+              </button>
+            </div>
+
             <div class="status-bar status-info">
-              Will eventually call <code>/api/receipt/generate</code> and return a PDF.
+              Creates a clean payment receipt PDF for your records or your customer's records.
             </div>
           </div>
         </aside>
@@ -311,8 +395,7 @@
             <div class="pdf-placeholder">
               <p><strong>Receipt preview mock.</strong></p>
               <p>
-                Final layout will show "Received from", amount, purpose and
-                payment method in a clean trucking-friendly format.
+                Final layout highlights who paid, how much, for what, and how they paid.
               </p>
             </div>
           </div>
@@ -382,18 +465,17 @@
             </div>
 
             <p class="field-help">
-              For business/internal use only – not a replacement for full
-              payroll systems.
+              For business/internal use only – not a replacement for full payroll systems.
             </p>
 
             <div class="button-row">
-             <button id="receiptExportBtn" class="btn btn-primary">
-              Export receipt PDF – $1.49
-             </button>
+              <button id="paystubExportBtn" class="btn btn-primary">
+                Export paystub PDF – $1.49
+              </button>
             </div>
 
             <div class="status-bar status-info">
-              Later this will hit <code>/api/paystub/generate</code>.
+              Creates a simple paystub showing gross, deductions and net amounts.
             </div>
           </div>
         </aside>
@@ -413,7 +495,7 @@
       </section>
 
       <!-- =============================================================== -->
-      <!-- WORD → PDF                                                       -->
+      <!-- WORD → PDF                                                      -->
       <!-- =============================================================== -->
       <section class="layout tool-view" data-tool-view="word-to-pdf">
         <aside class="sidebar panel">
@@ -443,13 +525,13 @@
             </div>
 
             <div class="button-row">
-             <button id="wordToPdfBtn" class="btn btn-primary">
-              Convert to PDF – $1.49
-             </button>
+              <button id="wordToPdfBtn" class="btn btn-primary">
+                Convert to PDF – $1.49
+              </button>
             </div>
 
             <div class="status-bar status-info">
-              Will call <code>/api/convert/word-to-pdf</code> once wired up.
+              Currently a placeholder conversion. Later this will preserve full layout.
             </div>
           </div>
         </aside>
@@ -460,7 +542,7 @@
             <div class="pdf-placeholder">
               <p><strong>No file selected.</strong></p>
               <p>
-                When wired, we’ll show upload status and a PDF download link
+                When wired fully, we’ll show upload status and a PDF download link
                 here.
               </p>
             </div>
@@ -469,7 +551,7 @@
       </section>
 
       <!-- =============================================================== -->
-      <!-- PDF → WORD                                                       -->
+      <!-- PDF → WORD                                                      -->
       <!-- =============================================================== -->
       <section class="layout tool-view" data-tool-view="pdf-to-word">
         <aside class="sidebar panel">
@@ -499,13 +581,13 @@
             </div>
 
             <div class="button-row">
-             <button id="pdfToWordBtn" class="btn btn-primary">
-              Convert to Word – $1.49
-             </button>
+              <button id="pdfToWordBtn" class="btn btn-primary">
+                Convert to Word – $1.49
+              </button>
             </div>
 
             <div class="status-bar status-info">
-              Will call <code>/api/convert/pdf-to-word</code> later.
+              Currently generates a placeholder .docx. Full content extraction will come later.
             </div>
           </div>
         </aside>
@@ -524,7 +606,7 @@
       </section>
 
       <!-- =============================================================== -->
-      <!-- MERGE PDF                                                        -->
+      <!-- MERGE PDF                                                       -->
       <!-- =============================================================== -->
       <section class="layout tool-view" data-tool-view="merge-pdf">
         <aside class="sidebar panel">
@@ -555,13 +637,13 @@
             </div>
 
             <div class="button-row">
-             <button id="mergePdfBtn" class="btn btn-primary">
-              Merge &amp; export – $1.49
-             </button>
+              <button id="mergePdfBtn" class="btn btn-primary">
+                Merge &amp; export – $1.49
+              </button>
             </div>
 
             <div class="status-bar status-info">
-              Later this will send the PDFs to <code>/api/pdf/merge</code>.
+              Merged PDF will contain all pages from all uploaded files in the order selected.
             </div>
           </div>
         </aside>
@@ -588,7 +670,7 @@
     </footer>
   </div>
 
-  <!-- Simple tab switching, NO pdf-lib/app.js -->
+  <!-- Simple tab switching -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const tabs = document.querySelectorAll(".tool-tab");

@@ -26,6 +26,190 @@ async function jsonToPdf(url, payload, filename) {
 document.addEventListener("DOMContentLoaded", () => {
   console.log("app.js loaded, wiring buttons…");
 
+  // ---------------- Quick Sign ----------------
+  const qsFileInput = document.getElementById("qsFile");
+  const qsSignerInput = document.getElementById("qsSignerName");
+  const qsPdfFrame = document.getElementById("qsPdfFrame");
+  const qsPdfPlaceholder = document.getElementById("qsPdfPlaceholder");
+  const qsViewerWrapper = document.getElementById("qsViewerWrapper");
+  const qsSignatureOverlay = document.getElementById("qsSignatureOverlay");
+  const qsSignatureText = document.getElementById("qsSignatureText");
+  const qsApplyBtn = document.getElementById("qsApplyBtn");
+  const qsStatus = document.getElementById("qsStatus");
+
+  let qsCurrentPdfUrl = null;
+
+  function updateQsSignatureText() {
+    if (!qsSignatureText || !qsSignerInput) return;
+    const name = qsSignerInput.value.trim() || "Signature";
+    qsSignatureText.textContent = name;
+  }
+
+  if (qsSignerInput) {
+    qsSignerInput.addEventListener("input", updateQsSignatureText);
+  }
+
+  function resetQuickSignPreview() {
+    if (qsPdfPlaceholder) qsPdfPlaceholder.style.display = "block";
+    if (qsViewerWrapper) qsViewerWrapper.style.display = "none";
+    if (qsSignatureOverlay) qsSignatureOverlay.style.display = "none";
+    if (qsPdfFrame) qsPdfFrame.src = "";
+    if (qsCurrentPdfUrl) {
+      URL.revokeObjectURL(qsCurrentPdfUrl);
+      qsCurrentPdfUrl = null;
+    }
+  }
+
+  if (qsFileInput && qsPdfFrame) {
+    qsFileInput.addEventListener("change", () => {
+      const file = qsFileInput.files?.[0];
+      if (!file) {
+        resetQuickSignPreview();
+        return;
+      }
+      if (file.type !== "application/pdf") {
+        alert("Please select a PDF file.");
+        qsFileInput.value = "";
+        resetQuickSignPreview();
+        return;
+      }
+
+      if (qsCurrentPdfUrl) {
+        URL.revokeObjectURL(qsCurrentPdfUrl);
+      }
+      qsCurrentPdfUrl = URL.createObjectURL(file);
+      qsPdfFrame.src = qsCurrentPdfUrl;
+
+      if (qsPdfPlaceholder) qsPdfPlaceholder.style.display = "none";
+      if (qsViewerWrapper) qsViewerWrapper.style.display = "block";
+      if (qsSignatureOverlay) {
+        qsSignatureOverlay.style.display = "block";
+        // Center-ish position
+        const wrapperRect = qsViewerWrapper.getBoundingClientRect();
+        const overlayRect = qsSignatureOverlay.getBoundingClientRect();
+        const left =
+          wrapperRect.width / 2 - (overlayRect.width || 120) / 2;
+        const top = wrapperRect.height * 0.75;
+        qsSignatureOverlay.style.left = `${left}px`;
+        qsSignatureOverlay.style.top = `${top}px`;
+      }
+
+      if (qsStatus) {
+        qsStatus.textContent =
+          "Drag the signature on the preview, then click Apply.";
+      }
+
+      updateQsSignatureText();
+    });
+  }
+
+  // Drag logic
+  if (qsSignatureOverlay && qsViewerWrapper) {
+    let isDragging = false;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+
+    qsSignatureOverlay.addEventListener("mousedown", (e) => {
+      isDragging = true;
+      const overlayRect = qsSignatureOverlay.getBoundingClientRect();
+      dragOffsetX = e.clientX - overlayRect.left;
+      dragOffsetY = e.clientY - overlayRect.top;
+      qsSignatureOverlay.style.cursor = "grabbing";
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (!isDragging) return;
+      const wrapperRect = qsViewerWrapper.getBoundingClientRect();
+      let left = e.clientX - wrapperRect.left - dragOffsetX;
+      let top = e.clientY - wrapperRect.top - dragOffsetY;
+
+      const maxLeft = wrapperRect.width - qsSignatureOverlay.offsetWidth;
+      const maxTop = wrapperRect.height - qsSignatureOverlay.offsetHeight;
+
+      left = Math.max(0, Math.min(left, maxLeft));
+      top = Math.max(0, Math.min(top, maxTop));
+
+      qsSignatureOverlay.style.left = `${left}px`;
+      qsSignatureOverlay.style.top = `${top}px`;
+    });
+
+    document.addEventListener("mouseup", () => {
+      if (isDragging) {
+        isDragging = false;
+        qsSignatureOverlay.style.cursor = "grab";
+      }
+    });
+  }
+
+  if (qsApplyBtn && qsFileInput && qsViewerWrapper && qsSignatureOverlay) {
+    qsApplyBtn.addEventListener("click", async () => {
+      const file = qsFileInput.files?.[0];
+      if (!file) {
+        alert("Select a PDF file first.");
+        return;
+      }
+      const signerName = qsSignerInput?.value.trim();
+      if (!signerName) {
+        alert("Enter a signer name.");
+        return;
+      }
+
+      const wrapperRect = qsViewerWrapper.getBoundingClientRect();
+      const overlayRect = qsSignatureOverlay.getBoundingClientRect();
+
+      const centerX =
+        overlayRect.left -
+        wrapperRect.left +
+        overlayRect.width / 2;
+      const centerY =
+        overlayRect.top -
+        wrapperRect.top +
+        overlayRect.height / 2;
+
+      const posX = centerX / wrapperRect.width;
+      const posY = centerY / wrapperRect.height;
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("signerName", signerName);
+      formData.append("posX", String(posX));
+      formData.append("posY", String(posY));
+
+      try {
+        qsApplyBtn.disabled = true;
+        qsApplyBtn.textContent = "Applying signature...";
+        if (qsStatus) {
+          qsStatus.textContent =
+            "Applying signature on the server and generating a signed PDF...";
+        }
+
+        const res = await fetch("/api/quick-sign", {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok) {
+          throw new Error(`Server error ${res.status}`);
+        }
+
+        await triggerDownloadFromResponse(res, "signed.pdf");
+
+        if (qsStatus) {
+          qsStatus.textContent = "Signed PDF downloaded.";
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Error applying signature. Check console for details.");
+        if (qsStatus) {
+          qsStatus.textContent =
+            "Something went wrong. Try again or refresh the page.";
+        }
+      } finally {
+        qsApplyBtn.disabled = false;
+        qsApplyBtn.textContent = "Apply & download signed PDF";
+      }
+    });
+  }
+
   // ---------------- Invoice ----------------
   const invoiceBtn = document.getElementById("invoiceExportBtn");
   if (invoiceBtn) {
@@ -235,3 +419,4 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
