@@ -1,6 +1,2 @@
-docker build -t pdf-suite .
-docker run -p 8080:8080 pdf-suite
-git add .
-git commit -m "Updated UI with new unified tool design"
-git push
+docker build -t pdfrealm:latest . && docker run --rm -p 8080:8080 pdfrealm:latest & sleep 3 && git add . && git commit -m "Auto: update + css/theme/pdfstudio" && git push origin main
 

@@ -1,0 +1,377 @@
+{
+  "version": "1.0.0",
+  "categories": [
+    {
+      "id": "freight",
+      "name": "Freight & Logistics",
+      "description": "Core trucking, broker, and carrier forms.",
+      "templates": [
+        {
+          "id": "freight-bol-standard",
+          "title": "Standard Bill of Lading (BOL)",
+          "description": "General-purpose bill of lading for most freight moves.",
+          "tags": ["bol", "freight", "shipping", "carrier"],
+          "bestForTabs": ["pdf-studio"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/freight/bol-standard.pdf" },
+            { "type": "docx", "path": "/templates/freight/bol-standard.docx" }
+          ]
+        },
+        {
+          "id": "freight-bol-short",
+          "title": "Short-Form BOL (LTL / Hotshot)",
+          "description": "Compact bill of lading for LTL and hotshot loads.",
+          "tags": ["bol", "ltl", "hotshot"],
+          "bestForTabs": ["pdf-studio"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/freight/bol-short.pdf" }
+          ]
+        },
+        {
+          "id": "freight-rate-confirmation",
+          "title": "Rate Confirmation",
+          "description": "Broker-to-carrier rate confirmation with accessorial lines.",
+          "tags": ["rate confirmation", "broker", "carrier"],
+          "bestForTabs": ["pdf-studio", "invoice-generator"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/freight/rate-confirmation.pdf" },
+            { "type": "docx", "path": "/templates/freight/rate-confirmation.docx" }
+          ]
+        },
+        {
+          "id": "freight-detention-form",
+          "title": "Detention Form",
+          "description": "Log detention hours and charges for customer billing.",
+          "tags": ["detention", "accessorial", "billing"],
+          "bestForTabs": ["pdf-studio", "invoice-generator", "receipt-generator"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/freight/detention-form.pdf" }
+          ]
+        },
+        {
+          "id": "freight-tonu-notice",
+          "title": "TONU (Truck Ordered Not Used) Notice",
+          "description": "Formal notice and billing for truck ordered not used.",
+          "tags": ["tonu", "accessorial"],
+          "bestForTabs": ["pdf-studio", "invoice-generator"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/freight/tonu-notice.pdf" }
+          ]
+        },
+        {
+          "id": "freight-lumper-receipt",
+          "title": "Lumper Fee Reimbursement Form",
+          "description": "Record lumper fees for reimbursement and record-keeping.",
+          "tags": ["lumper", "reimbursement", "receipt"],
+          "bestForTabs": ["receipt-generator", "pdf-studio"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/freight/lumper-receipt.pdf" }
+          ]
+        },
+        {
+          "id": "freight-pod",
+          "title": "Proof of Delivery (POD)",
+          "description": "Standard POD template with signature and timestamp.",
+          "tags": ["pod", "delivery", "signature"],
+          "bestForTabs": ["pdf-studio"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/freight/pod.pdf" }
+          ]
+        },
+        {
+          "id": "freight-carrier-agreement",
+          "title": "Carrier Agreement",
+          "description": "Broker-carrier contract for onboarding new carriers.",
+          "tags": ["agreement", "contract", "carrier"],
+          "bestForTabs": ["pdf-studio", "pdf-to-word"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/freight/carrier-agreement.pdf" },
+            { "type": "docx", "path": "/templates/freight/carrier-agreement.docx" }
+          ]
+        },
+        {
+          "id": "freight-dispatch-service-agreement",
+          "title": "Dispatch Service Agreement",
+          "description": "Agreement template for dispatch services and carriers.",
+          "tags": ["dispatch", "service", "agreement"],
+          "bestForTabs": ["pdf-studio"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/freight/dispatch-service-agreement.pdf" }
+          ]
+        },
+        {
+          "id": "freight-driver-equipment-checklist",
+          "title": "Driver Equipment Checklist",
+          "description": "Pre-trip equipment and safety checklist for drivers.",
+          "tags": ["checklist", "driver", "safety"],
+          "bestForTabs": ["pdf-studio"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/freight/driver-equipment-checklist.pdf" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "invoices",
+      "name": "Invoices",
+      "description": "Freight and general business invoice templates.",
+      "templates": [
+        {
+          "id": "invoice-freight-standard",
+          "title": "Freight Invoice (Net 30)",
+          "description": "Standard freight invoice template with load details and accessorials.",
+          "tags": ["invoice", "freight", "net30"],
+          "bestForTabs": ["invoice-generator"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/invoices/freight-invoice-net30.pdf" }
+          ]
+        },
+        {
+          "id": "invoice-freight-fuel-surcharge",
+          "title": "Freight Invoice with Fuel Surcharge",
+          "description": "Invoice including fuel surcharge and line-item breakdown.",
+          "tags": ["invoice", "fuel surcharge"],
+          "bestForTabs": ["invoice-generator"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/invoices/freight-invoice-fsc.pdf" }
+          ]
+        },
+        {
+          "id": "invoice-accessorial-only",
+          "title": "Accessorial Charges Invoice",
+          "description": "Standalone invoice for detention, TONU, layover and other accessorial fees.",
+          "tags": ["detention", "tonu", "layover", "accessorial"],
+          "bestForTabs": ["invoice-generator"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/invoices/accessorial-invoice.pdf" }
+          ]
+        },
+        {
+          "id": "invoice-multi-load",
+          "title": "Multi-Load Invoice",
+          "description": "Invoice for multiple loads billed to the same customer.",
+          "tags": ["invoice", "multi-load"],
+          "bestForTabs": ["invoice-generator"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/invoices/multi-load-invoice.pdf" }
+          ]
+        },
+        {
+          "id": "invoice-general-business",
+          "title": "General Business Invoice",
+          "description": "Simple invoice template for any type of small business.",
+          "tags": ["invoice", "business"],
+          "bestForTabs": ["invoice-generator"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/invoices/general-business-invoice.pdf" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "receipts",
+      "name": "Receipts",
+      "description": "Generic and freight-specific receipts.",
+      "templates": [
+        {
+          "id": "receipt-general",
+          "title": "General Receipt",
+          "description": "Simple receipt for any product or service.",
+          "tags": ["receipt", "general"],
+          "bestForTabs": ["receipt-generator"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/receipts/general-receipt.pdf" }
+          ]
+        },
+        {
+          "id": "receipt-fuel",
+          "title": "Fuel Receipt",
+          "description": "Fuel purchase receipt with gallons, price, and tax.",
+          "tags": ["receipt", "fuel"],
+          "bestForTabs": ["receipt-generator"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/receipts/fuel-receipt.pdf" }
+          ]
+        },
+        {
+          "id": "receipt-lumper",
+          "title": "Lumper Receipt",
+          "description": "Receipt for lumper services and fees.",
+          "tags": ["receipt", "lumper"],
+          "bestForTabs": ["receipt-generator"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/receipts/lumper-receipt.pdf" }
+          ]
+        },
+        {
+          "id": "receipt-proof-of-payment",
+          "title": "Proof of Payment Receipt",
+          "description": "Confirms payment for invoices or outstanding balances.",
+          "tags": ["receipt", "payment"],
+          "bestForTabs": ["receipt-generator"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/receipts/proof-of-payment.pdf" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "paystubs",
+      "name": "Paystubs & Payroll",
+      "description": "Driver and contractor paystub layouts.",
+      "templates": [
+        {
+          "id": "paystub-standard",
+          "title": "Standard Employee Paystub",
+          "description": "Basic employee paystub with gross, deductions and net pay.",
+          "tags": ["paystub", "employee"],
+          "bestForTabs": ["paystub-generator"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/paystubs/standard-paystub.pdf" }
+          ]
+        },
+        {
+          "id": "paystub-driver-mileage",
+          "title": "Driver Paystub (Miles & Fuel)",
+          "description": "Paystub for drivers including miles, rate per mile and fuel costs.",
+          "tags": ["paystub", "driver", "mileage"],
+          "bestForTabs": ["paystub-generator"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/paystubs/driver-mileage-paystub.pdf" }
+          ]
+        },
+        {
+          "id": "paystub-contractor-1099",
+          "title": "Contractor / 1099 Paystub",
+          "description": "Paystub for 1099 contractors with no tax withholding.",
+          "tags": ["paystub", "1099", "contractor"],
+          "bestForTabs": ["paystub-generator"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/paystubs/contractor-1099-paystub.pdf" }
+          ]
+        },
+        {
+          "id": "paystub-employment-verification-letter",
+          "title": "Employment Verification Letter",
+          "description": "Letter confirming employment and income based on recent paystubs.",
+          "tags": ["verification", "employment"],
+          "bestForTabs": ["pdf-studio", "word-to-pdf"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/paystubs/employment-verification-letter.pdf" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business-contracts",
+      "name": "Business Contracts & Agreements",
+      "description": "Generic business contracts for small businesses and freelancers.",
+      "templates": [
+        {
+          "id": "contract-nda",
+          "title": "Mutual NDA (Non-Disclosure Agreement)",
+          "description": "Standard mutual NDA between two parties.",
+          "tags": ["nda", "confidentiality"],
+          "bestForTabs": ["pdf-studio", "pdf-to-word"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/contracts/nda-mutual.pdf" }
+          ]
+        },
+        {
+          "id": "contract-independent-contractor",
+          "title": "Independent Contractor Agreement",
+          "description": "Agreement template for hiring independent contractors.",
+          "tags": ["contractor", "agreement"],
+          "bestForTabs": ["pdf-studio"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/contracts/independent-contractor-agreement.pdf" }
+          ]
+        },
+        {
+          "id": "contract-service-agreement",
+          "title": "Service Agreement",
+          "description": "Standard service agreement for B2B engagements.",
+          "tags": ["service", "agreement"],
+          "bestForTabs": ["pdf-studio"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/contracts/service-agreement.pdf" }
+          ]
+        },
+        {
+          "id": "contract-sow",
+          "title": "Statement of Work (SOW)",
+          "description": "Defines scope, deliverables, and payment terms.",
+          "tags": ["sow", "scope of work"],
+          "bestForTabs": ["pdf-studio"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/contracts/statement-of-work.pdf" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hr-and-operations",
+      "name": "HR & Operations",
+      "description": "Internal forms for HR, onboarding, and operations.",
+      "templates": [
+        {
+          "id": "hr-employee-onboarding",
+          "title": "Employee Onboarding Form",
+          "description": "Collects key data from new hires at onboarding.",
+          "tags": ["hr", "onboarding"],
+          "bestForTabs": ["pdf-studio"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/hr/employee-onboarding.pdf" }
+          ]
+        },
+        {
+          "id": "hr-pto-request",
+          "title": "PTO / Time Off Request",
+          "description": "Request form for paid or unpaid time off.",
+          "tags": ["pto", "time off"],
+          "bestForTabs": ["pdf-studio"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/hr/pto-request.pdf" }
+          ]
+        },
+        {
+          "id": "hr-expense-report",
+          "title": "Expense Report",
+          "description": "Reimburse employees or contractors for business expenses.",
+          "tags": ["expenses", "reimbursement"],
+          "bestForTabs": ["pdf-studio", "receipt-generator"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/hr/expense-report.pdf" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "public-forms",
+      "name": "Public / Government Forms",
+      "description": "Commonly used public-domain forms (US).",
+      "templates": [
+        {
+          "id": "irs-w9",
+          "title": "IRS W-9 – Request for Taxpayer Identification Number",
+          "description": "Official IRS W-9 form for collecting taxpayer information.",
+          "tags": ["irs", "w9", "tax"],
+          "bestForTabs": ["pdf-studio"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/public/irs-w9.pdf" }
+          ]
+        },
+        {
+          "id": "irs-1099-nec",
+          "title": "IRS 1099-NEC (Copy of Official Form)",
+          "description": "Contractor income reporting form (sample for preparation only).",
+          "tags": ["irs", "1099", "tax"],
+          "bestForTabs": ["pdf-studio"],
+          "formats": [
+            { "type": "pdf", "path": "/templates/public/irs-1099-nec.pdf" }
+          ]
+        }
+      ]
+    }
+  ]
+}
