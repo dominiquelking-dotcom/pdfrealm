@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PDFRealm – Instant PDF Tools for Everyone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="description"
+        content="PDFRealm gives you fast, simple PDF tools—sign, generate, convert, and merge PDFs in seconds. Use pay-per-export for $1.49 or unlock everything with an affordable subscription." />
+
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    /* --- Minimal layout helpers so it doesn't look naked
+       (your main styles.css can override or extend this) --- */
+
+    :root {
+      --bg: #050816;
+      --bg-soft: #0b1020;
+      --bg-softer: #111827;
+      --accent: #6366f1;
+      --accent-soft: rgba(99,102,241,0.12);
+      --accent-strong: #4f46e5;
+      --border-subtle: rgba(148,163,184,0.35);
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --text-strong: #f9fafb;
+      --danger: #f97373;
+      --success: #22c55e;
+      --shadow-soft: 0 18px 45px rgba(15,23,42,0.65);
+      --radius-xl: 18px;
+      --radius-xxl: 26px;
+      --radius-pill: 999px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #020617 0, #020617 45%, #000 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 3rem;
+    }
+
+    header.header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.5rem;
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(148,163,184,0.3);
+      background: radial-gradient(circle at top left, #0b1120 0, #020617 52%, #020617 100%);
+      box-shadow: var(--shadow-soft);
+      position: sticky;
+      top: 0.75rem;
+      z-index: 40;
+      backdrop-filter: blur(18px);
+    }
+
+    .header-main {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+    }
+
+    .logo-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 20px;
+      background: radial-gradient(circle at 0 0, #22c55e 0, #22c55e 35%, #22d3ee 65%, #6366f1 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 12px 30px rgba(15,23,42,0.6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .logo-inner {
+      width: 32px;
+      height: 32px;
+      border-radius: 12px;
+      background: rgba(15,23,42,0.96);
+      border: 1px solid rgba(148,163,184,0.4);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .logo-inner::before,
+    .logo-inner::after {
+      content: "";
+      position: absolute;
+      inset: 6px 6px auto;
+      height: 2px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #22d3ee, #6366f1);
+      opacity: 0.5;
+    }
+
+    .logo-inner::after {
+      inset: auto 6px 8px;
+      background: linear-gradient(90deg, #4ade80, #22c55e);
+    }
+
+    .logo-tick {
+      position: absolute;
+      right: 6px;
+      bottom: 7px;
+      width: 10px;
+      height: 10px;
+      border-radius: 4px;
+      border: 1px solid rgba(148,163,184,0.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 0 0, #22c55e, #16a34a);
+      box-shadow: 0 0 0 2px rgba(15,23,42,0.9);
+    }
+
+    .logo-tick svg {
+      width: 7px;
+      height: 7px;
+      color: #ecfdf5;
+    }
+
+    .logo-pr {
+      position: absolute;
+      left: 7px;
+      bottom: 5px;
+      font-size: 0.55rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      opacity: 0.9;
+    }
+
+    .brand-block h1 {
+      margin: 0;
+      font-size: 1.15rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-strong);
+    }
+
+    .brand-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .header-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: var(--radius-pill);
+      background: rgba(15,23,42,0.8);
+      border: 1px solid rgba(148,163,184,0.4);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .header-pill span.badge-beta {
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      background: rgba(34,197,94,0.12);
+      color: #bbf7d0;
+      border: 1px solid rgba(34,197,94,0.4);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.15fr);
+      gap: 1.75rem;
+      margin-top: 1.75rem;
+      margin-bottom: 2.25rem;
+      align-items: stretch;
+    }
+
+    @media (max-width: 880px) {
+      header.header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .hero {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .hero-left {
+      padding: 1.5rem 1.35rem 1.4rem;
+      border-radius: var(--radius-xxl);
+      background: radial-gradient(circle at top left, #0f172a 0, #020617 60%);
+      border: 1px solid rgba(148,163,184,0.35);
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.22rem 0.8rem 0.26rem;
+      border-radius: var(--radius-pill);
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(148,163,184,0.4);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-kicker-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34,197,94,0.25);
+    }
+
+    .hero-title {
+      margin: 0 0 0.6rem;
+      font-size: 2.1rem;
+      line-height: 1.15;
+      color: var(--text-strong);
+    }
+
+    .hero-sub {
+      margin: 0 0 1.2rem;
+      font-size: 0.98rem;
+      color: var(--text-muted);
+      max-width: 38rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+      border-radius: var(--radius-pill);
+      padding: 0.55rem 1.15rem;
+      font-size: 0.9rem;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-strong), #22d3ee);
+      color: white;
+      box-shadow: 0 12px 32px rgba(37,99,235,0.5);
+    }
+
+    .btn-secondary {
+      background: rgba(15,23,42,0.9);
+      border-color: rgba(148,163,184,0.55);
+      color: var(--text-main);
+    }
+
+    .hero-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+      font-size: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      .hero-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .metric-card {
+      padding: 0.6rem 0.7rem;
+      border-radius: 14px;
+      background: rgba(15,23,42,0.95);
+      border: 1px solid rgba(51,65,85,0.9);
+    }
+
+    .metric-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.2rem;
+    }
+
+    .metric-value {
+      font-size: 0.9rem;
+      color: var(--text-strong);
+    }
+
+    .hero-right {
+      padding: 1.35rem 1.15rem 1.25rem;
+      border-radius: var(--radius-xxl);
+      background: radial-gradient(circle at top, #020617 0, #020617 55%, #020617 100%);
+      border: 1px solid rgba(148,163,184,0.35);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 0.9rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      margin-bottom: 0.45rem;
+    }
+
+    .hero-card-main {
+      font-size: 0.95rem;
+      color: var(--text-main);
+      margin-bottom: 0.8rem;
+    }
+
+    .hero-card-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-bottom: 0.7rem;
+    }
+
+    .pill {
+      padding: 0.25rem 0.7rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      border: 1px solid rgba(148,163,184,0.4);
+      background: rgba(15,23,42,0.9);
+      color: var(--text-muted);
+    }
+
+    .pill-strong {
+      background: rgba(79,70,229,0.12);
+      color: #c7d2fe;
+      border-color: rgba(79,70,229,0.6);
+    }
+
+    .hero-card-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      font-size: 0.8rem;
+      margin-top: 0.4rem;
+    }
+
+    .hero-card-col-label {
+      color: var(--text-muted);
+      margin-bottom: 0.3rem;
+    }
+
+    .hero-card-col-value {
+      color: var(--text-strong);
+      font-size: 0.9rem;
+    }
+
+    .section-title {
+      margin: 0 0 0.4rem;
+      font-size: 1.25rem;
+      color: var(--text-strong);
+    }
+
+    .section-subtitle {
+      margin: 0 0 1rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* Pricing section */
+
+    .pricing-section {
+      margin: 2.5rem 0 2rem;
+      padding: 1.5rem 1.25rem 1.6rem;
+      border-radius: var(--radius-xxl);
+      border: 1px solid rgba(148,163,184,0.45);
+      background: radial-gradient(circle at top, #020617 0, #020617 55%, #020617 100%);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 960px) {
+      .pricing-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .pricing-card {
+      border-radius: var(--radius-xl);
+      padding: 1rem 0.95rem 1.05rem;
+      background: rgba(15,23,42,0.98);
+      border: 1px solid rgba(148,163,184,0.5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pricing-card.highlight {
+      border-color: #4f46e5;
+      box-shadow: 0 18px 45px rgba(79,70,229,0.6);
+      background: radial-gradient(circle at top left, #111827 0, #020617 60%);
+    }
+
+    .pricing-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .pricing-name {
+      font-size: 1rem;
+      color: var(--text-strong);
+      margin-bottom: 0.35rem;
+    }
+
+    .pricing-price {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-strong);
+      margin-bottom: 0.2rem;
+    }
+
+    .pricing-unit {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.45rem;
+    }
+
+    .pricing-note {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.65rem;
+    }
+
+    .pricing-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      font-size: 0.8rem;
+      color: var(--text-main);
+    }
+
+    .pricing-list li {
+      display: flex;
+      gap: 0.4rem;
+      align-items: flex-start;
+      margin-bottom: 0.35rem;
+    }
+
+    .pricing-list li span.bullet {
+      margin-top: 0.2rem;
+      font-size: 0.75rem;
+      color: #22c55e;
+    }
+
+    .pricing-tag {
+      position: absolute;
+      right: 0.9rem;
+      top: 0.8rem;
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      background: rgba(34,197,94,0.18);
+      border: 1px solid rgba(34,197,94,0.6);
+      font-size: 0.7rem;
+      color: #bbf7d0;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+
+    /* Tools section */
+
+    .tools-section {
+      margin: 2.25rem 0;
+      padding: 1.5rem 1.25rem 1.6rem;
+      border-radius: var(--radius-xxl);
+      border: 1px solid rgba(148,163,184,0.45);
+      background: radial-gradient(circle at top, #020617 0, #020617 55%, #020617 100%);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .tool-switcher {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+    }
+
+    .tool-tab {
+      border-radius: var(--radius-pill);
+      padding: 0.4rem 0.9rem;
+      font-size: 0.82rem;
+      border: 1px solid rgba(148,163,184,0.5);
+      background: rgba(15,23,42,0.95);
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .tool-tab-active {
+      background: linear-gradient(135deg, var(--accent-strong), #22d3ee);
+      border-color: transparent;
+      color: white;
+      box-shadow: 0 8px 22px rgba(37,99,235,0.6);
+    }
+
+    .app-main {
+      margin-top: 0.75rem;
+    }
+
+    .tool-view {
+      display: none;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 1.25rem;
+      padding: 1.1rem 0.2rem 0.2rem;
+    }
+
+    .tool-view-active {
+      display: grid;
+    }
+
+    @media (max-width: 880px) {
+      .tool-view {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .tool-panel {
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(148,163,184,0.55);
+      background: rgba(15,23,42,0.97);
+      padding: 1rem 1rem 1.1rem;
+    }
+
+    .tool-panel h3 {
+      margin: 0 0 0.4rem;
+      font-size: 1rem;
+      color: var(--text-strong);
+    }
+
+    .tool-panel p {
+      margin: 0 0 0.7rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .tool-grid {
+      display: grid;
+      gap: 0.7rem;
+      font-size: 0.85rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .field label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .field input,
+    .field textarea {
+      border-radius: 10px;
+      border: 1px solid rgba(148,163,184,0.6);
+      background: rgba(15,23,42,0.95);
+      color: var(--text-main);
+      padding: 0.45rem 0.6rem;
+      font-size: 0.86rem;
+      outline: none;
+    }
+
+    .field input[type="file"] {
+      padding: 0.3rem 0.2rem;
+    }
+
+    .field textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .tool-actions {
+      margin-top: 0.7rem;
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .tool-secondary-info {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.4rem;
+    }
+
+    .preview-panel {
+      border-radius: var(--radius-xl);
+      border: 1px dashed rgba(148,163,184,0.65);
+      background: radial-gradient(circle at top left, #020617 0, #020617 55%, #020617 100%);
+      padding: 0.9rem 0.9rem 1rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .preview-placeholder {
+      border-radius: 12px;
+      border: 1px solid rgba(51,65,85,0.95);
+      padding: 0.75rem 0.7rem;
+      background: rgba(15,23,42,0.96);
+      min-height: 150px;
+    }
+
+    .preview-placeholder h4 {
+      margin: 0 0 0.4rem;
+      font-size: 0.85rem;
+      color: var(--text-strong);
+    }
+
+    .preview-placeholder p {
+      margin: 0;
+      font-size: 0.8rem;
+    }
+
+    /* Comparison / footer */
+
+    .comparison-section {
+      margin: 2.25rem 0 1.75rem;
+      padding: 1.4rem 1.25rem 1.5rem;
+      border-radius: var(--radius-xxl);
+      border: 1px solid rgba(148,163,184,0.45);
+      background: radial-gradient(circle at top, #020617 0, #020617 55%, #020617 100%);
+      box-shadow: var(--shadow-soft);
+      overflow-x: auto;
+    }
+
+    table.comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      min-width: 620px;
+    }
+
+    table.comparison-table th,
+    table.comparison-table td {
+      padding: 0.55rem 0.55rem;
+      border-bottom: 1px solid rgba(30,64,175,0.6);
+      text-align: left;
+    }
+
+    table.comparison-table th {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+
+    table.comparison-table td:first-child {
+      color: var(--text-muted);
+      width: 32%;
+    }
+
+    table.comparison-table td strong {
+      color: var(--text-strong);
+    }
+
+    table.comparison-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    footer.footer {
+      margin-top: 1.75rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(30,64,175,0.7);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: space-between;
+    }
+
+    .footer-note {
+      max-width: 520px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-main">
+        <div class="logo-badge" aria-hidden="true">
+          <div class="logo-inner">
+            <span class="logo-pr">PR</span>
+            <div class="logo-tick">
+              <svg viewBox="0 0 16 16" fill="none">
+                <path d="M3.3 8.4 6.1 11l6-6.5"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="brand-block">
+          <h1>PDFRealm</h1>
+          <div class="brand-sub">Instant PDF tools for everyone – no install required.</div>
+        </div>
+      </div>
+      <div class="header-pill">
+        <span>Fast exports · Simple pricing</span>
+        <span class="badge-beta">Beta</span>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-left">
+        <div class="hero-kicker">
+          <span class="hero-kicker-dot"></span>
+          <span>Live PDF tools · No account required</span>
+        </div>
+        <h2 class="hero-title" id="hero-title">
+          PDFs in under 60 seconds.
+        </h2>
+        <p class="hero-sub">
+          Fill, sign, convert, and merge PDFs right in your browser. No bloated software,
+          no long sign-ups. Use pay-per-export for <strong>$1.49</strong> or unlock
+          every tool with an affordable subscription.
+        </p>
+        <div class="hero-actions">
+          <a href="#tools" class="btn-primary">
+            Launch tools
+          </a>
+          <a href="#pricing" class="btn-secondary">
+            View pricing
+          </a>
+        </div>
+        <div class="hero-metrics">
+          <div class="metric-card">
+            <div class="metric-label">Access</div>
+            <div class="metric-value">No account required</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Pricing</div>
+            <div class="metric-value">$1.49 per export</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Subscriptions</div>
+            <div class="metric-value">From $6.99 / mo</div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="hero-right" aria-label="Why PDFRealm feels faster">
+        <div>
+          <div class="hero-card-title">Why it feels fast</div>
+          <div class="hero-card-main">
+            You start on the tool, not a login screen. Choose what you need, fill it out,
+            export the PDF, and move on with your day.
+          </div>
+          <div class="hero-card-pill-row">
+            <span class="pill pill-strong">Fill → Export → Done</span>
+            <span class="pill">No templates required</span>
+            <span class="pill">Works on any modern browser</span>
+          </div>
+        </div>
+        <div class="hero-card-row">
+          <div>
+            <div class="hero-card-col-label">Typical time to PDF</div>
+            <div class="hero-card-col-value">&lt; 60 seconds once your info is ready.</div>
+          </div>
+          <div>
+            <div class="hero-card-col-label">Best for</div>
+            <div class="hero-card-col-value">
+              Anyone who needs quick PDFs without learning a complex editor.
+            </div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- Pricing -->
+    <section id="pricing" class="pricing-section" aria-labelledby="pricing-title">
+      <h2 class="section-title" id="pricing-title">Simple, global pricing</h2>
+      <p class="section-subtitle">
+        Start with pay-per-export, or unlock all features with a subscription.
+        No confusing tiers, no hidden fees.
+      </p>
+
+      <div class="pricing-grid">
+        <article class="pricing-card" aria-label="Pay per export plan">
+          <div class="pricing-label">On-demand</div>
+          <div class="pricing-name">Pay-per-export</div>
+          <div class="pricing-price">$1.49</div>
+          <div class="pricing-unit">per PDF export</div>
+          <div class="pricing-note">
+            Ideal if you only need the tools occasionally.
+          </div>
+          <ul class="pricing-list">
+            <li>
+              <span class="bullet">✔</span>
+              <span>Use any available PDF tool.</span>
+            </li>
+            <li>
+              <span class="bullet">✔</span>
+              <span>No subscription or commitment required.</span>
+            </li>
+            <li>
+              <span class="bullet">✔</span>
+              <span>Perfect for one-off documents.</span>
+            </li>
+          </ul>
+        </article>
+
+        <article class="pricing-card highlight" aria-label="Monthly subscription plan">
+          <span class="pricing-tag">Most popular</span>
+          <div class="pricing-label">Subscription</div>
+          <div class="pricing-name">Monthly plan</div>
+          <div class="pricing-price">$12.99</div>
+          <div class="pricing-unit">per month · cancel anytime</div>
+          <div class="pricing-note">
+            Unlock all current and future tools with one simple subscription.
+          </div>
+          <ul class="pricing-list">
+            <li>
+              <span class="bullet">✔</span>
+              <span>Unlimited PDF exports while subscribed.</span>
+            </li>
+            <li>
+              <span class="bullet">✔</span>
+              <span>Access to every feature and tool.</span>
+            </li>
+            <li>
+              <span class="bullet">✔</span>
+              <span>Best if you work with PDFs regularly.</span>
+            </li>
+          </ul>
+        </article>
+
+        <article class="pricing-card" aria-label="Yearly subscription plan">
+          <div class="pricing-label">Subscription</div>
+          <div class="pricing-name">Yearly plan</div>
+          <div class="pricing-price">$6.99</div>
+          <div class="pricing-unit">per month, billed yearly ($83.88)</div>
+          <div class="pricing-note">
+            All the benefits of the monthly plan at a lower effective rate.
+          </div>
+          <ul class="pricing-list">
+            <li>
+              <span class="bullet">✔</span>
+              <span>Unlimited exports for a full year.</span>
+            </li>
+            <li>
+              <span class="bullet">✔</span>
+              <span>All current and future tools included.</span>
+            </li>
+            <li>
+              <span class="bullet">✔</span>
+              <span>Best for frequent PDF users who want the lowest price.</span>
+            </li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <!-- Tools -->
+    <section id="tools" class="tools-section" aria-labelledby="tools-title">
+      <h2 class="section-title" id="tools-title">Live tools in your browser</h2>
+      <p class="section-subtitle">
+        Pick a tool, enter your information, and export a clean PDF. No templates required—
+        you bring the content, PDFRealm handles the file.
+      </p>
+
+      <div class="tool-switcher" role="tablist" aria-label="PDF tools">
+        <button class="tool-tab tool-tab-active" data-tool="pdf-studio" role="tab" aria-selected="true">
+          PDF Studio
+        </button>
+        <button class="tool-tab" data-tool="quick-sign" role="tab" aria-selected="false">
+          Quick Sign
+        </button>
+        <button class="tool-tab" data-tool="invoice-gen" role="tab" aria-selected="false">
+          Invoice
+        </button>
+        <button class="tool-tab" data-tool="receipt-gen" role="tab" aria-selected="false">
+          Receipt
+        </button>
+        <button class="tool-tab" data-tool="paystub-gen" role="tab" aria-selected="false">
+          Paystub
+        </button>
+        <button class="tool-tab" data-tool="word-to-pdf" role="tab" aria-selected="false">
+          Word → PDF
+        </button>
+        <button class="tool-tab" data-tool="pdf-to-word" role="tab" aria-selected="false">
+          PDF → Word
+        </button>
+        <button class="tool-tab" data-tool="merge-pdf" role="tab" aria-selected="false">
+          Merge PDFs
+        </button>
+      </div>
+
+      <main class="app-main">
+        <!-- PDF Studio (placeholder shell; hook into your full annotator later) -->
+        <section class="layout tool-view tool-view-active"
+                 data-tool-view="pdf-studio"
+                 aria-label="PDF Studio">
+          <div class="tool-panel">
+            <h3>PDF Studio (coming soon)</h3>
+            <p>
+              A focused workspace for viewing, annotating, and signing PDFs directly in your browser.
+              You’ll be able to drag in a file, drop signatures or notes where you need them, and
+              export a ready-to-send PDF.
+            </p>
+            <div class="tool-grid">
+              <div class="field">
+                <label for="studioFile">Upload a PDF to get started</label>
+                <input id="studioFile" type="file" accept="application/pdf" disabled />
+              </div>
+            </div>
+            <div class="tool-actions">
+              <button class="btn-primary" type="button" disabled>
+                Coming soon
+              </button>
+            </div>
+            <div class="tool-secondary-info">
+              While this workspace is being built, you can still sign and generate PDFs using the
+              other tools above.
+            </div>
+          </div>
+          <aside class="preview-panel">
+            <div class="preview-placeholder">
+              <h4>Live preview</h4>
+              <p>
+                Once PDF Studio is active, this area will show a live view of the PDF you’re working
+                on with markers for signatures and annotations.
+              </p>
+            </div>
+          </aside>
+        </section>
+
+        <!-- Quick Sign -->
+        <section class="layout tool-view"
+                 data-tool-view="quick-sign"
+                 aria-label="Quick Sign PDF">
+          <div class="tool-panel">
+            <h3>Quick Sign</h3>
+            <p>
+              Drop in a PDF, type a name, and place a simple signature on a single page. Ideal when
+              you just need a quick, basic sign-off.
+            </p>
+            <div class="tool-grid">
+              <div class="field">
+                <label for="qsFile">PDF to sign</label>
+                <input id="qsFile" type="file" accept="application/pdf" />
+              </div>
+              <div class="field">
+                <label for="qsSignerName">Name for signature</label>
+                <input id="qsSignerName" type="text" placeholder="Your full name" />
+              </div>
+            </div>
+            <div class="tool-actions">
+              <button id="qsApplyBtn" class="btn-primary" type="button">
+                Apply signature &amp; export
+              </button>
+            </div>
+            <div class="tool-secondary-info">
+              Note: this is a simple visual signature tool and is not a substitute for a
+              jurisdiction-specific legal e-signature system.
+            </div>
+          </div>
+          <aside class="preview-panel">
+            <div id="qsPdfFrame" class="preview-placeholder">
+              <h4>Signature preview</h4>
+              <p>
+                After you upload a PDF and enter your name, a preview of the signed page will appear
+                here before you export.
+              </p>
+            </div>
+          </aside>
+        </section>
+
+        <!-- Invoice Generator -->
+        <section class="layout tool-view"
+                 data-tool-view="invoice-gen"
+                 aria-label="Invoice Generator">
+          <div class="tool-panel">
+            <h3>Invoice generator</h3>
+            <p>
+              Create a clean, simple invoice PDF for any service or product. Enter the details and
+              export as a ready-to-send document.
+            </p>
+            <div class="tool-grid">
+              <div class="field">
+                <label for="invFrom">From</label>
+                <input id="invFrom" type="text" placeholder="Your name or business" />
+              </div>
+              <div class="field">
+                <label for="invTo">Bill to</label>
+                <input id="invTo" type="text" placeholder="Client name or business" />
+              </div>
+              <div class="field">
+                <label for="invNumber">Invoice number</label>
+                <input id="invNumber" type="text" placeholder="#0001" />
+              </div>
+              <div class="field">
+                <label for="invAmount">Amount</label>
+                <input id="invAmount" type="text" placeholder="Total amount (e.g. 250.00)" />
+              </div>
+              <div class="field">
+                <label for="invNotes">Notes / description</label>
+                <textarea id="invNotes" placeholder="What this invoice covers…"></textarea>
+              </div>
+            </div>
+            <div class="tool-actions">
+              <button id="invoiceExportBtn" class="btn-primary" type="button">
+                Export invoice PDF
+              </button>
+            </div>
+          </div>
+          <aside class="preview-panel">
+            <div class="preview-placeholder">
+              <h4>Invoice preview</h4>
+              <p>
+                As you build out your backend PDF layouts, this panel can be wired to show a live
+                preview of the invoice before exporting.
+              </p>
+            </div>
+          </aside>
+        </section>
+
+        <!-- Receipt Generator -->
+        <section class="layout tool-view"
+                 data-tool-view="receipt-gen"
+                 aria-label="Receipt Generator">
+          <div class="tool-panel">
+            <h3>Receipt generator</h3>
+            <p>
+              Issue a simple receipt PDF for payments you’ve received. Great for personal records or
+              small business use.
+            </p>
+            <div class="tool-grid">
+              <div class="field">
+                <label for="recFrom">From</label>
+                <input id="recFrom" type="text" placeholder="Your name or business" />
+              </div>
+              <div class="field">
+                <label for="recTo">Received from</label>
+                <input id="recTo" type="text" placeholder="Name of the payer" />
+              </div>
+              <div class="field">
+                <label for="recAmount">Amount</label>
+                <input id="recAmount" type="text" placeholder="Amount received (e.g. 75.00)" />
+              </div>
+              <div class="field">
+                <label for="recReason">Reason / description</label>
+                <textarea id="recReason" placeholder="What this payment was for…"></textarea>
+              </div>
+              <div class="field">
+                <label for="recMethod">Payment method</label>
+                <input id="recMethod" type="text" placeholder="Cash, card, transfer, etc." />
+              </div>
+            </div>
+            <div class="tool-actions">
+              <button id="receiptExportBtn" class="btn-primary" type="button">
+                Export receipt PDF
+              </button>
+            </div>
+          </div>
+          <aside class="preview-panel">
+            <div class="preview-placeholder">
+              <h4>Receipt preview</h4>
+              <p>
+                A structured summary of the payer, amount, method, and reason will be laid out in
+                the final PDF.
+              </p>
+            </div>
+          </aside>
+        </section>
+
+        <!-- Paystub Generator -->
+        <section class="layout tool-view"
+                 data-tool-view="paystub-gen"
+                 aria-label="Paystub Generator">
+          <div class="tool-panel">
+            <h3>Paystub generator</h3>
+            <p>
+              Build a simple paystub PDF for personal records, contractors, or small teams. Enter
+              gross pay and deductions, and export a clear summary.
+            </p>
+            <div class="tool-grid">
+              <div class="field">
+                <label for="psEmployee">Employee / payee</label>
+                <input id="psEmployee" type="text" placeholder="Person being paid" />
+              </div>
+              <div class="field">
+                <label for="psEmployer">Employer / payer</label>
+                <input id="psEmployer" type="text" placeholder="Business or payer name" />
+              </div>
+              <div class="field">
+                <label for="psGross">Gross pay</label>
+                <input id="psGross" type="text" placeholder="Total before deductions" />
+              </div>
+              <div class="field">
+                <label for="psDeductions">Deductions</label>
+                <textarea id="psDeductions"
+                          placeholder="Taxes, insurance, or other deductions…"></textarea>
+              </div>
+              <div class="field">
+                <label for="psPeriod">Pay period</label>
+                <input id="psPeriod" type="text" placeholder="E.g. 01–15 Jan 2026" />
+              </div>
+            </div>
+            <div class="tool-actions">
+              <button id="paystubExportBtn" class="btn-primary" type="button">
+                Export paystub PDF
+              </button>
+            </div>
+            <div class="tool-secondary-info">
+              For official or regulated payroll, always confirm what your jurisdiction requires.
+            </div>
+          </div>
+          <aside class="preview-panel">
+            <div class="preview-placeholder">
+              <h4>Paystub preview</h4>
+              <p>
+                The generated PDF can summarise gross pay, listed deductions, and the net amount
+                owed for the selected period.
+              </p>
+            </div>
+          </aside>
+        </section>
+
+        <!-- Word to PDF -->
+        <section class="layout tool-view"
+                 data-tool-view="word-to-pdf"
+                 aria-label="Word to PDF Converter">
+          <div class="tool-panel">
+            <h3>Word → PDF</h3>
+            <p>
+              Convert a Word document to PDF without needing a full office suite.
+            </p>
+            <div class="tool-grid">
+              <div class="field">
+                <label for="w2pFile">Word file</label>
+                <input id="w2pFile"
+                       type="file"
+                       accept=".doc,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword" />
+              </div>
+              <div class="field">
+                <label for="w2pTitle">Output filename</label>
+                <input id="w2pTitle" type="text" placeholder="my-document.pdf" />
+              </div>
+            </div>
+            <div class="tool-actions">
+              <button id="wordToPdfBtn" class="btn-primary" type="button">
+                Convert to PDF
+              </button>
+            </div>
+          </div>
+          <aside class="preview-panel">
+            <div class="preview-placeholder">
+              <h4>Conversion info</h4>
+              <p>
+                After the backend conversion runs, you’ll receive a direct download of the PDF. The
+                layout depends on the original Word formatting.
+              </p>
+            </div>
+          </aside>
+        </section>
+
+        <!-- PDF to Word -->
+        <section class="layout tool-view"
+                 data-tool-view="pdf-to-word"
+                 aria-label="PDF to Word Converter">
+          <div class="tool-panel">
+            <h3>PDF → Word</h3>
+            <p>
+              Turn a PDF back into an editable Word document so you can make changes or reuse the
+              content elsewhere.
+            </p>
+            <div class="tool-grid">
+              <div class="field">
+                <label for="p2wFile">PDF file</label>
+                <input id="p2wFile" type="file" accept="application/pdf" />
+              </div>
+              <div class="field">
+                <label for="p2wTitle">Output filename</label>
+                <input id="p2wTitle" type="text" placeholder="my-document.docx" />
+              </div>
+            </div>
+            <div class="tool-actions">
+              <button id="pdfToWordBtn" class="btn-primary" type="button">
+                Convert to Word
+              </button>
+            </div>
+          </div>
+          <aside class="preview-panel">
+            <div class="preview-placeholder">
+              <h4>Conversion info</h4>
+              <p>
+                Depending on how the original PDF was created, text and formatting may convert more
+                or less cleanly into Word.
+              </p>
+            </div>
+          </aside>
+        </section>
+
+        <!-- Merge PDFs -->
+        <section class="layout tool-view"
+                 data-tool-view="merge-pdf"
+                 aria-label="Merge PDFs">
+          <div class="tool-panel">
+            <h3>Merge PDFs</h3>
+            <p>
+              Combine multiple PDFs into one file in the order you choose.
+            </p>
+            <div class="tool-grid">
+              <div class="field">
+                <label for="mergeFiles">PDF files to merge</label>
+                <input id="mergeFiles" type="file" multiple accept="application/pdf" />
+              </div>
+              <div class="field">
+                <label for="mergeNotes">Notes (optional)</label>
+                <textarea id="mergeNotes"
+                          placeholder="Any notes or labels for this merged document…"></textarea>
+              </div>
+            </div>
+            <div class="tool-actions">
+              <button id="mergePdfBtn" class="btn-primary" type="button">
+                Merge &amp; export
+              </button>
+            </div>
+          </div>
+          <aside class="preview-panel">
+            <div class="preview-placeholder">
+              <h4>Merge overview</h4>
+              <p>
+                Your final PDF will contain all selected documents in sequence. In the future, this
+                panel can show a page-order preview before you export.
+              </p>
+            </div>
+          </aside>
+        </section>
+      </main>
+    </section>
+
+    <!-- Comparison -->
+    <section id="comparison" class="comparison-section" aria-labelledby="comparison-title">
+      <h2 class="section-title" id="comparison-title">How PDFRealm compares</h2>
+      <p class="section-subtitle">
+        Big PDF suites can be powerful, but they’re often built around heavy subscriptions and
+        complex menus. PDFRealm stays focused on speed and clarity.
+      </p>
+
+      <div class="table-wrapper">
+        <table class="comparison-table" aria-label="Comparison between PDFRealm and other tools">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>PDFRealm</th>
+              <th>PDFFiller</th>
+              <th>Adobe Acrobat</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Access &amp; setup</td>
+              <td><strong>Browser-based, no install required</strong></td>
+              <td>Web app, account required</td>
+              <td>Desktop + cloud, account required</td>
+            </tr>
+            <tr>
+              <td>Pricing style</td>
+              <td>
+                <strong>$1.49 pay-per-export, or optional subscriptions.</strong>
+              </td>
+              <td>Subscription required pricing</td>
+              <td>Expensive subscription only</td>
+            </tr>
+            <tr>
+              <td>Best use case</td>
+              <td>
+                Quick, focused tasks: sign, generate simple documents, convert, and merge files.
+              </td>
+              <td>Broader document workflows, more menus and options.</td>
+              <td>Heavy PDF editing and enterprise workflows.</td>
+            </tr>
+            <tr>
+              <td>Time to first export</td>
+              <td><strong>Seconds once your info is ready.</strong></td>
+              <td>Longer (account and setup required).</td>
+              <td>Longer (install + setup + configuration).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-note">
+        <strong>PDFRealm – Instant PDF tools for everyone.</strong><br />
+        Local-only signing where possible · Not a jurisdiction-specific legal e-signature service ·
+        Pay-per-export and subscription pricing subject to change as new tools are added.
+      </div>
+      <div>
+        <div>© <span id="year"></span> PDFRealm.</div>
+        <div>Built for people who just want their PDF and to move on.</div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Tool tab switching
+    document.addEventListener("DOMContentLoaded", () => {
+      const tabs = document.querySelectorAll(".tool-tab");
+      const views = document.querySelectorAll(".tool-view");
+
+      function showTool(id) {
+        views.forEach((view) => {
+          view.classList.toggle("tool-view-active", view.dataset.toolView === id);
+        });
+        tabs.forEach((tab) => {
+          const active = tab.dataset.tool === id;
+          tab.classList.toggle("tool-tab-active", active);
+          tab.setAttribute("aria-selected", active ? "true" : "false");
+        });
+      }
+
+      tabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          showTool(tab.dataset.tool);
+        });
+      });
+
+      // Default tool
+      showTool("pdf-studio");
+
+      // Smooth scroll for hero buttons
+      document.querySelectorAll('a[href^="#"]').forEach((link) => {
+        link.addEventListener("click", (e) => {
+          const targetId = link.getAttribute("href").substring(1);
+          const target = document.getElementById(targetId);
+          if (target) {
+            e.preventDefault();
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        });
+      });
+
+      // Footer year
+      const yearSpan = document.getElementById("year");
+      if (yearSpan) {
+        yearSpan.textContent = new Date().getFullYear();
+      }
+    });
+  </script>
+</body>
+</html>
