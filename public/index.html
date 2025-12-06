@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>PDFRealm – MyFreightTracker PDF Studio</title>
+  <title>PDFRealm – Instant PDF Studio</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="./styles.css" />
 
@@ -172,7 +172,7 @@
             <span class="brand-accent">Realm</span>
           </div>
           <div class="app-subtitle">
-            Instant PDF tools for brokers, shippers &amp; carriers – powered by MyFreightTracker
+            Instant PDF tools for everyone – no account, no install.
           </div>
         </div>
       </div>
@@ -189,6 +189,9 @@
       </button>
       <button class="tool-tab" data-tool="invoice">
         Invoice Generator
+      </button>
+      <button class="tool-tab" data-tool="estimate">
+        Customer Estimate
       </button>
       <button class="tool-tab" data-tool="receipt">
         Receipt Generator
@@ -212,127 +215,126 @@
       <!-- PDF STUDIO (placeholder for full tool)                          -->
       <!-- =============================================================== -->
       <section
-  class="layout tool-view"
-  data-tool-view="pdf-studio"
-  id="pdfStudioView"
-  >
-   <!-- Top bar -->
-  <header class="pdfstudio-topbar">
-    <div class="pdfstudio-topbar-left">
-      <label class="btn primary">
-        <span>Upload PDF</span>
-        <input
-          id="pdfStudioUploadInput"
-          type="file"
-          accept="application/pdf"
-          style="display:none"
-        />
-      </label>
+        class="layout tool-view"
+        data-tool-view="pdf-studio"
+        id="pdfStudioView"
+      >
+        <!-- Top bar -->
+        <header class="pdfstudio-topbar">
+          <div class="pdfstudio-topbar-left">
+            <label class="btn primary">
+              <span>Upload PDF</span>
+              <input
+                id="pdfStudioUploadInput"
+                type="file"
+                accept="application/pdf"
+                style="display:none"
+              />
+            </label>
 
-      <button id="pdfStudioTemplateBtn" class="btn secondary">
-        Start from template
-      </button>
-    </div>
+            <button id="pdfStudioTemplateBtn" class="btn secondary">
+              Start from template
+            </button>
+          </div>
 
-    <div class="pdfstudio-topbar-center">
-      <span id="pdfStudioFilename" class="pdfstudio-filename">
-        No file loaded
-      </span>
-      <span id="pdfStudioPageInfo" class="pdfstudio-pageinfo">
-        –
-      </span>
-    </div>
+          <div class="pdfstudio-topbar-center">
+            <span id="pdfStudioFilename" class="pdfstudio-filename">
+              No file loaded
+            </span>
+            <span id="pdfStudioPageInfo" class="pdfstudio-pageinfo">
+              –
+            </span>
+          </div>
 
-    <div class="pdfstudio-topbar-right">
-      <button id="pdfStudioZoomOutBtn" class="icon-btn" title="Zoom out">−</button>
-      <button id="pdfStudioZoomInBtn" class="icon-btn" title="Zoom in">+</button>
-      <button id="pdfStudioDownloadBtn" class="btn ghost">
-        Download PDF
-      </button>
-    </div>
-  </header>
+          <div class="pdfstudio-topbar-right">
+            <button id="pdfStudioZoomOutBtn" class="icon-btn" title="Zoom out">−</button>
+            <button id="pdfStudioZoomInBtn" class="icon-btn" title="Zoom in">+</button>
+            <button id="pdfStudioDownloadBtn" class="btn ghost">
+              Download PDF
+            </button>
+          </div>
+        </header>
 
-  <div class="pdfstudio-body">
-    <!-- Left: thumbnails -->
-    <aside class="pdfstudio-sidebar" id="pdfStudioThumbs">
-      <div class="pdfstudio-sidebar-empty">
-        <p>No pages yet.</p>
-        <p class="hint">Upload a PDF to begin.</p>
-      </div>
-    </aside>
+        <div class="pdfstudio-body">
+          <!-- Left: thumbnails -->
+          <aside class="pdfstudio-sidebar" id="pdfStudioThumbs">
+            <div class="pdfstudio-sidebar-empty">
+              <p>No pages yet.</p>
+              <p class="hint">Upload a PDF to begin.</p>
+            </div>
+          </aside>
 
-    <!-- Center: main canvas -->
-    <main class="pdfstudio-canvas-wrap">
-      <div id="pdfStudioCanvasContainer" class="pdfstudio-canvas-container">
-        <div class="pdfstudio-empty-state">
-          <h3>PDF Studio</h3>
-          <p>
-            Upload a PDF or start from a legal template to begin editing.
-          </p>
+          <!-- Center: main canvas -->
+          <main class="pdfstudio-canvas-wrap">
+            <div id="pdfStudioCanvasContainer" class="pdfstudio-canvas-container">
+              <div class="pdfstudio-empty-state">
+                <h3>PDF Studio</h3>
+                <p>
+                  Upload a PDF or start from a template to begin editing, signing and marking up.
+                </p>
+              </div>
+            </div>
+          </main>
+
+          <!-- Right: tools -->
+          <aside class="pdfstudio-tools" id="pdfStudioTools">
+            <h4>Tools</h4>
+
+            <div class="pdfstudio-tool-group">
+              <div class="group-title">Basic</div>
+              <button class="tool-btn tool-active" data-tool-mode="select">
+                Select / Move
+              </button>
+              <button class="tool-btn" data-tool-mode="text">
+                Text
+              </button>
+              <button class="tool-btn" data-tool-mode="highlight">
+                Highlight
+              </button>
+              <button class="tool-btn" data-tool-mode="pen">
+                Freehand
+              </button>
+              <button class="tool-btn" data-tool-mode="note">
+                Sticky note
+              </button>
+            </div>
+
+            <div class="pdfstudio-tool-group">
+              <div class="group-title">Sign & Mark</div>
+              <button class="tool-btn" data-tool-mode="signature">
+                Signature
+              </button>
+              <button class="tool-btn" data-tool-mode="stamp-ok">
+                Stamp: APPROVED
+              </button>
+              <button class="tool-btn" data-tool-mode="stamp-delivered">
+                Stamp: COMPLETED
+              </button>
+              <button class="tool-btn" data-tool-mode="stamp-freight">
+                Stamp: PAID
+              </button>
+            </div>
+
+            <div class="pdfstudio-tool-group">
+              <div class="group-title">More</div>
+              <button class="tool-btn" data-tool-mode="redact">
+                Redact
+              </button>
+              <button class="tool-btn" data-tool-mode="shape-rect">
+                Rectangle
+              </button>
+              <button class="tool-btn" data-tool-mode="shape-ellipse">
+                Circle
+              </button>
+            </div>
+
+            <div class="pdfstudio-hint">
+              PDF Studio is in beta.  
+              Fill, sign & mark up any PDF in seconds.
+            </div>
+          </aside>
         </div>
-      </div>
-    </main>
-
-    <!-- Right: tools -->
-    <aside class="pdfstudio-tools" id="pdfStudioTools">
-      <h4>Tools</h4>
-
-      <div class="pdfstudio-tool-group">
-        <div class="group-title">Basic</div>
-        <button class="tool-btn tool-active" data-tool-mode="select">
-          Select / Move
-        </button>
-        <button class="tool-btn" data-tool-mode="text">
-          Text
-        </button>
-        <button class="tool-btn" data-tool-mode="highlight">
-          Highlight
-        </button>
-        <button class="tool-btn" data-tool-mode="pen">
-          Freehand
-        </button>
-        <button class="tool-btn" data-tool-mode="note">
-          Sticky note
-        </button>
-      </div>
-
-      <div class="pdfstudio-tool-group">
-        <div class="group-title">Sign & Mark</div>
-        <button class="tool-btn" data-tool-mode="signature">
-          Signature
-        </button>
-        <button class="tool-btn" data-tool-mode="stamp-ok">
-          Stamp: RECEIVED
-        </button>
-        <button class="tool-btn" data-tool-mode="stamp-delivered">
-          Stamp: DELIVERED
-        </button>
-        <button class="tool-btn" data-tool-mode="stamp-freight">
-          Stamp: DETENTION / TONU
-        </button>
-      </div>
-
-      <div class="pdfstudio-tool-group">
-        <div class="group-title">More</div>
-        <button class="tool-btn" data-tool-mode="redact">
-          Redact
-        </button>
-        <button class="tool-btn" data-tool-mode="shape-rect">
-          Rectangle
-        </button>
-        <button class="tool-btn" data-tool-mode="shape-ellipse">
-          Circle
-        </button>
-      </div>
-
-      <div class="pdfstudio-hint">
-        PDF Studio is in beta.  
-        Fill, sign & mark up any PDF in seconds.
-      </div>
-    </aside>
-  </div>
-</section>
-
+      </section>
 
       <!-- =============================================================== -->
       <!-- QUICK SIGN                                                      -->
@@ -426,7 +428,7 @@
                 id="invFrom"
                 type="text"
                 class="field-input"
-                placeholder="Leatherneck Trucking LLC"
+                placeholder="Your business name"
               />
             </div>
 
@@ -436,17 +438,17 @@
                 id="invTo"
                 type="text"
                 class="field-input"
-                placeholder="Broker / shipper"
+                placeholder="Customer or client"
               />
             </div>
 
             <div class="field">
-              <label class="field-label" for="invNumber">Invoice / load #</label>
+              <label class="field-label" for="invNumber">Invoice #</label>
               <input
                 id="invNumber"
                 type="text"
                 class="field-input"
-                placeholder="e.g. Load 12345"
+                placeholder="Invoice 12345"
               />
             </div>
 
@@ -468,7 +470,7 @@
                 id="invNotes"
                 class="field-input field-textarea"
                 rows="4"
-                placeholder="Detention, TONU, fuel, accessorials, etc."
+                placeholder="Products, services, fees or other details."
               ></textarea>
             </div>
 
@@ -492,6 +494,124 @@
               <p>
                 The generated PDF includes your business info, bill-to details,
                 a details/notes section and a highlighted total due.
+              </p>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- =============================================================== -->
+      <!-- CUSTOMER ESTIMATE                                               -->
+      <!-- =============================================================== -->
+      <section class="layout tool-view" data-tool-view="estimate">
+        <aside class="sidebar panel">
+          <div class="panel-header">Estimate details</div>
+          <div class="panel-body">
+            <div class="field">
+              <label class="field-label" for="estFrom">From (your business)</label>
+              <input
+                id="estFrom"
+                type="text"
+                class="field-input"
+                placeholder="Your business name"
+              />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="estTo">Estimate for (customer)</label>
+              <input
+                id="estTo"
+                type="text"
+                class="field-input"
+                placeholder="Customer or client"
+              />
+            </div>
+
+            <div class="field field-inline">
+              <div class="field-half">
+                <label class="field-label" for="estNumber">Estimate #</label>
+                <input
+                  id="estNumber"
+                  type="text"
+                  class="field-input"
+                  placeholder="EST-1001"
+                />
+              </div>
+              <div class="field-half">
+                <label class="field-label" for="estValidUntil">Valid until</label>
+                <input
+                  id="estValidUntil"
+                  type="date"
+                  class="field-input"
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="estItems">Line items</label>
+              <textarea
+                id="estItems"
+                class="field-input field-textarea"
+                rows="5"
+                placeholder="List products/services, quantities, unit prices or copy-paste from your notes."
+              ></textarea>
+            </div>
+
+            <div class="field field-inline">
+              <div class="field-half">
+                <label class="field-label" for="estSubtotal">Subtotal</label>
+                <input
+                  id="estSubtotal"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  class="field-input"
+                  placeholder="0.00"
+                />
+              </div>
+              <div class="field-half">
+                <label class="field-label" for="estTaxRate">Tax rate (%)</label>
+                <input
+                  id="estTaxRate"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  class="field-input"
+                  placeholder="8.25"
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="estNotes">Notes / terms</label>
+              <textarea
+                id="estNotes"
+                class="field-input field-textarea"
+                rows="3"
+                placeholder="Payment terms, exclusions, or special notes for the customer."
+              ></textarea>
+            </div>
+
+            <div class="button-row">
+              <button id="estimateExportBtn" class="btn btn-primary">
+                Export estimate PDF – $1.49
+              </button>
+            </div>
+
+            <div class="status-bar status-info">
+              Creates a customer-friendly estimate summarizing your offer, totals and validity date.
+            </div>
+          </div>
+        </aside>
+
+        <section class="viewer panel">
+          <div class="panel-header">Estimate preview</div>
+          <div class="panel-body viewer-body">
+            <div class="pdf-placeholder">
+              <p><strong>Estimate preview mock.</strong></p>
+              <p>
+                Final layout will show your business info, customer details, line items, subtotal,
+                estimated taxes and any notes or terms.
               </p>
             </div>
           </div>
@@ -543,7 +663,7 @@
                 id="recReason"
                 class="field-input field-textarea"
                 rows="3"
-                placeholder="Rent, lumper, delivery, etc."
+                placeholder="Services, rent, products, repairs, etc."
               ></textarea>
             </div>
 
@@ -597,7 +717,7 @@
                 id="psEmployee"
                 type="text"
                 class="field-input"
-                placeholder="Driver name"
+                placeholder="Employee name"
               />
             </div>
 
@@ -669,7 +789,7 @@
               <p><strong>Paystub preview mock.</strong></p>
               <p>
                 Net pay, gross, deductions and period will be laid out in a
-                simple, driver-friendly PDF.
+                simple, easy-to-read PDF.
               </p>
             </div>
           </div>
@@ -692,7 +812,7 @@
                 class="field-input"
               />
               <p class="field-help">
-                Rate confirmations, contracts or templates exported from Word.
+                Contracts, letters or templates exported from Word.
               </p>
             </div>
 
@@ -804,7 +924,7 @@
                 class="field-input"
               />
               <p class="field-help">
-                Combine rate cons, BOLs and invoices into a single packet.
+                Combine contracts, receipts and other documents into a single packet.
               </p>
             </div>
 
@@ -814,7 +934,7 @@
                 id="mergeNotes"
                 class="field-input field-textarea"
                 rows="3"
-                placeholder="Optional: describe order (e.g. rate con first, then BOL, then invoice)"
+                placeholder="Optional: describe order (e.g. quote first, then contract, then receipt)"
               ></textarea>
             </div>
 
@@ -848,7 +968,7 @@
     <section class="comparison-section">
       <h2 class="comparison-heading">Why PDFRealm instead of big-box PDF tools?</h2>
       <p class="comparison-subtitle">
-        PDFRealm focuses on speed, simplicity and pay-per-export pricing. No subscriptions, no friction —
+        PDFRealm focuses on speed, simplicity and low-friction pricing. No heavy software –
         just the document you need in seconds.
       </p>
       <div class="comparison-table-wrapper">
@@ -885,19 +1005,19 @@
             </tr>
             <tr>
               <td class="comparison-feature-col">Tool focus</td>
-              <td>Targeted tools: paystubs, invoices, receipts, merge &amp; conversions.</td>
+              <td>Targeted tools: paystubs, invoices, receipts, estimates, merge &amp; conversions.</td>
               <td>General PDF filling and editing with many options.</td>
               <td>Enterprise-level editing, signing and document management tools.</td>
             </tr>
             <tr>
               <td class="comparison-feature-col">Pricing</td>
-              <td>Low, transparent pay-per-export pricing.</td>
+              <td>Low, transparent pay-per-export and optional subscription pricing.</td>
               <td>Subscription Required Pricing.</td>
               <td>Expensive subscription only.</td>
             </tr>
             <tr>
               <td class="comparison-feature-col">Best for</td>
-              <td>Drivers, brokers, carriers &amp; small teams who need fast, clean PDFs.</td>
+              <td>Freelancers, small businesses &amp; teams who need fast, clean PDFs.</td>
               <td>Users who live in their PDF editor and need frequent, complex edits.</td>
               <td>Enterprises and heavy users who need the full Adobe ecosystem.</td>
             </tr>
@@ -907,7 +1027,7 @@
     </section>
 
     <footer class="app-footer">
-      <span>PDFRealm – MyFreightTracker PDF Studio (beta)</span>
+      <span>PDFRealm – Instant PDF Studio (beta)</span>
       <span class="footer-meta">
         Local-only signing &middot; Not a legal e-signature service &middot; Pay-per-export tools coming soon
       </span>
@@ -942,46 +1062,10 @@
 
   <script src="./app.js"></script>
 
-<!-- PDF.js (viewer library) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.js"></script>
+  <!-- PDF.js (viewer library) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.js"></script>
 
-<!-- PDF Studio logic -->
-<script src="./pdf-studio.js"></script>
-
-<script>
-  // Your existing tab-switch logic here, unchanged
-  document.addEventListener("DOMContentLoaded", () => {
-    const tabs = document.querySelectorAll(".tool-tab");
-    const views = document.querySelectorAll(".tool-view");
-
-    function showTool(id) {
-      views.forEach(view => {
-        view.classList.toggle(
-          "tool-view-active",
-          view.dataset.toolView === id
-        );
-      });
-      tabs.forEach(tab => {
-        tab.classList.toggle(
-          "tool-tab-active",
-          tab.dataset.tool === id
-        );
-      });
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener("click", () => {
-        showTool(tab.dataset.tool);
-      });
-    });
-
-    // Default tool
-    showTool("pdf-studio");
-  });
-</script>
+  <!-- PDF Studio logic -->
+  <script src="./pdf-studio.js"></script>
 </body>
 </html>
-
-</body>
-</html>
-

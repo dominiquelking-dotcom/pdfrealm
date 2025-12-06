@@ -1,2 +1,0 @@
-docker build -t pdfrealm:latest . && docker run --rm -p 8080:8080 pdfrealm:latest & sleep 3 && git add . && git commit -m "Auto: update + css/theme/pdfstudio" && git push origin main
-
