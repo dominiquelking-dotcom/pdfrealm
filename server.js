@@ -535,6 +535,695 @@ app.post("/api/paystub/generate", (req, res) => {
 });
 
 // ---------------------------------------------------------------------
+//  ESTIMATE (NEW)
+// ---------------------------------------------------------------------
+app.post("/api/estimate/generate", (req, res) => {
+  const {
+    from = "",
+    to = "",
+    number = "",
+    validUntil = "",
+    items = "",
+    subtotal = 0,
+    taxRate = 0,
+    notes = "",
+  } = req.body || {};
+
+  console.log("Generating estimate PDF for:", { from, to, number });
+
+  const doc = new PDFDocument({ margin: 50 });
+  streamPdf(doc, res, number || "estimate");
+
+  const { primary, accent, lightBorder, muted } = COLORS;
+  const subNum =
+    typeof subtotal === "number" ? subtotal : parseFloat(subtotal) || 0;
+  const taxNum =
+    typeof taxRate === "number" ? taxRate : parseFloat(taxRate) || 0;
+  const taxAmount = subNum * (taxNum / 100);
+  const total = subNum + taxAmount;
+
+  const subStr = subNum ? `$${subNum.toFixed(2)}` : "—";
+  const taxStr = taxNum ? `${taxNum.toFixed(2)}%` : "—";
+  const totalStr = total ? `$${total.toFixed(2)}` : "—";
+
+  // Header
+  doc.rect(50, 40, 512, 70).fill(primary);
+
+  doc
+    .fill("#ffffff")
+    .font("Helvetica-Bold")
+    .fontSize(16)
+    .text(from || "Your Business Name", 60, 60, { width: 300 });
+
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(22)
+    .fill("#ffffff")
+    .text("ESTIMATE", 0, 48, { align: "right", width: 512 });
+
+  doc.fill(primary);
+
+  let y = 130;
+
+  // Parties box
+  doc
+    .roundedRect(50, y, 260, 110, 6)
+    .strokeColor(lightBorder)
+    .lineWidth(1)
+    .stroke();
+
+  doc.fontSize(9).fillColor(muted).text("From", 60, y + 10);
+  doc
+    .fontSize(10)
+    .fillColor(primary)
+    .font("Helvetica-Bold")
+    .text(from || "—", 60, y + 24, { width: 240 });
+
+  doc
+    .font("Helvetica")
+    .fontSize(9)
+    .fillColor(muted)
+    .text("Estimate for", 60, y + 52);
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(10)
+    .fillColor(primary)
+    .text(to || "—", 60, y + 66, { width: 240 });
+
+  // Meta / amount box
+  doc
+    .roundedRect(320, y, 242, 110, 6)
+    .strokeColor(lightBorder)
+    .lineWidth(1)
+    .stroke();
+
+  const rightX = 330;
+
+  doc
+    .font("Helvetica")
+    .fontSize(9)
+    .fillColor(muted)
+    .text("Estimate #", rightX, y + 10);
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(11)
+    .fillColor(primary)
+    .text(number || "—", rightX, y + 22, { width: 190 });
+
+  doc
+    .font("Helvetica")
+    .fontSize(9)
+    .fillColor(muted)
+    .text("Valid until", rightX, y + 48);
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(10)
+    .fillColor(primary)
+    .text(validUntil || "—", rightX, y + 60, { width: 190 });
+
+  doc
+    .font("Helvetica")
+    .fontSize(9)
+    .fillColor(muted)
+    .text("Total (estimate)", rightX, y + 78);
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(16)
+    .fillColor(accent)
+    .text(totalStr, rightX, y + 90, { width: 190 });
+
+  y += 140;
+
+  // Items
+  doc
+    .fontSize(10)
+    .font("Helvetica-Bold")
+    .fillColor(primary)
+    .text("Line items", 50, y);
+
+  y += 18;
+
+  doc
+    .moveTo(50, y)
+    .lineTo(562, y)
+    .strokeColor(lightBorder)
+    .lineWidth(1)
+    .stroke();
+
+  y += 8;
+
+  doc
+    .font("Helvetica")
+    .fontSize(10)
+    .fillColor(primary)
+    .text(items || "Describe products/services, quantities and unit prices here.", 54, y, {
+      width: 508,
+    });
+
+  y += 80;
+
+  // Totals
+  doc
+    .moveTo(50, y)
+    .lineTo(562, y)
+    .strokeColor(lightBorder)
+    .lineWidth(1)
+    .stroke();
+
+  y += 10;
+
+  doc
+    .font("Helvetica")
+    .fontSize(10)
+    .fillColor(muted)
+    .text("Subtotal", 360, y, { width: 80, align: "left" });
+  doc
+    .font("Helvetica-Bold")
+    .fillColor(primary)
+    .text(subStr, 450, y, { width: 90, align: "right" });
+
+  y += 14;
+
+  doc
+    .font("Helvetica")
+    .fontSize(10)
+    .fillColor(muted)
+    .text("Tax rate", 360, y, { width: 80, align: "left" });
+  doc
+    .font("Helvetica-Bold")
+    .fillColor(primary)
+    .text(taxStr, 450, y, { width: 90, align: "right" });
+
+  y += 14;
+
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(11)
+    .fillColor(primary)
+    .text("Estimated total", 360, y, { width: 80, align: "left" });
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(14)
+    .fillColor(accent)
+    .text(totalStr, 450, y - 2, { width: 90, align: "right" });
+
+  y += 40;
+
+  // Notes / terms
+  doc
+    .font("Helvetica")
+    .fontSize(9)
+    .fillColor(muted)
+    .text("Notes / terms", 50, y);
+  y += 12;
+  doc
+    .font("Helvetica")
+    .fontSize(9)
+    .fillColor(primary)
+    .text(
+      notes ||
+        "This is a non-binding estimate. Final pricing may change based on actual work and materials.",
+      50,
+      y,
+      { width: 512 }
+    );
+
+  doc.end();
+});
+
+// ---------------------------------------------------------------------
+//  CONTRACT (NEW)
+// ---------------------------------------------------------------------
+app.post("/api/contract/generate", (req, res) => {
+  const {
+    from = "",
+    to = "",
+    title = "",
+    scope = "",
+    payment = "",
+    startDate = "",
+    endDate = "",
+    terms = "",
+  } = req.body || {};
+
+  console.log("Generating contract PDF for:", { from, to, title });
+
+  const doc = new PDFDocument({ margin: 60 });
+  streamPdf(doc, res, title || "contract");
+
+  const { primary, muted } = COLORS;
+
+  // Title
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(20)
+    .fillColor(primary)
+    .text(title || "Service Agreement", { align: "center" })
+    .moveDown(1);
+
+  // Parties
+  doc
+    .font("Helvetica")
+    .fontSize(11)
+    .fillColor(primary)
+    .text(
+      `This agreement is made between ${from || "Party A"} and ${
+        to || "Party B"
+      }.`,
+      { align: "left" }
+    )
+    .moveDown(0.5);
+
+  if (startDate || endDate) {
+    doc
+      .fontSize(10)
+      .fillColor(muted)
+      .text(
+        `Effective date: ${startDate || "—"}${
+          endDate ? ` · End date: ${endDate}` : ""
+        }`
+      )
+      .moveDown(1);
+  } else {
+    doc.moveDown(1);
+  }
+
+  // Section: Scope
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(12)
+    .fillColor(primary)
+    .text("1. Scope of work")
+    .moveDown(0.25);
+
+  doc
+    .font("Helvetica")
+    .fontSize(10)
+    .fillColor(primary)
+    .text(
+      scope ||
+        "Describe in clear terms what services will be provided, where, and any deliverables.",
+      { align: "left" }
+    )
+    .moveDown(0.75);
+
+  // Section: Payment
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(12)
+    .fillColor(primary)
+    .text("2. Payment terms")
+    .moveDown(0.25);
+
+  doc
+    .font("Helvetica")
+    .fontSize(10)
+    .fillColor(primary)
+    .text(
+      payment ||
+        "Outline how and when payment will be made, including any deposits, milestones or late fees.",
+      { align: "left" }
+    )
+    .moveDown(0.75);
+
+  // Section: Additional terms
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(12)
+    .fillColor(primary)
+    .text("3. Additional terms & conditions")
+    .moveDown(0.25);
+
+  doc
+    .font("Helvetica")
+    .fontSize(10)
+    .fillColor(primary)
+    .text(
+      terms ||
+        "You can add cancellation policies, ownership of work, warranties, confidentiality, and any other important clauses.",
+      { align: "left" }
+    )
+    .moveDown(1.5);
+
+  // Signatures
+  const sigY = doc.y + 20;
+
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(11)
+    .fillColor(primary)
+    .text("Signed by:", 60, sigY);
+
+  const sigLineWidth = 200;
+  const sigLineY = sigY + 30;
+
+  // Party A
+  doc
+    .moveTo(60, sigLineY)
+    .lineTo(60 + sigLineWidth, sigLineY)
+    .strokeColor("#cbd5f5")
+    .lineWidth(1)
+    .stroke();
+  doc
+    .font("Helvetica")
+    .fontSize(9)
+    .fillColor(muted)
+    .text(from || "Party A", 60, sigLineY + 4, { width: sigLineWidth });
+
+  // Party B
+  const rightX = 330;
+  doc
+    .moveTo(rightX, sigLineY)
+    .lineTo(rightX + sigLineWidth, sigLineY)
+    .strokeColor("#cbd5f5")
+    .lineWidth(1)
+    .stroke();
+  doc
+    .font("Helvetica")
+    .fontSize(9)
+    .fillColor(muted)
+    .text(to || "Party B", rightX, sigLineY + 4, {
+      width: sigLineWidth,
+    });
+
+  // Footer
+  doc
+    .fontSize(8)
+    .fillColor(muted)
+    .text(
+      "This contract template was generated by PDFRealm and should be reviewed or adapted to your local laws as needed.",
+      60,
+      720,
+      { width: 472, align: "center" }
+    );
+
+  doc.end();
+});
+
+// ---------------------------------------------------------------------
+//  QUOTE → INVOICE (NEW)
+// ---------------------------------------------------------------------
+app.post("/api/quote-invoice/generate", (req, res) => {
+  const {
+    from = "",
+    to = "",
+    estimateNumber = "",
+    invoiceNumber = "",
+    items = "",
+    subtotal = 0,
+    taxRate = 0,
+    notes = "",
+  } = req.body || {};
+
+  console.log("Generating quote->invoice PDF for:", {
+    from,
+    to,
+    estimateNumber,
+    invoiceNumber,
+  });
+
+  const doc = new PDFDocument({ margin: 50 });
+  streamPdf(doc, res, invoiceNumber || "invoice");
+
+  const { primary, accent, lightBorder, muted } = COLORS;
+  const subNum =
+    typeof subtotal === "number" ? subtotal : parseFloat(subtotal) || 0;
+  const taxNum =
+    typeof taxRate === "number" ? taxRate : parseFloat(taxRate) || 0;
+  const taxAmount = subNum * (taxNum / 100);
+  const total = subNum + taxAmount;
+
+  const subStr = subNum ? `$${subNum.toFixed(2)}` : "—";
+  const taxStr = taxNum ? `${taxNum.toFixed(2)}%` : "—";
+  const totalStr = total ? `$${total.toFixed(2)}` : "—";
+
+  // Header bar
+  doc.rect(50, 40, 512, 70).fill(primary);
+
+  doc
+    .fill("#ffffff")
+    .font("Helvetica-Bold")
+    .fontSize(16)
+    .text(from || "Your Business Name", 60, 60, { width: 300 });
+
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(22)
+    .fill("#ffffff")
+    .text("INVOICE (from approved estimate)", 0, 48, {
+      align: "right",
+      width: 512,
+    });
+
+  doc.fill(primary);
+  let y = 130;
+
+  // Parties box
+  doc
+    .roundedRect(50, y, 260, 110, 6)
+    .strokeColor(lightBorder)
+    .lineWidth(1)
+    .stroke();
+
+  doc.fontSize(9).fillColor(muted).text("From", 60, y + 10);
+  doc
+    .fontSize(10)
+    .fillColor(primary)
+    .font("Helvetica-Bold")
+    .text(from || "—", 60, y + 24, { width: 240 });
+
+  doc
+    .font("Helvetica")
+    .fontSize(9)
+    .fillColor(muted)
+    .text("Bill to", 60, y + 52);
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(10)
+    .fillColor(primary)
+    .text(to || "—", 60, y + 66, { width: 240 });
+
+  // Meta & totals
+  doc
+    .roundedRect(320, y, 242, 110, 6)
+    .strokeColor(lightBorder)
+    .lineWidth(1)
+    .stroke();
+
+  const rightX = 330;
+
+  doc
+    .font("Helvetica")
+    .fontSize(9)
+    .fillColor(muted)
+    .text("Estimate #", rightX, y + 10);
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(10)
+    .fillColor(primary)
+    .text(estimateNumber || "—", rightX, y + 22, { width: 190 });
+
+  doc
+    .font("Helvetica")
+    .fontSize(9)
+    .fillColor(muted)
+    .text("Invoice #", rightX, y + 40);
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(10)
+    .fillColor(primary)
+    .text(invoiceNumber || "—", rightX, y + 52, { width: 190 });
+
+  doc
+    .font("Helvetica")
+    .fontSize(9)
+    .fillColor(muted)
+    .text("Total due", rightX, y + 70);
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(16)
+    .fillColor(accent)
+    .text(totalStr, rightX, y + 82, { width: 190 });
+
+  y += 140;
+
+  // Line items
+  doc
+    .fontSize(10)
+    .font("Helvetica-Bold")
+    .fillColor(primary)
+    .text("Approved line items", 50, y);
+
+  y += 18;
+
+  doc
+    .moveTo(50, y)
+    .lineTo(562, y)
+    .strokeColor(lightBorder)
+    .lineWidth(1)
+    .stroke();
+
+  y += 8;
+
+  doc
+    .font("Helvetica")
+    .fontSize(10)
+    .fillColor(primary)
+    .text(
+      items ||
+        "Copy the description of work, materials and pricing from your approved estimate.",
+      54,
+      y,
+      { width: 508 }
+    );
+
+  y += 80;
+
+  // Totals
+  doc
+    .moveTo(50, y)
+    .lineTo(562, y)
+    .strokeColor(lightBorder)
+    .lineWidth(1)
+    .stroke();
+
+  y += 10;
+
+  doc
+    .font("Helvetica")
+    .fontSize(10)
+    .fillColor(muted)
+    .text("Subtotal", 360, y, { width: 80, align: "left" });
+  doc
+    .font("Helvetica-Bold")
+    .fillColor(primary)
+    .text(subStr, 450, y, { width: 90, align: "right" });
+
+  y += 14;
+
+  doc
+    .font("Helvetica")
+    .fontSize(10)
+    .fillColor(muted)
+    .text("Tax rate", 360, y, { width: 80, align: "left" });
+  doc
+    .font("Helvetica-Bold")
+    .fillColor(primary)
+    .text(taxStr, 450, y, { width: 90, align: "right" });
+
+  y += 14;
+
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(11)
+    .fillColor(primary)
+    .text("Total due", 360, y, { width: 80, align: "left" });
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(14)
+    .fillColor(accent)
+    .text(totalStr, 450, y - 2, { width: 90, align: "right" });
+
+  y += 40;
+
+  doc
+    .font("Helvetica")
+    .fontSize(9)
+    .fillColor(muted)
+    .text(
+      notes ||
+        "Thank you for your business. Please pay the total due by the agreed due date.",
+      50,
+      y,
+      { width: 512 }
+    );
+
+  doc.end();
+});
+
+// ---------------------------------------------------------------------
+//  BUSINESS LETTER (NEW)
+// ---------------------------------------------------------------------
+app.post("/api/letter/generate", (req, res) => {
+  const {
+    from = "",
+    to = "",
+    subject = "",
+    body = "",
+    signoff = "Sincerely,",
+    senderName = "",
+  } = req.body || {};
+
+  console.log("Generating letter PDF for:", { from, to, subject });
+
+  const doc = new PDFDocument({ margin: 60 });
+  streamPdf(doc, res, subject || "letter");
+
+  const { primary, muted } = COLORS;
+
+  doc.font("Helvetica").fontSize(10).fillColor(primary);
+
+  // From
+  if (from) {
+    doc.text(from).moveDown(0.5);
+  }
+
+  // To
+  if (to) {
+    doc.moveDown(0.75);
+    doc.text(to).moveDown(0.5);
+  }
+
+  // Subject
+  if (subject) {
+    doc
+      .moveDown(0.75)
+      .font("Helvetica-Bold")
+      .fontSize(11)
+      .text(`Re: ${subject}`)
+      .moveDown(0.75);
+    doc.font("Helvetica").fontSize(10);
+  } else {
+    doc.moveDown(0.75);
+  }
+
+  // Body
+  doc
+    .font("Helvetica")
+    .fontSize(10)
+    .fillColor(primary)
+    .text(
+      body ||
+        "Write your business communication here. You can copy-paste an email, message or notes and format them into a clean letter.",
+      { align: "left" }
+    )
+    .moveDown(1.5);
+
+  // Signoff
+  doc
+    .font("Helvetica")
+    .fontSize(10)
+    .fillColor(primary)
+    .text(signoff || "Sincerely,", { align: "left" })
+    .moveDown(1);
+
+  if (senderName) {
+    doc.text(senderName, { align: "left" }).moveDown(0.5);
+  }
+
+  doc
+    .fontSize(8)
+    .fillColor(muted)
+    .moveDown(2)
+    .text(
+      "Letter layout generated by PDFRealm. You can attach this as a PDF or print it for mailing.",
+      { align: "left" }
+    );
+
+  doc.end();
+});
+
+// ---------------------------------------------------------------------
 //  WORD -> PDF (placeholder converter)
 // ---------------------------------------------------------------------
 app.post(
@@ -811,6 +1500,237 @@ app.post(
 );
 
 // ---------------------------------------------------------------------
+//  PDF → JPG (placeholder)  (NEW)
+// ---------------------------------------------------------------------
+app.post(
+  "/api/pdf/to-jpg",
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No PDF uploaded" });
+      }
+
+      const originalName = req.file.originalname || "document.pdf";
+      const dpi = req.body.dpi || "150";
+
+      console.log("PDF->JPG placeholder for:", { originalName, dpi });
+
+      // For now we generate a simple PDF "preview" as a placeholder.
+      const doc = new PDFDocument({ margin: 60 });
+      streamPdf(
+        doc,
+        res,
+        safeFilename(originalName.replace(/\.pdf$/i, "") + "-pdf-to-jpg-preview")
+      );
+
+      const { primary, muted } = COLORS;
+
+      doc
+        .font("Helvetica-Bold")
+        .fontSize(18)
+        .fillColor(primary)
+        .text("PDF → JPG (Coming soon)", { align: "left" })
+        .moveDown();
+
+      doc
+        .font("Helvetica")
+        .fontSize(11)
+        .fillColor(primary)
+        .text(`Original PDF: ${originalName}`)
+        .moveDown(0.5);
+
+      doc
+        .fontSize(10)
+        .fillColor(muted)
+        .text(
+          "This is a placeholder export. In a future version, this tool will generate one JPG image per page of your PDF.",
+          { align: "left" }
+        );
+
+      doc
+        .moveDown(2)
+        .fontSize(8)
+        .fillColor(muted)
+        .text("Generated by PDFRealm (preview mode).", {
+          align: "left",
+        });
+
+      doc.end();
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Failed to process PDF → JPG" });
+    }
+  }
+);
+
+// ---------------------------------------------------------------------
+//  JPG/IMAGE → PDF (NEW)
+// ---------------------------------------------------------------------
+app.post(
+  "/api/image/jpg-to-pdf",
+  upload.array("files", 20),
+  async (req, res) => {
+    try {
+      const files = req.files || [];
+      if (!files.length) {
+        return res.status(400).json({ error: "No image files uploaded" });
+      }
+
+      const title = req.body.title || "images-to-pdf";
+      console.log(
+        "JPG->PDF for:",
+        files.map((f) => f.originalname)
+      );
+
+      const doc = new PDFDocument({ autoFirstPage: false, margin: 40 });
+      streamPdf(doc, res, safeFilename(title, "images-to-pdf"));
+
+      for (const file of files) {
+        try {
+          const img = doc.openImage(file.buffer);
+          const pageWidth = img.width + 80;
+          const pageHeight = img.height + 80;
+
+          doc.addPage({ size: [pageWidth, pageHeight], margin: 40 });
+          doc.image(img, 40, 40);
+        } catch (err) {
+          console.error("Error embedding image in PDF:", err);
+        }
+      }
+
+      doc.end();
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Failed to convert images to PDF" });
+    }
+  }
+);
+
+// ---------------------------------------------------------------------
+//  COMPRESS PDF (NEW - basic re-save)
+// ---------------------------------------------------------------------
+app.post(
+  "/api/pdf/compress",
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No PDF uploaded" });
+      }
+
+      const originalName = req.file.originalname || "document.pdf";
+      const quality = req.body.quality || "balanced";
+
+      console.log("Compress PDF (basic re-save) for:", {
+        originalName,
+        quality,
+      });
+
+      const pdfDoc = await PDFLibDocument.load(req.file.buffer);
+      const compressedBytes = await pdfDoc.save();
+
+      const base = safeFilename(
+        originalName.replace(/\.pdf$/i, "") + "-compressed",
+        "compressed"
+      );
+      const filename = `${base}.pdf`;
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${filename}"`
+      );
+      res.send(Buffer.from(compressedBytes));
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Failed to compress PDF" });
+    }
+  }
+);
+
+// ---------------------------------------------------------------------
+//  SPLIT PDF (NEW)
+// ---------------------------------------------------------------------
+function parsePageRanges(ranges, totalPages) {
+  if (!ranges || !ranges.trim()) {
+    return [];
+  }
+  const result = [];
+  const parts = ranges.split(",");
+  for (const raw of parts) {
+    const part = raw.trim();
+    if (!part) continue;
+    if (/^\d+$/.test(part)) {
+      const page = parseInt(part, 10);
+      if (page >= 1 && page <= totalPages) {
+        result.push(page - 1);
+      }
+    } else {
+      const m = part.match(/^(\d+)\s*-\s*(\d+)$/);
+      if (!m) continue;
+      let start = parseInt(m[1], 10);
+      let end = parseInt(m[2], 10);
+      if (start > end) [start, end] = [end, start];
+      for (let p = start; p <= end; p++) {
+        if (p >= 1 && p <= totalPages) {
+          result.push(p - 1);
+        }
+      }
+    }
+  }
+  // Remove duplicates, preserve order
+  return Array.from(new Set(result));
+}
+
+app.post(
+  "/api/pdf/split",
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No PDF uploaded" });
+      }
+
+      const originalName = req.file.originalname || "document.pdf";
+      const ranges = (req.body.ranges || "").trim();
+
+      console.log("Split PDF for:", { originalName, ranges });
+
+      const pdfDoc = await PDFLibDocument.load(req.file.buffer);
+      const totalPages = pdfDoc.getPageCount();
+
+      let indices = parsePageRanges(ranges, totalPages);
+      if (!indices.length) {
+        // If no valid ranges, default to all pages
+        indices = pdfDoc.getPageIndices();
+      }
+
+      const outDoc = await PDFLibDocument.create();
+      const copiedPages = await outDoc.copyPages(pdfDoc, indices);
+      copiedPages.forEach((p) => outDoc.addPage(p));
+
+      const outBytes = await outDoc.save();
+      const base = safeFilename(
+        originalName.replace(/\.pdf$/i, "") + "-split",
+        "split"
+      );
+      const filename = `${base}.pdf`;
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${filename}"`
+      );
+      res.send(Buffer.from(outBytes));
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Failed to split PDF" });
+    }
+  }
+);
+
+// ---------------------------------------------------------------------
 //  Root page
 // ---------------------------------------------------------------------
 app.get("/", (req, res) => {
@@ -820,4 +1740,3 @@ app.get("/", (req, res) => {
 app.listen(PORT, () => {
   console.log(`PDFRealm (MyFreightTracker PDF Studio) running on port ${PORT}`);
 });
-

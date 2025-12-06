@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (qsStatus) {
         qsStatus.textContent =
-          "Drag the signature on the preview, then click Apply.";
+          'Drag the signature on the preview, then click "Apply".';
       }
 
       updateQsSignatureText();
@@ -415,6 +415,346 @@ document.addEventListener("DOMContentLoaded", () => {
       } finally {
         mergeBtn.disabled = false;
         mergeBtn.textContent = "Merge & export – $1.49";
+      }
+    });
+  }
+
+  // ================================================================
+  // NEW: Estimate, Contract, Quote→Invoice, Business Letter
+  // ================================================================
+
+  // ---------------- Estimate ----------------
+  const estimateBtn = document.getElementById("estimateExportBtn");
+  if (estimateBtn) {
+    estimateBtn.addEventListener("click", async () => {
+      const from = document.getElementById("estFrom")?.value || "";
+      const to = document.getElementById("estTo")?.value || "";
+      const number = document.getElementById("estNumber")?.value || "";
+      const validUntil =
+        document.getElementById("estValidUntil")?.value || "";
+      const items = document.getElementById("estItems")?.value || "";
+      const subtotalRaw =
+        document.getElementById("estSubtotal")?.value || "";
+      const taxRateRaw =
+        document.getElementById("estTaxRate")?.value || "";
+      const notes = document.getElementById("estNotes")?.value || "";
+
+      const subtotal = subtotalRaw ? parseFloat(subtotalRaw) : 0;
+      const taxRate = taxRateRaw ? parseFloat(taxRateRaw) : 0;
+
+      try {
+        estimateBtn.disabled = true;
+        estimateBtn.textContent = "Generating estimate...";
+        await jsonToPdf(
+          "/api/estimate/generate",
+          {
+            from,
+            to,
+            number,
+            validUntil,
+            items,
+            subtotal,
+            taxRate,
+            notes,
+          },
+          (number || "estimate") + ".pdf"
+        );
+      } catch (err) {
+        console.error(err);
+        alert("Error generating estimate PDF.");
+      } finally {
+        estimateBtn.disabled = false;
+        estimateBtn.textContent = "Export estimate PDF – $1.49";
+      }
+    });
+  }
+
+  // ---------------- Contract ----------------
+  const contractBtn = document.getElementById("contractExportBtn");
+  if (contractBtn) {
+    contractBtn.addEventListener("click", async () => {
+      const from = document.getElementById("contractFrom")?.value || "";
+      const to = document.getElementById("contractTo")?.value || "";
+      const title = document.getElementById("contractTitle")?.value || "";
+      const scope = document.getElementById("contractScope")?.value || "";
+      const payment =
+        document.getElementById("contractPayment")?.value || "";
+      const startDate =
+        document.getElementById("contractStart")?.value || "";
+      const endDate = document.getElementById("contractEnd")?.value || "";
+      const terms = document.getElementById("contractTerms")?.value || "";
+
+      try {
+        contractBtn.disabled = true;
+        contractBtn.textContent = "Generating contract...";
+        await jsonToPdf(
+          "/api/contract/generate",
+          {
+            from,
+            to,
+            title,
+            scope,
+            payment,
+            startDate,
+            endDate,
+            terms,
+          },
+          (title || "contract") + ".pdf"
+        );
+      } catch (err) {
+        console.error(err);
+        alert("Error generating contract PDF.");
+      } finally {
+        contractBtn.disabled = false;
+        contractBtn.textContent = "Export contract PDF – $1.49";
+      }
+    });
+  }
+
+  // ---------------- Quote → Invoice ----------------
+  const quoteInvoiceBtn = document.getElementById(
+    "quoteInvoiceExportBtn"
+  );
+  if (quoteInvoiceBtn) {
+    quoteInvoiceBtn.addEventListener("click", async () => {
+      const from = document.getElementById("qiFrom")?.value || "";
+      const to = document.getElementById("qiTo")?.value || "";
+      const estimateNumber =
+        document.getElementById("qiEstimateNumber")?.value || "";
+      const invoiceNumber =
+        document.getElementById("qiInvoiceNumber")?.value || "";
+      const items = document.getElementById("qiItems")?.value || "";
+      const subtotalRaw =
+        document.getElementById("qiSubtotal")?.value || "";
+      const taxRateRaw =
+        document.getElementById("qiTaxRate")?.value || "";
+      const notes = document.getElementById("qiNotes")?.value || "";
+
+      const subtotal = subtotalRaw ? parseFloat(subtotalRaw) : 0;
+      const taxRate = taxRateRaw ? parseFloat(taxRateRaw) : 0;
+
+      try {
+        quoteInvoiceBtn.disabled = true;
+        quoteInvoiceBtn.textContent = "Generating invoice...";
+        await jsonToPdf(
+          "/api/quote-invoice/generate",
+          {
+            from,
+            to,
+            estimateNumber,
+            invoiceNumber,
+            items,
+            subtotal,
+            taxRate,
+            notes,
+          },
+          (invoiceNumber || "invoice") + ".pdf"
+        );
+      } catch (err) {
+        console.error(err);
+        alert("Error generating invoice from quote.");
+      } finally {
+        quoteInvoiceBtn.disabled = false;
+        quoteInvoiceBtn.textContent =
+          "Export invoice PDF – $1.49";
+      }
+    });
+  }
+
+  // ---------------- Business Letter ----------------
+  const letterBtn = document.getElementById("letterExportBtn");
+  if (letterBtn) {
+    letterBtn.addEventListener("click", async () => {
+      const from = document.getElementById("letterFrom")?.value || "";
+      const to = document.getElementById("letterTo")?.value || "";
+      const subject =
+        document.getElementById("letterSubject")?.value || "";
+      const body = document.getElementById("letterBody")?.value || "";
+      const signoff =
+        document.getElementById("letterSignoff")?.value || "Sincerely,";
+      const senderName =
+        document.getElementById("letterSenderName")?.value || "";
+
+      try {
+        letterBtn.disabled = true;
+        letterBtn.textContent = "Generating letter...";
+        await jsonToPdf(
+          "/api/letter/generate",
+          { from, to, subject, body, signoff, senderName },
+          (subject || "letter") + ".pdf"
+        );
+      } catch (err) {
+        console.error(err);
+        alert("Error generating letter PDF.");
+      } finally {
+        letterBtn.disabled = false;
+        letterBtn.textContent = "Export letter PDF – $1.49";
+      }
+    });
+  }
+
+  // ================================================================
+  // NEW: More Tools – PDF→JPG, JPG→PDF, Compress, Split
+  // ================================================================
+
+  // ---------------- PDF -> JPG (placeholder) ----------------
+  const pdfToJpgBtn = document.getElementById("pdfToJpgBtn");
+  if (pdfToJpgBtn) {
+    pdfToJpgBtn.addEventListener("click", async () => {
+      const fileInput = document.getElementById("pdfToJpgFile");
+      const dpiInput = document.getElementById("pdfToJpgDpi");
+      const file = fileInput?.files?.[0];
+
+      if (!file) {
+        alert("Select a PDF first.");
+        return;
+      }
+
+      const dpi = dpiInput?.value || "";
+
+      const formData = new FormData();
+      formData.append("file", file);
+      if (dpi) formData.append("dpi", dpi);
+
+      try {
+        pdfToJpgBtn.disabled = true;
+        pdfToJpgBtn.textContent = "Processing...";
+        const res = await fetch("/api/pdf/to-jpg", {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok) throw new Error(`Server error ${res.status}`);
+        const baseName =
+          file.name.replace(/\.pdf$/i, "") || "pdf-to-jpg-preview";
+        await triggerDownloadFromResponse(
+          res,
+          baseName + "-pdf-to-jpg-preview.pdf"
+        );
+      } catch (err) {
+        console.error(err);
+        alert("Error running PDF → JPG (preview).");
+      } finally {
+        pdfToJpgBtn.disabled = false;
+        pdfToJpgBtn.textContent = "Convert to JPG – $1.49";
+      }
+    });
+  }
+
+  // ---------------- JPG / Image -> PDF ----------------
+  const jpgToPdfBtn = document.getElementById("jpgToPdfBtn");
+  if (jpgToPdfBtn) {
+    jpgToPdfBtn.addEventListener("click", async () => {
+      const fileInput = document.getElementById("jpgToPdfFiles");
+      const titleInput = document.getElementById("jpgToPdfTitle");
+      const files = fileInput?.files;
+
+      if (!files || !files.length) {
+        alert("Select at least one image.");
+        return;
+      }
+
+      const title = titleInput?.value || "images-to-pdf";
+      const formData = new FormData();
+      Array.from(files).forEach((file) => {
+        formData.append("files", file);
+      });
+      formData.append("title", title);
+
+      try {
+        jpgToPdfBtn.disabled = true;
+        jpgToPdfBtn.textContent = "Converting...";
+        const res = await fetch("/api/image/jpg-to-pdf", {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok) throw new Error(`Server error ${res.status}`);
+        const base = title || "images-to-pdf";
+        await triggerDownloadFromResponse(res, base + ".pdf");
+      } catch (err) {
+        console.error(err);
+        alert("Error converting images to PDF.");
+      } finally {
+        jpgToPdfBtn.disabled = false;
+        jpgToPdfBtn.textContent = "Convert to PDF – $1.49";
+      }
+    });
+  }
+
+  // ---------------- Compress PDF ----------------
+  const compressBtn = document.getElementById("compressPdfBtn");
+  if (compressBtn) {
+    compressBtn.addEventListener("click", async () => {
+      const fileInput = document.getElementById("compressPdfFile");
+      const qualityInput = document.getElementById("compressQuality");
+      const file = fileInput?.files?.[0];
+
+      if (!file) {
+        alert("Select a PDF first.");
+        return;
+      }
+
+      const quality = qualityInput?.value || "balanced";
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("quality", quality);
+
+      try {
+        compressBtn.disabled = true;
+        compressBtn.textContent = "Compressing...";
+        const res = await fetch("/api/pdf/compress", {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok) throw new Error(`Server error ${res.status}`);
+        const base =
+          file.name.replace(/\.pdf$/i, "") || "compressed-document";
+        await triggerDownloadFromResponse(res, base + "-compressed.pdf");
+      } catch (err) {
+        console.error(err);
+        alert("Error compressing PDF.");
+      } finally {
+        compressBtn.disabled = false;
+        compressBtn.textContent = "Compress & download – $1.49";
+      }
+    });
+  }
+
+  // ---------------- Split PDF ----------------
+  const splitBtn = document.getElementById("splitPdfBtn");
+  if (splitBtn) {
+    splitBtn.addEventListener("click", async () => {
+      const fileInput = document.getElementById("splitPdfFile");
+      const rangesInput = document.getElementById("splitPageRanges");
+      const file = fileInput?.files?.[0];
+
+      if (!file) {
+        alert("Select a PDF first.");
+        return;
+      }
+
+      const ranges = rangesInput?.value || "";
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("ranges", ranges);
+
+      try {
+        splitBtn.disabled = true;
+        splitBtn.textContent = "Splitting...";
+        const res = await fetch("/api/pdf/split", {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok) throw new Error(`Server error ${res.status}`);
+        const base = file.name.replace(/\.pdf$/i, "") || "split-document";
+        await triggerDownloadFromResponse(res, base + "-split.pdf");
+      } catch (err) {
+        console.error(err);
+        alert("Error splitting PDF.");
+      } finally {
+        splitBtn.disabled = false;
+        splitBtn.textContent = "Split & export – $1.49";
       }
     });
   }
