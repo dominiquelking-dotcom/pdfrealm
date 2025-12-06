@@ -15,6 +15,7 @@
       padding: 0.5rem 1rem 0.75rem;
       border-bottom: 1px solid rgba(0,0,0,0.08);
       background: rgba(248, 250, 252, 0.9);
+      align-items: center;
     }
 
     .tool-tab {
@@ -46,6 +47,65 @@
       .tool-view-active {
         flex-direction: column;
       }
+    }
+
+    /* More-tools dropdown */
+    .tool-tab-more {
+      position: relative;
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .tool-tab-more-caret {
+      font-size: 0.7rem;
+    }
+
+    .more-menu {
+      position: absolute;
+      top: calc(100% + 0.3rem);
+      right: 0;
+      min-width: 180px;
+      background: #ffffff;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.18);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      padding: 0.35rem 0;
+      display: none;
+      z-index: 30;
+    }
+
+    .tool-tab-more.open .more-menu {
+      display: block;
+    }
+
+    .more-menu-item {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.35rem 0.75rem;
+      font-size: 0.85rem;
+      background: transparent;
+      border: none;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .more-menu-item:hover {
+      background: #eff6ff;
+    }
+
+    .more-menu-item span {
+      display: inline-block;
+    }
+
+    .more-menu-tag {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #64748b;
     }
 
     /* Unique inline logo styling */
@@ -188,16 +248,25 @@
         Quick Sign
       </button>
       <button class="tool-tab" data-tool="invoice">
-        Invoice Generator
+        Invoice
       </button>
       <button class="tool-tab" data-tool="estimate">
         Customer Estimate
       </button>
+      <button class="tool-tab" data-tool="contract">
+        Contract
+      </button>
+      <button class="tool-tab" data-tool="quote-invoice">
+        Quote → Invoice
+      </button>
+      <button class="tool-tab" data-tool="business-letter">
+        Business Letter
+      </button>
       <button class="tool-tab" data-tool="receipt">
-        Receipt Generator
+        Receipt
       </button>
       <button class="tool-tab" data-tool="paystub">
-        Paystub Generator
+        Paystub
       </button>
       <button class="tool-tab" data-tool="word-to-pdf">
         Word → PDF
@@ -208,11 +277,34 @@
       <button class="tool-tab" data-tool="merge-pdf">
         Merge PDF
       </button>
+
+      <!-- More tools dropdown (far right) -->
+      <div class="tool-tab tool-tab-more" data-role="more-toggle" tabindex="0">
+        More tools <span class="tool-tab-more-caret">▾</span>
+        <div class="more-menu">
+          <button class="more-menu-item" data-tool="pdf-to-jpg">
+            <span>PDF → JPG</span>
+            <span class="more-menu-tag">images</span>
+          </button>
+          <button class="more-menu-item" data-tool="jpg-to-pdf">
+            <span>JPG → PDF</span>
+            <span class="more-menu-tag">combine</span>
+          </button>
+          <button class="more-menu-item" data-tool="compress-pdf">
+            <span>Compress PDF</span>
+            <span class="more-menu-tag">smaller</span>
+          </button>
+          <button class="more-menu-item" data-tool="split-pdf">
+            <span>Split PDF</span>
+            <span class="more-menu-tag">pages</span>
+          </button>
+        </div>
+      </div>
     </nav>
 
     <main class="app-main">
       <!-- =============================================================== -->
-      <!-- PDF STUDIO (placeholder for full tool)                          -->
+      <!-- PDF STUDIO                                                      -->
       <!-- =============================================================== -->
       <section
         class="layout tool-view"
@@ -481,7 +573,7 @@
             </div>
 
             <div class="status-bar status-info">
-              Live invoice PDF export. Later this can be tied to payments and customer records.
+              Creates a clean invoice PDF summarizing bill-to info, line items and totals.
             </div>
           </div>
         </aside>
@@ -612,6 +704,332 @@
               <p>
                 Final layout will show your business info, customer details, line items, subtotal,
                 estimated taxes and any notes or terms.
+              </p>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- =============================================================== -->
+      <!-- CONTRACT GENERATOR                                              -->
+      <!-- =============================================================== -->
+      <section class="layout tool-view" data-tool-view="contract">
+        <aside class="sidebar panel">
+          <div class="panel-header">Contract details</div>
+          <div class="panel-body">
+            <div class="field">
+              <label class="field-label" for="contractFrom">Party A (your business)</label>
+              <input
+                id="contractFrom"
+                type="text"
+                class="field-input"
+                placeholder="Your business name"
+              />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="contractTo">Party B (customer / client)</label>
+              <input
+                id="contractTo"
+                type="text"
+                class="field-input"
+                placeholder="Customer or client name"
+              />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="contractTitle">Agreement title</label>
+              <input
+                id="contractTitle"
+                type="text"
+                class="field-input"
+                placeholder="Service Agreement, Project Contract, etc."
+              />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="contractScope">Scope of work</label>
+              <textarea
+                id="contractScope"
+                class="field-input field-textarea"
+                rows="4"
+                placeholder="Describe what work will be performed, where and by when."
+              ></textarea>
+            </div>
+
+            <div class="field field-inline">
+              <div class="field-half">
+                <label class="field-label" for="contractPayment">Payment terms</label>
+                <input
+                  id="contractPayment"
+                  type="text"
+                  class="field-input"
+                  placeholder="Fixed fee, hourly, milestones, etc."
+                />
+              </div>
+              <div class="field-half">
+                <label class="field-label" for="contractStart">Start date</label>
+                <input
+                  id="contractStart"
+                  type="date"
+                  class="field-input"
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="contractEnd">End date (optional)</label>
+              <input
+                id="contractEnd"
+                type="date"
+                class="field-input"
+              />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="contractTerms">Extra terms & conditions</label>
+              <textarea
+                id="contractTerms"
+                class="field-input field-textarea"
+                rows="4"
+                placeholder="Late fees, cancellations, warranties, ownership of work, etc."
+              ></textarea>
+            </div>
+
+            <div class="button-row">
+              <button id="contractExportBtn" class="btn btn-primary">
+                Export contract PDF – $1.49
+              </button>
+            </div>
+
+            <div class="status-bar status-info">
+              Generates a simple service contract with both parties, scope, dates, payment and signature lines.
+            </div>
+          </div>
+        </aside>
+
+        <section class="viewer panel">
+          <div class="panel-header">Contract preview</div>
+          <div class="panel-body viewer-body">
+            <div class="pdf-placeholder">
+              <p><strong>Contract preview mock.</strong></p>
+              <p>
+                Final PDF lays out parties, agreement title, scope, dates, payment terms, extra conditions and signature blocks.
+              </p>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- =============================================================== -->
+      <!-- QUOTE → INVOICE                                                 -->
+      <!-- =============================================================== -->
+      <section class="layout tool-view" data-tool-view="quote-invoice">
+        <aside class="sidebar panel">
+          <div class="panel-header">Convert quote to invoice</div>
+          <div class="panel-body">
+            <p class="field-help">
+              Take an approved estimate and turn it into a finished invoice in one step.
+            </p>
+
+            <div class="field">
+              <label class="field-label" for="qiFrom">From (your business)</label>
+              <input
+                id="qiFrom"
+                type="text"
+                class="field-input"
+                placeholder="Your business name"
+              />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="qiTo">Bill to (customer)</label>
+              <input
+                id="qiTo"
+                type="text"
+                class="field-input"
+                placeholder="Customer or client"
+              />
+            </div>
+
+            <div class="field field-inline">
+              <div class="field-half">
+                <label class="field-label" for="qiEstimateNumber">Estimate #</label>
+                <input
+                  id="qiEstimateNumber"
+                  type="text"
+                  class="field-input"
+                  placeholder="EST-1001"
+                />
+              </div>
+              <div class="field-half">
+                <label class="field-label" for="qiInvoiceNumber">Invoice #</label>
+                <input
+                  id="qiInvoiceNumber"
+                  type="text"
+                  class="field-input"
+                  placeholder="INV-1001"
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="qiItems">Line items (copied from estimate)</label>
+              <textarea
+                id="qiItems"
+                class="field-input field-textarea"
+                rows="4"
+                placeholder="Paste or type the approved line items from your estimate."
+              ></textarea>
+            </div>
+
+            <div class="field field-inline">
+              <div class="field-half">
+                <label class="field-label" for="qiSubtotal">Subtotal</label>
+                <input
+                  id="qiSubtotal"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  class="field-input"
+                  placeholder="0.00"
+                />
+              </div>
+              <div class="field-half">
+                <label class="field-label" for="qiTaxRate">Tax rate (%)</label>
+                <input
+                  id="qiTaxRate"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  class="field-input"
+                  placeholder="8.25"
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="qiNotes">Notes / terms</label>
+              <textarea
+                id="qiNotes"
+                class="field-input field-textarea"
+                rows="3"
+                placeholder="Payment terms, due date, late fees, etc."
+              ></textarea>
+            </div>
+
+            <div class="button-row">
+              <button id="quoteInvoiceExportBtn" class="btn btn-primary">
+                Export invoice PDF – $1.49
+              </button>
+            </div>
+
+            <div class="status-bar status-info">
+              Uses your quote details to create a final invoice with totals and due amount.
+            </div>
+          </div>
+        </aside>
+
+        <section class="viewer panel">
+          <div class="panel-header">Quote → Invoice preview</div>
+          <div class="panel-body viewer-body">
+            <div class="pdf-placeholder">
+              <p><strong>Invoice preview mock.</strong></p>
+              <p>
+                Final PDF mirrors your estimate but clearly labels it as an invoice with total due and payment terms.
+              </p>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- =============================================================== -->
+      <!-- BUSINESS LETTER GENERATOR                                       -->
+      <!-- =============================================================== -->
+      <section class="layout tool-view" data-tool-view="business-letter">
+        <aside class="sidebar panel">
+          <div class="panel-header">Business letter details</div>
+          <div class="panel-body">
+            <div class="field">
+              <label class="field-label" for="letterFrom">From (your name / business)</label>
+              <input
+                id="letterFrom"
+                type="text"
+                class="field-input"
+                placeholder="Your name, title, company"
+              />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="letterTo">To (recipient)</label>
+              <input
+                id="letterTo"
+                type="text"
+                class="field-input"
+                placeholder="Recipient name, title, company"
+              />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="letterSubject">Subject</label>
+              <input
+                id="letterSubject"
+                type="text"
+                class="field-input"
+                placeholder="Re: Project update, Payment request, etc."
+              />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="letterBody">Letter body</label>
+              <textarea
+                id="letterBody"
+                class="field-input field-textarea"
+                rows="8"
+                placeholder="Write or paste the body of your letter here."
+              ></textarea>
+            </div>
+
+            <div class="field field-inline">
+              <div class="field-half">
+                <label class="field-label" for="letterSignoff">Sign-off</label>
+                <input
+                  id="letterSignoff"
+                  type="text"
+                  class="field-input"
+                  placeholder="Sincerely,"
+                />
+              </div>
+              <div class="field-half">
+                <label class="field-label" for="letterSenderName">Sender name</label>
+                <input
+                  id="letterSenderName"
+                  type="text"
+                  class="field-input"
+                  placeholder="Your full name"
+                />
+              </div>
+            </div>
+
+            <div class="button-row">
+              <button id="letterExportBtn" class="btn btn-primary">
+                Export letter PDF – $1.49
+              </button>
+            </div>
+
+            <div class="status-bar status-info">
+              Generates a clean, professional letter with your header, subject, body and signature block.
+            </div>
+          </div>
+        </aside>
+
+        <section class="viewer panel">
+          <div class="panel-header">Letter preview</div>
+          <div class="panel-body viewer-body">
+            <div class="pdf-placeholder">
+              <p><strong>Letter preview mock.</strong></p>
+              <p>
+                Final PDF formats your letter with a professional layout, subject line and signature block.
               </p>
             </div>
           </div>
@@ -962,6 +1380,232 @@
           </div>
         </section>
       </section>
+
+      <!-- =============================================================== -->
+      <!-- PDF → JPG (MORE TOOL)                                          -->
+      <!-- =============================================================== -->
+      <section class="layout tool-view" data-tool-view="pdf-to-jpg">
+        <aside class="sidebar panel">
+          <div class="panel-header">PDF → JPG</div>
+          <div class="panel-body">
+            <div class="field">
+              <label class="field-label" for="pdfToJpgFile">PDF file</label>
+              <input
+                id="pdfToJpgFile"
+                type="file"
+                accept="application/pdf"
+                class="field-input"
+              />
+              <p class="field-help">
+                Convert each page of a PDF into high-quality JPG images.
+              </p>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="pdfToJpgDpi">Image quality (DPI)</label>
+              <input
+                id="pdfToJpgDpi"
+                type="number"
+                min="72"
+                max="600"
+                step="1"
+                class="field-input"
+                placeholder="150"
+              />
+            </div>
+
+            <div class="button-row">
+              <button id="pdfToJpgBtn" class="btn btn-primary">
+                Convert to JPG – $1.49
+              </button>
+            </div>
+
+            <div class="status-bar status-info">
+              Outputs one JPG file per PDF page, ready for use in slides, social posts or image editing tools.
+            </div>
+          </div>
+        </aside>
+
+        <section class="viewer panel">
+          <div class="panel-header">Conversion preview</div>
+          <div class="panel-body viewer-body">
+            <div class="pdf-placeholder">
+              <p><strong>No PDF selected.</strong></p>
+              <p>
+                Once wired, you’ll see a list of generated JPG files available for download.
+              </p>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- =============================================================== -->
+      <!-- JPG → PDF (MORE TOOL)                                          -->
+      <!-- =============================================================== -->
+      <section class="layout tool-view" data-tool-view="jpg-to-pdf">
+        <aside class="sidebar panel">
+          <div class="panel-header">JPG → PDF</div>
+          <div class="panel-body">
+            <div class="field">
+              <label class="field-label" for="jpgToPdfFiles">Image files</label>
+              <input
+                id="jpgToPdfFiles"
+                type="file"
+                accept="image/*"
+                multiple
+                class="field-input"
+              />
+              <p class="field-help">
+                Combine one or more images (JPG, PNG, etc.) into a single PDF.
+              </p>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="jpgToPdfTitle">Output filename</label>
+              <input
+                id="jpgToPdfTitle"
+                type="text"
+                class="field-input"
+                placeholder="Optional – otherwise we use a default name"
+              />
+            </div>
+
+            <div class="button-row">
+              <button id="jpgToPdfBtn" class="btn btn-primary">
+                Convert to PDF – $1.49
+              </button>
+            </div>
+
+            <div class="status-bar status-info">
+              Ideal for scanning documents with your phone and turning them into a single PDF.
+            </div>
+          </div>
+        </aside>
+
+        <section class="viewer panel">
+          <div class="panel-header">Conversion status</div>
+          <div class="panel-body viewer-body">
+            <div class="pdf-placeholder">
+              <p><strong>No images selected.</strong></p>
+              <p>
+                Once wired, we’ll show upload status and a link to download the combined PDF.
+              </p>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- =============================================================== -->
+      <!-- COMPRESS PDF (MORE TOOL)                                       -->
+      <!-- =============================================================== -->
+      <section class="layout tool-view" data-tool-view="compress-pdf">
+        <aside class="sidebar panel">
+          <div class="panel-header">Compress PDF</div>
+          <div class="panel-body">
+            <div class="field">
+              <label class="field-label" for="compressPdfFile">PDF file</label>
+              <input
+                id="compressPdfFile"
+                type="file"
+                accept="application/pdf"
+                class="field-input"
+              />
+              <p class="field-help">
+                Reduce file size for email or upload limits while keeping it readable.
+              </p>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="compressQuality">Compression level</label>
+              <select id="compressQuality" class="field-input">
+                <option value="light">Light (best quality, smaller savings)</option>
+                <option value="balanced" selected>Balanced</option>
+                <option value="strong">Strong (smallest file, more compression)</option>
+              </select>
+            </div>
+
+            <div class="button-row">
+              <button id="compressPdfBtn" class="btn btn-primary">
+                Compress &amp; download – $1.49
+              </button>
+            </div>
+
+            <div class="status-bar status-info">
+              Once wired, you’ll see original vs compressed size and can download the smaller PDF.
+            </div>
+          </div>
+        </aside>
+
+        <section class="viewer panel">
+          <div class="panel-header">Compression status</div>
+          <div class="panel-body viewer-body">
+            <div class="pdf-placeholder">
+              <p><strong>No PDF selected.</strong></p>
+              <p>
+                Final view will show file size savings and let you download the compressed PDF.
+              </p>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- =============================================================== -->
+      <!-- SPLIT PDF (MORE TOOL)                                          -->
+      <!-- =============================================================== -->
+      <section class="layout tool-view" data-tool-view="split-pdf">
+        <aside class="sidebar panel">
+          <div class="panel-header">Split PDF</div>
+          <div class="panel-body">
+            <div class="field">
+              <label class="field-label" for="splitPdfFile">PDF file</label>
+              <input
+                id="splitPdfFile"
+                type="file"
+                accept="application/pdf"
+                class="field-input"
+              />
+              <p class="field-help">
+                Split a large PDF into smaller parts, or extract only the pages you need.
+              </p>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="splitPageRanges">Page ranges</label>
+              <input
+                id="splitPageRanges"
+                type="text"
+                class="field-input"
+                placeholder="e.g. 1-3,5,7-9"
+              />
+              <p class="field-help">
+                Use commas for multiple ranges. For example, "1-3,5,7-9" creates a file with pages 1–3, 5 and 7–9.
+              </p>
+            </div>
+
+            <div class="button-row">
+              <button id="splitPdfBtn" class="btn btn-primary">
+                Split &amp; export – $1.49
+              </button>
+            </div>
+
+            <div class="status-bar status-info">
+              Once wired, you’ll get one or more PDFs containing the selected pages.
+            </div>
+          </div>
+        </aside>
+
+        <section class="viewer panel">
+          <div class="panel-header">Split status</div>
+          <div class="panel-body viewer-body">
+            <div class="pdf-placeholder">
+              <p><strong>No PDF selected.</strong></p>
+              <p>
+                Final view will list the generated PDFs and provide download links for each.
+              </p>
+            </div>
+          </div>
+        </section>
+      </section>
     </main>
 
     <!-- COMPETITIVE COMPARISON SECTION -->
@@ -1005,7 +1649,10 @@
             </tr>
             <tr>
               <td class="comparison-feature-col">Tool focus</td>
-              <td>Targeted tools: paystubs, invoices, receipts, estimates, merge &amp; conversions.</td>
+              <td>
+                Targeted tools: invoices, estimates, contracts, letters, receipts, paystubs,
+                merge &amp; conversions.
+              </td>
               <td>General PDF filling and editing with many options.</td>
               <td>Enterprise-level editing, signing and document management tools.</td>
             </tr>
@@ -1034,13 +1681,17 @@
     </footer>
   </div>
 
-  <!-- Simple tab switching -->
+  <!-- Simple tab switching + More dropdown -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const tabs = document.querySelectorAll(".tool-tab");
+      const tabs = document.querySelectorAll(".tool-tab[data-tool]");
       const views = document.querySelectorAll(".tool-view");
+      const moreToggle = document.querySelector(".tool-tab-more[data-role='more-toggle']");
+      const moreMenu = moreToggle?.querySelector(".more-menu");
+      const moreItems = moreMenu?.querySelectorAll(".more-menu-item") || [];
 
       function showTool(id) {
+        if (!id) return;
         views.forEach(view => {
           view.classList.toggle("tool-view-active", view.dataset.toolView === id);
         });
@@ -1054,6 +1705,43 @@
           showTool(tab.dataset.tool);
         });
       });
+
+      if (moreToggle && moreMenu) {
+        function toggleMore(open) {
+          if (open === true) {
+            moreToggle.classList.add("open");
+          } else if (open === false) {
+            moreToggle.classList.remove("open");
+          } else {
+            moreToggle.classList.toggle("open");
+          }
+        }
+
+        moreToggle.addEventListener("click", (e) => {
+          e.stopPropagation();
+          toggleMore();
+        });
+
+        moreToggle.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggleMore();
+          }
+        });
+
+        moreItems.forEach(item => {
+          item.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const id = item.dataset.tool;
+            showTool(id);
+            toggleMore(false);
+          });
+        });
+
+        document.addEventListener("click", () => {
+          toggleMore(false);
+        });
+      }
 
       // Default tool
       showTool("pdf-studio");
