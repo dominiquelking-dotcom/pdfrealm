@@ -1,0 +1,784 @@
+/* ============ PDFREALM_BASE_THEME_V1 (RESTORED) ============ */
+:root{
+  --bg: #0b1220;
+  --panel: rgba(17,24,39,.94);
+  --text: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.70);
+  --line: rgba(255,255,255,.12);
+  --radius: 18px;
+  --shadow: 0 18px 48px rgba(0,0,0,.45);
+}
+
+*{ box-sizing:border-box; }
+html, body{ height:100%; }
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  color: var(--text);
+  background:
+    radial-gradient(1200px 700px at 20% 10%, rgba(96,165,250,.18), transparent 55%),
+    radial-gradient(1100px 650px at 80% 0%, rgba(45,212,191,.12), transparent 60%),
+    radial-gradient(900px 600px at 70% 90%, rgba(168,85,247,.10), transparent 55%),
+    var(--bg);
+}
+
+a{ color: inherit; text-decoration:none; }
+/* ============ /PDFREALM_BASE_THEME_V1 ============ */
+:root{
+  /* LIGHTER THEME TUNING */
+  --bg:#0f172a;
+  --panel:#111827;
+  --panel2:#0f172a;
+  --text:#e8edf7;
+  --muted:#a5b4c7;
+  --line:rgba(255,255,255,.14);
+  --brand:#60a5ff;
+  --brand2:#5de6c2;
+  --warn:#facc6b;
+  --danger:#fb7185;
+  --shadow: 0 12px 40px rgba(15,23,42,.40);
+  --radius:16px;
+}
+
+*{ box-sizing:border-box; }
+html, body{ height:100%; }
+html{ font-size: 120%; } /* +20% global */
+
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background:
+    radial-gradient(1000px 700px at 10% -10%, rgba(96,165,250,.30), transparent 60%),
+    radial-gradient(1000px 700px at 95% 0%, rgba(45,212,191,.24), transparent 60%),
+    linear-gradient(180deg, #111827, #020617 55%, #020617);
+  color: var(--text);
+  overflow-y: auto; /* keep page scroll reliable */
+}
+
+a{ color:inherit; text-decoration:none; }
+
+/* ============ TOP BAR ============ */
+
+.topbar{
+  position: sticky;
+  top:0;
+  z-index: 50;
+  backdrop-filter: blur(10px);
+  background: rgba(15,23,42,.86);
+  border-bottom: 2px solid rgba(148,163,184,.65);
+}
+
+.topbar-inner{
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 14px 16px;
+  display:flex;
+  gap:14px;
+  align-items:center;
+  justify-content: space-between;
+}
+
+.topbar-left{
+  display:flex;
+  align-items:center;
+  gap: 20px;
+}
+
+.topbar-right{
+  display:flex;
+  align-items:center;
+  gap: 14px;
+  margin-left: auto;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight: 800;
+  letter-spacing:.2px;
+  padding-right: 18px;
+  margin-right: 12px;
+  border-right: 1px solid rgba(148,163,184,.75);
+}
+
+.logo{
+  width: 38px;
+  height:38px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(96,165,250,.98), rgba(45,212,191,.95));
+  box-shadow: 0 10px 26px rgba(15,23,42,.55);
+}
+
+.brand small{
+  display:block;
+  font-weight: 650;
+  color: var(--muted);
+  margin-top:2px;
+  letter-spacing:.15px;
+  font-size: 0.95rem;
+}
+
+/* Header navigation */
+.main-nav{
+  display:flex;
+  align-items:center;
+  gap: 8px;
+}
+
+.nav-link{
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.nav-link:hover{
+  background: rgba(255,255,255,.09);
+  color: var(--text);
+}
+
+/* Workspaces dropdown container */
+.nav-dropdown{
+  position: relative;
+}
+
+/* Dropdown menu */
+.nav-dropdown-menu{
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 220px;
+  background: rgba(17,24,39,.98);
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  padding: 6px;
+  display: none;
+  z-index: 60;
+}
+
+.nav-dropdown.open .nav-dropdown-menu{ display:block; }
+
+.nav-dropdown-item{
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.nav-dropdown-item:hover{ background: rgba(255,255,255,.08); }
+
+.top-actions{ display:flex; align-items:center; gap:10px; }
+
+/* ============ BUTTONS ============ */
+
+.btn,
+.btn-primary,
+.btn-secondary{
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.05);
+  color: var(--text);
+  padding: 12px 14px;
+  border-radius: 14px;
+  cursor:pointer;
+  font-weight: 750;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  line-height: 1;
+  user-select:none;
+}
+
+.btn:hover,
+.btn-primary:hover,
+.btn-secondary:hover{ background: rgba(255,255,255,.10); }
+
+.btn:disabled,
+.btn-primary:disabled,
+.btn-secondary:disabled{ opacity:.55; cursor:not-allowed; }
+
+.btn-primary{
+  background: linear-gradient(135deg, rgba(96,165,250,.98), rgba(96,165,250,.70));
+  border-color: rgba(96,165,250,.75);
+  box-shadow: 0 10px 26px rgba(96,165,250,.30);
+}
+
+.btn-secondary{ background: rgba(255,255,255,.06); }
+
+.dot{
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  background: rgba(255,255,255,.32);
+  box-shadow: 0 0 0 4px rgba(255,255,255,.09);
+}
+
+.dot.dot-logged-in{
+  background: rgba(45,212,191,.98);
+  box-shadow: 0 0 0 4px rgba(45,212,191,.28);
+}
+
+/* ============ MAIN LAYOUT ============ */
+/* IMPORTANT: Default layout is FULL-BLEED (no margins) for non-tools pages. */
+
+.wrap{
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 10px 0 0;     /* tiny breathing room under header */
+  display: block;        /* default single-column pages (Vault, workspaces, dashboards) */
+  flex: 1;
+  min-height: 0;
+
+  border-top: 1px solid rgba(15,23,42,1);
+  box-shadow: 0 -6px 14px rgba(15,23,42,.95);
+
+  height: auto;
+  min-height: calc(100vh - 80px);
+}
+
+/* Tools page explicitly opts into your 2-column layout */
+.wrap.wrap-tools{
+  display:grid;
+  grid-template-columns: 340px 1fr;
+  gap: 16px;
+  padding: 10px 0 0;
+}
+
+/* Optional centered content mode (only if you explicitly add the class) */
+.wrap.wrap-centered{
+  width: min(1800px, calc(100vw - 2in));
+  margin: 18px auto;
+  padding: 0;
+}
+
+.panel{
+  background: rgba(17,24,39,.94);
+  border:1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow:hidden;
+}
+
+.sidebar{
+  display:flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.sidebar-head{
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sidebar-head .title{
+  font-weight: 850;
+  font-size: 1.05rem;
+  letter-spacing:.2px;
+}
+
+.sidebar-head .sub{
+  margin-top:8px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.tool-tabs{
+  padding: 12px;
+  display:flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow:auto;
+}
+
+.tool-tab{
+  width:100%;
+  text-align:left;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.04);
+  color: var(--text);
+  cursor:pointer;
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  gap: 10px;
+}
+
+.tool-tab:hover{ background: rgba(255,255,255,.09); }
+
+.tool-tab-active{
+  background: linear-gradient(135deg, rgba(96,165,250,.32), rgba(45,212,191,.16));
+  border-color: rgba(96,165,250,.72);
+  box-shadow: inset 0 0 0 1px rgba(96,165,250,.28);
+}
+
+.tool-tab .tag{
+  font-size: 0.9rem;
+  color: var(--muted);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(15,23,42,.55);
+  white-space:nowrap;
+}
+
+.main{
+  min-height: 0;
+  display:flex;
+  flex-direction:column;
+}
+
+.tool-view{ display:none; height:100%; }
+.tool-view-active{ display:block; height:100%; }
+
+.tool-header{
+  padding: 16px 18px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tool-header h2{
+  margin:0;
+  font-size: 1.25rem;
+  letter-spacing:.2px;
+}
+
+.tool-header p{
+  margin:8px 0 0;
+  color: var(--muted);
+  font-size: 0.98rem;
+  line-height: 1.45;
+  max-width: 980px;
+}
+
+.tool-body{
+  padding: 16px 18px 18px;
+  min-height: 0;
+}
+
+.grid2{
+  display:grid;
+  grid-template-columns: 460px 1fr;
+  gap: 14px;
+  align-items: start;
+  min-height: 0;
+}
+
+.card{
+  background: rgba(15,23,42,.96);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+/* ============ FORM ELEMENTS ============ */
+
+label{
+  display:block;
+  color: var(--muted);
+  font-size: 0.98rem;
+  margin: 12px 0 8px;
+}
+
+input, textarea, select{
+  width:100%;
+  padding: 12px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(148,163,184,.70);
+  background: rgba(15,23,42,.85);
+  color: var(--text);
+  outline:none;
+  font-size: 1rem;
+}
+
+input:focus,
+textarea:focus,
+select:focus{
+  border-color: rgba(96,165,250,.90);
+  box-shadow: 0 0 0 1px rgba(96,165,250,.45);
+}
+
+textarea{ min-height: 120px; resize: vertical; }
+
+.tool-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+/* ============ VIEWER ============ */
+
+.viewer-card{ padding: 0; overflow:hidden; }
+
+.viewer-top{
+  padding: 12px 14px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  gap:10px;
+  background: rgba(255,255,255,.06);
+}
+
+.viewer-top .viewer-title{
+  font-weight: 850;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.viewer-top .viewer-tools{ display:flex; gap:10px; }
+
+.viewer-wrapper{
+  position: relative;
+  width: 100%;
+  height: clamp(640px, 74vh, 1100px);
+  background: rgba(15,23,42,.80);
+  overflow:hidden;
+}
+
+.viewer-wrapper iframe{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  border:0;
+  display:block;
+  background: #111827;
+}
+
+.placeholder{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding: 20px;
+  color: var(--muted);
+  pointer-events:none;
+  font-size: 1rem;
+  z-index: 2;
+}
+
+/* ============ STUDIO OVERLAYS ============ */
+
+.click-layer{
+  position:absolute;
+  inset:0;
+  z-index: 5;
+  display:none;
+  cursor: crosshair;
+}
+.click-layer.active{ display:block; }
+
+.signature-overlay{
+  position:absolute;
+  z-index: 10;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(15,23,42,.88);
+  backdrop-filter: blur(6px);
+  cursor: grab;
+  user-select:none;
+  touch-action:none;
+  box-shadow: 0 12px 26px rgba(15,23,42,.70);
+}
+
+.signature-overlay b{ font-weight: 900; letter-spacing:.15px; }
+
+.kpi{
+  display:flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.pill{
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.06);
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+/* ============ FOOTER ============ */
+
+.footer{
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 16px 16px 26px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  border-top: 1px solid var(--line);
+}
+
+.stacked-frames iframe{ display:none; }
+.stacked-frames iframe.active{ display:block; }
+
+/* ============ MODAL ============ */
+
+.modal{
+  position: fixed;
+  inset:0;
+  display:none;
+  background: rgba(0,0,0,.55);
+  z-index: 100;
+  padding: 20px;
+}
+
+.modal.modal-open{ display:block; }
+
+.modal-card{
+  max-width: 680px;
+  margin: 8vh auto;
+  background: rgba(17,24,39,.97);
+  border:1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  overflow:hidden;
+}
+
+.modal-head{
+  padding: 14px 16px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap:10px;
+}
+
+.modal-head .mh{
+  font-weight: 900;
+  letter-spacing:.2px;
+}
+
+.modal-body{ padding: 16px; }
+
+.modal-row{
+  display:flex;
+  gap:10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+/* ============ MISC ============ */
+
+.h3{ margin: 0 0 8px; font-size: 1.02rem; font-weight: 850; }
+.hr{ border:0; border-top:1px solid var(--line); margin:16px 0; }
+
+@media (max-width: 980px){
+  html{ font-size: 112%; }
+
+  .topbar-inner{ padding-inline: 12px; }
+
+  /* Full width on mobile */
+  .wrap,
+  .footer{
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0 12px;
+  }
+
+  /* Tools page collapses to single column */
+  .wrap.wrap-tools{ grid-template-columns: 1fr; }
+
+  .grid2{ grid-template-columns: 1fr; }
+  .viewer-wrapper{ height: clamp(560px, 68vh, 900px); }
+}
+/* ============ PAGE MODE HELPERS ============ */
+/* Tools layout explicitly uses sidebar grid */
+.wrap.wrap-tools{
+  display:grid;
+  grid-template-columns: 340px 1fr;
+  gap: 16px;
+  padding: 10px 0 0;
+}
+
+/* Non-tools pages should not accidentally become full-width block with no grid */
+.wrap:not(.wrap-tools):not(.wrap-centered){
+  display:block;
+}
+
+/* Ensure header left/right flex groups exist (used by index.html) */
+.topbar-left{ display:flex; align-items:center; gap:14px; }
+.topbar-right{ display:flex; align-items:center; gap:14px; margin-left:auto; }
+
+/* Dropdown compatibility: allow either .open or .workspace-open */
+.nav-dropdown.open .nav-dropdown-menu{ display:block; }
+/* Secure Vault stacked label */
+.nav-link.vault-link{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:2px;
+  padding-top:10px;
+  padding-bottom:10px;
+  line-height:1.1;
+}
+
+.vault-title{
+  font-weight:800;
+  letter-spacing:.2px;
+  font-size:.98rem;
+}
+
+.vault-sub{
+  font-size:.72rem;
+  opacity:.75;
+  letter-spacing:.2px;
+  white-space:nowrap;
+}
+
+/* ============ PDFREALM_TOOLSET_TABS_TOPBAR_V3 ============ */
+/* Make the toolset bar span across the grid (sidebar + content) */
+main.wrap.wrap-tools > .toolset-bar{
+  grid-column: 1 / -1;
+  padding: 10px 10px 0;
+  margin: 0 0 12px 0;
+}
+
+/* Hide the old sidebar tier tabs (we use the top toolset bar now) */
+main.wrap.wrap-tools > .toolset-bar + aside.panel.sidebar .tier-tabs{
+  display:none !important;
+}
+
+.toolset-tabs{
+  display:flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items:flex-end;
+  position: relative;
+}
+
+.toolset-item{ position: relative; }
+
+.toolset-tab{
+  appearance:none;
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.04);
+  color: rgba(255,255,255,.92);
+  border-radius: 12px 12px 0 0;
+  padding: 10px 12px;
+  font-weight: 850;
+  letter-spacing:.2px;
+  cursor:pointer;
+  user-select:none;
+}
+
+.toolset-tab:hover{ background: rgba(255,255,255,.07); }
+
+.toolset-tab-active{
+  background: rgba(255,255,255,.10);
+  border-color: rgba(96,165,250,.60);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+.toolset-dropdown{
+  display:none;
+  position:absolute;
+  top: calc(100% - 1px);
+  left: 0;
+  z-index: 80;
+  width: min(1200px, calc(100vw - 28px));
+  padding: 12px;
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(17,24,39,.98);
+  border-radius: 0 14px 14px 14px;
+  box-shadow: var(--shadow);
+}
+
+.toolset-item.open .toolset-dropdown{ display:block; }
+
+@media (hover:hover){
+  .toolset-item:hover .toolset-dropdown{ display:block; }
+}
+
+.toolset-grid{
+  display:grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.toolset-item-btn{
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.04);
+  color: rgba(255,255,255,.88);
+  border-radius: 12px;
+  padding: 10px 10px;
+  font-weight: 800;
+  cursor:pointer;
+  text-align:center;
+  white-space: normal;
+  line-height: 1.15;
+  min-height: 46px;
+}
+
+.toolset-item-btn:hover{
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.96);
+}
+
+/* Breakthrough hover text red */
+.toolset-item[data-toolset="breakthrough"] .toolset-tab:hover{
+  color: #ef4444;
+}
+
+.toolset-empty{
+  color: rgba(255,255,255,.68);
+  padding: 8px 2px;
+}
+
+@media (max-width: 980px){
+  .toolset-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* ============ /PDFREALM_TOOLSET_TABS_TOPBAR_V3 ============ */
+
+/* ============ PDFREALM_LAYOUT_FIX_HIDE_LEGACY_TIER_UI_V1 ============ */
+/* Only show the NEW top Toolset bar tabs; hide the old tier nav/tier tabs that stack vertically */
+main.wrap.wrap-tools .tier-nav,
+main.wrap.wrap-tools .tier-tabs,
+main.wrap.wrap-tools .tier-tab{
+  display:none !important;
+  visibility:hidden !important;
+  height:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+}
+
+/* Ensure the top toolset bar does NOT create extra vertical space */
+main.wrap.wrap-tools > .toolset-bar{
+  height:auto !important;
+  min-height:0 !important;
+}
+/* ============ /PDFREALM_LAYOUT_FIX_HIDE_LEGACY_TIER_UI_V1 ============ */

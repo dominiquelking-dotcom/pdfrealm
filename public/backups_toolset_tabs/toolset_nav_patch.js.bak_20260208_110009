@@ -1,0 +1,438 @@
+/* PDFREALM_TOOLSET_NAV_PATCH_V5
+   REQUIRED BEHAVIOR:
+   - Standard Tools tab => only standard tools
+   - Premium Tools tab  => only premium tools
+   - Secure Suite tab   => ONLY: secure_send, secure_chat, secure_video, secure_voip, secure_containers
+   - Document Governance tab => placeholders (Immortal Docs, Hash Evidence Machine, Time Travel, etc.)
+   - Breakthrough tab   => only breakthrough
+   Notes:
+   - Uses PDFREALM_TIER mapping if present.
+   - Filtering is enforced by CSS !important so other scripts can't undo it.
+*/
+(() => {
+  "use strict";
+
+  const TOOL_TAB_SEL  = ".tool-tabs .tool-tab[data-tool]";
+  const TOOL_VIEW_SEL = ".tool-view[data-tool-view]";
+  const TOOLSET_ROOT  = "#toolsetTabs";
+
+  const SECURE_ONLY = ["secure_send","secure_chat","secure_video","secure_voip","secure_containers"];
+  const GOV_ITEMS = [
+    { id:"dg_immortal", title:"Immortal Documents", desc:"Policy-bound documents that resist unauthorized change, with enforced governance rules." },
+    { id:"dg_hash", title:"Hash Evidence Machine", desc:"Court-grade evidence bundles: originals + hashes + timestamps + provenance logs, cryptographically bound." },
+    { id:"dg_timetravel", title:"PDF Time Travel™", desc:"Replay a document’s lifecycle (edits, AI actions, signatures, workflow steps). Exportable as an evidence video." },
+    { id:"dg_interrogation", title:"PDF Interrogation Mode™", desc:"Forensic Q&A with citation-backed answers tied to versions, events, and actors." },
+    { id:"dg_constitution", title:"Document Constitution (M-of-N)", desc:"Multi-party change control: threshold approvals required before transformations are allowed." },
+    { id:"dg_sentience", title:"PDF Sentience Mode™", desc:"Intent-aware documents with refusal/escalation behaviors and tamper detection." }
+  ];
+
+  const $  = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+
+  function esc(x){
+    try { return CSS.escape(String(x)); }
+    catch { return String(x).replace(/[^a-zA-Z0-9_-]/g, "\\$&"); }
+  }
+
+  function ensureSuiteCss(){
+    if ($("#pdfrealm-suite-css-v5")) return;
+    const st = document.createElement("style");
+    st.id = "pdfrealm-suite-css-v5";
+    st.textContent = `
+      /* suite enforcement */
+      body[data-tool-suite="standard"]  ${TOOL_TAB_SEL}{ display:none !important; }
+      body[data-tool-suite="standard"]  ${TOOL_TAB_SEL}[data-tier="standard"]{ display:block !important; }
+
+      body[data-tool-suite="premium"]   ${TOOL_TAB_SEL}{ display:none !important; }
+      body[data-tool-suite="premium"]   ${TOOL_TAB_SEL}[data-tier="premium"]{ display:block !important; }
+
+      body[data-tool-suite="secure"]    ${TOOL_TAB_SEL}{ display:none !important; }
+      body[data-tool-suite="secure"]    ${TOOL_TAB_SEL}[data-tool="secure_send"],
+      body[data-tool-suite="secure"]    ${TOOL_TAB_SEL}[data-tool="secure_chat"],
+      body[data-tool-suite="secure"]    ${TOOL_TAB_SEL}[data-tool="secure_video"],
+      body[data-tool-suite="secure"]    ${TOOL_TAB_SEL}[data-tool="secure_voip"],
+      body[data-tool-suite="secure"]    ${TOOL_TAB_SEL}[data-tool="secure_containers"]{
+        display:block !important;
+      }
+
+      body[data-tool-suite="breakthrough"] ${TOOL_TAB_SEL}{ display:none !important; }
+      body[data-tool-suite="breakthrough"] ${TOOL_TAB_SEL}[data-tool="breakthrough"]{ display:block !important; }
+
+      body[data-tool-suite="governance"] ${TOOL_TAB_SEL}{ display:none !important; }
+      body[data-tool-suite="governance"] ${TOOL_TAB_SEL}[data-gov="1"]{ display:block !important; }
+    `;
+    document.head.appendChild(st);
+  }
+
+  function getTierForTool(id){
+    try {
+      if (window.PDFREALM_TIER && typeof window.PDFREALM_TIER.getTierForTool === "function"){
+        return window.PDFREALM_TIER.getTierForTool(id) || "standard";
+      }
+    } catch {}
+    if (String(id||"").startsWith("secure_")) return "secure";
+    return "standard";
+  }
+
+  function tagTiers(){
+    $$(TOOL_TAB_SEL).forEach(btn => {
+      const id = btn.getAttribute("data-tool") || "";
+      btn.dataset.tier = getTierForTool(id);
+    });
+  }
+
+  function activateTool(id){
+    if (!id) return;
+    if (typeof window.__pdfrealmActivateTool === "function"){
+      window.__pdfrealmActivateTool(id);
+      return;
+    }
+    const b = $(`${TOOL_TAB_SEL}[data-tool="${esc(id)}"]`);
+    if (b) b.click();
+  }
+
+  function showOnlyGovTabs(){
+    const list = $(".tool-tabs");
+    if (!list) return;
+
+    // remove old gov tabs first
+    list.querySelectorAll('.tool-tab[data-gov="1"]').forEach(n => n.remove());
+
+    // create gov tabs that look like normal tool tabs
+    GOV_ITEMS.forEach((it, idx) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "tool-tab";
+      b.setAttribute("data-tool", it.id);
+      b.setAttribute("data-gov", "1");
+      b.setAttribute("role", "tab");
+      b.setAttribute("aria-selected", "false");
+      b.textContent = it.title;
+      list.appendChild(b);
+    });
+  }
+
+  function ensureGovPanel(){
+    const main = document.querySelector("section.panel.main");
+    if (!main) return null;
+
+    let panel = main.querySelector('.tool-view[data-tool-view="dg_panel"]');
+    if (!panel){
+      panel = document.createElement("div");
+      panel.className = "tool-view";
+      panel.setAttribute("data-tool-view", "dg_panel");
+      panel.innerHTML = `
+        <div class="tool-header">
+          <div>
+            <h2>Document Governance</h2>
+            <p>These are placeholders for the governance suite (coming soon).</p>
+          </div>
+        </div>
+        <div class="card" style="padding:16px; border:1px solid rgba(255,255,255,0.12); border-radius:14px; background: rgba(255,255,255,0.03);">
+          <div id="dgTitle" style="font-size:16px; font-weight:800; margin-bottom:6px;">Select a governance feature</div>
+          <div id="dgDesc" style="opacity:0.9; line-height:1.45;">Immortal Documents, Hash Evidence Machine, PDF Time Travel, Interrogation Mode, Document Constitution, and Sentience Mode will live here.</div>
+          <div style="margin-top:10px; opacity:0.75; font-size:12px;">Status: placeholder (UI + wiring only)</div>
+        </div>
+      `;
+      main.insertBefore(panel, main.firstChild);
+    }
+    return panel;
+  }
+
+  function setGovPanel(itemId){
+    const it = GOV_ITEMS.find(x => x.id === itemId);
+    const panel = ensureGovPanel();
+    if (!panel || !it) return;
+    panel.querySelector("#dgTitle").textContent = it.title;
+    panel.querySelector("#dgDesc").textContent = it.desc;
+  }
+
+  let lastRealTool = null;
+
+  function hideAllToolViewsExcept(viewId){
+    $$(TOOL_VIEW_SEL).forEach(v => {
+      const is = v.getAttribute("data-tool-view") === viewId;
+      v.classList.toggle("tool-view-active", is);
+      v.setAttribute("aria-hidden", is ? "false" : "true");
+      v.style.display = is ? "" : "none";
+    });
+  }
+
+  function restoreToolViews(){
+    $$(TOOL_VIEW_SEL).forEach(v => {
+      v.style.display = "";
+      // app.js manages active class; we just stop forcing
+    });
+  }
+
+  function setActiveSuiteBtn(suite){
+    const root = $(TOOLSET_ROOT);
+    if (!root) return;
+    $$(".toolset-tab[data-toolset]", root).forEach(tab => {
+      const s = tab.getAttribute("data-toolset");
+      const btn = tab.querySelector(".toolset-btn");
+      if (btn) btn.classList.toggle("active", s === suite);
+    });
+  }
+
+  function buildMenus(){
+    const root = $(TOOLSET_ROOT);
+    if (!root) return;
+
+    // build tool lists
+    const toolBtns = $$(TOOL_TAB_SEL).filter(b => b.getAttribute("data-gov") !== "1"); // exclude placeholder clones
+    const tools = toolBtns.map(b => {
+      const id = b.getAttribute("data-tool") || "";
+      const label = (b.textContent || "").replace(/\s+/g," ").trim();
+      const tier = getTierForTool(id);
+      return { id, label, tier };
+    });
+
+    function price(id){
+      try {
+        if (window.PDFREALM_TIER && typeof window.PDFREALM_TIER.getPriceLabelForTool === "function"){
+          return window.PDFREALM_TIER.getPriceLabelForTool(id) || "";
+        }
+      } catch {}
+      return "";
+    }
+
+    const standard = tools.filter(t => t.tier === "standard");
+    const premium  = tools.filter(t => t.tier === "premium");
+    const secure   = SECURE_ONLY.map(id => tools.find(t => t.id === id)).filter(Boolean);
+    const breakthrough = tools.filter(t => t.id === "breakthrough");
+    const governance = GOV_ITEMS.map(it => ({ id: it.id, label: it.title, tier: "governance", badge:"placeholder" }));
+
+    $$(".toolset-tab[data-toolset]", root).forEach(tab => {
+      const suite = tab.getAttribute("data-toolset") || "standard";
+      const menu = tab.querySelector(".toolset-menu");
+      if (!menu) return;
+
+      let items = [];
+      if (suite === "standard") items = standard;
+      if (suite === "premium") items = premium;
+      if (suite === "secure") items = secure;
+      if (suite === "breakthrough") items = breakthrough;
+      if (suite === "governance") items = governance;
+
+      menu.innerHTML = "";
+      const grid = document.createElement("div");
+      grid.className = "toolset-menu-grid";
+      menu.appendChild(grid);
+
+      if (!items.length){
+        const empty = document.createElement("div");
+        empty.style.padding = "10px 12px";
+        empty.style.opacity = "0.75";
+        empty.textContent = "No tools found.";
+        menu.appendChild(empty);
+        return;
+      }
+
+      items.forEach(it => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "toolset-item";
+        b.setAttribute("data-tool", it.id);
+
+        b.textContent = it.label;
+
+        const p = (suite !== "governance") ? price(it.id) : "";
+        if (p){
+          const s = document.createElement("span");
+          s.className = "toolset-hint";
+          s.textContent = p;
+          b.appendChild(s);
+        }
+        if (suite === "governance"){
+          const badge = document.createElement("span");
+          badge.className = "toolset-badge";
+          badge.textContent = "placeholder";
+          b.appendChild(badge);
+        }
+        grid.appendChild(b);
+      });
+    });
+  }
+
+  function closeMenus(except=null){
+    const root = $(TOOLSET_ROOT);
+    if (!root) return;
+    $$(".toolset-tab", root).forEach(t => {
+      if (except && t === except) return;
+      t.classList.remove("open");
+    });
+  }
+
+  function setSuite(suite){
+    tagTiers();
+    ensureSuiteCss();
+
+    try { localStorage.setItem("pdfrealm_tool_suite", suite); } catch {}
+    document.body.setAttribute("data-tool-suite", suite);
+    setActiveSuiteBtn(suite);
+
+    // Record current real tool before switching into governance
+    const activeTab = document.querySelector('.tool-tabs .tool-tab.tool-tab-active');
+    if (activeTab){
+      const id = activeTab.getAttribute("data-tool");
+      if (id && !String(id).startsWith("dg_")) lastRealTool = id;
+    }
+
+    if (suite === "standard" || suite === "premium"){
+      // remove gov placeholders if present
+      document.querySelectorAll('.tool-tab[data-gov="1"]').forEach(n => n.remove());
+      restoreToolViews();
+
+      try { window.PDFREALM_TIER && window.PDFREALM_TIER.setTier && window.PDFREALM_TIER.setTier(suite); } catch {}
+
+      // ensure active tool is in this tier
+      const first = document.querySelector(`${TOOL_TAB_SEL}[data-tier="${esc(suite)}"]`);
+      if (first) activateTool(first.getAttribute("data-tool"));
+      return;
+    }
+
+    if (suite === "secure"){
+      document.querySelectorAll('.tool-tab[data-gov="1"]').forEach(n => n.remove());
+      restoreToolViews();
+
+      try { window.PDFREALM_TIER && window.PDFREALM_TIER.setTier && window.PDFREALM_TIER.setTier("secure"); } catch {}
+
+      // force allowed secure tool
+      const preferred = SECURE_ONLY.find(id => !!document.querySelector(`${TOOL_TAB_SEL}[data-tool="${esc(id)}"]`));
+      if (preferred) activateTool(preferred);
+      return;
+    }
+
+    if (suite === "breakthrough"){
+      document.querySelectorAll('.tool-tab[data-gov="1"]').forEach(n => n.remove());
+      restoreToolViews();
+
+      try { window.PDFREALM_TIER && window.PDFREALM_TIER.setTier && window.PDFREALM_TIER.setTier("secure"); } catch {}
+
+      activateTool("breakthrough");
+      return;
+    }
+
+    if (suite === "governance"){
+      showOnlyGovTabs();
+      const panel = ensureGovPanel();
+      if (panel){
+        restoreToolViews();
+        // Hide real tool views and show gov panel
+        $$(TOOL_VIEW_SEL).forEach(v => { v.style.display = "none"; v.classList.remove("tool-view-active"); });
+        panel.style.display = "";
+        panel.classList.add("tool-view-active");
+      }
+      // select first placeholder
+      setGovPanel(GOV_ITEMS[0].id);
+      return;
+    }
+  }
+
+  function wire(){
+    const root = $(TOOLSET_ROOT);
+    if (!root) return;
+
+    document.addEventListener("click", (e) => {
+      const t = e.target;
+
+      // suite button click
+      const suiteBtn = t.closest && t.closest(`${TOOLSET_ROOT} .toolset-btn`);
+      if (suiteBtn){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        const tab = suiteBtn.closest(".toolset-tab[data-toolset]");
+        const suite = tab ? (tab.getAttribute("data-toolset") || "standard") : "standard";
+
+        buildMenus();
+        setSuite(suite);
+
+        const willOpen = !tab.classList.contains("open");
+        closeMenus(tab);
+        tab.classList.toggle("open", willOpen);
+        return;
+      }
+
+      // dropdown item click
+      const item = t.closest && t.closest(`${TOOLSET_ROOT} .toolset-item[data-tool]`);
+      if (item){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const id = item.getAttribute("data-tool") || "";
+
+        if (id.startsWith("dg_")){
+          setSuite("governance");
+          setGovPanel(id);
+          closeMenus();
+          return;
+        }
+
+        // find suite by id
+        if (id === "breakthrough") setSuite("breakthrough");
+        else if (SECURE_ONLY.includes(id)) setSuite("secure");
+        else {
+          const tier = getTierForTool(id);
+          setSuite(tier === "premium" ? "premium" : "standard");
+        }
+
+        activateTool(id);
+        closeMenus();
+        return;
+      }
+
+      // governance placeholder sidebar clicks
+      const govTab = t.closest && t.closest('.tool-tabs .tool-tab[data-gov="1"]');
+      if (govTab){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const id = govTab.getAttribute("data-tool") || "";
+        setGovPanel(id);
+        return;
+      }
+
+      // outside closes menus
+      if (!t.closest || !t.closest(TOOLSET_ROOT)) closeMenus();
+    }, true);
+
+    // hover open (optional)
+    $$(".toolset-tab", root).forEach(tab => {
+      tab.addEventListener("mouseenter", () => tab.classList.add("open"));
+      tab.addEventListener("mouseleave", () => tab.classList.remove("open"));
+    });
+  }
+
+  function init(){
+    if (!document.querySelector(TOOLSET_ROOT)) return;
+
+    ensureSuiteCss();
+    tagTiers();
+    buildMenus();
+    wire();
+
+    // restore last suite
+    let suite = "standard";
+    try { suite = localStorage.getItem("pdfrealm_tool_suite") || "standard"; } catch {}
+    setSuite(suite);
+
+    console.log("[toolset_nav_patch_v5] ready");
+  }
+
+  // wait for app.js tier + activate function if present
+  function waitReady(tries=0){
+    if (document.readyState === "loading") return;
+    if (window.PDFREALM_TIER && typeof window.PDFREALM_TIER.getTierForTool === "function"){
+      init();
+      return;
+    }
+    if (tries > 120){ init(); return; } // ~6s
+    setTimeout(() => waitReady(tries+1), 50);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => waitReady(0));
+  } else {
+    waitReady(0);
+  }
+})();

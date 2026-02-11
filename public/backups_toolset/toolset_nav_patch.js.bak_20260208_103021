@@ -1,0 +1,237 @@
+/* PDFREALM_TOOLSET_SUITE_FILTER_V1
+   Fixes: "All tools show no matter which top tab I click"
+   Method:
+     - Tag each .tool-tab with data-suite based on REAL tier mapping (PDFREALM_TIER.getTierForTool)
+     - Enforce visibility with CSS (display:none/flex !important) so other JS can't undo it
+     - Secure Suite contains secure tier tools (send/chat/video/voip/containers) and EXCLUDES breakthrough
+     - Breakthrough is its own suite tab
+*/
+(() => {
+  "use strict";
+
+  const TOOL_TAB_SEL = ".tool-tabs .tool-tab[data-tool]";
+  const TOOLSET_ROOT = "#toolsetTabs";
+  const STYLE_ID = "pdfrealm-suite-filter-css-v1";
+
+  const SECURE_REQUIRED = ["secure_send","secure_chat","secure_video","secure_voip","secure_containers"];
+
+  const $  = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+
+  function esc(x){
+    try { return CSS.escape(String(x)); }
+    catch { return String(x).replace(/[^a-zA-Z0-9_-]/g, "\\$&"); }
+  }
+
+  function tierForTool(id, btn){
+    const tid = String(id || "");
+    try {
+      if (window.PDFREALM_TIER && typeof window.PDFREALM_TIER.getTierForTool === "function") {
+        const t = window.PDFREALM_TIER.getTierForTool(tid);
+        if (t === "standard" || t === "premium" || t === "secure") return t;
+      }
+    } catch {}
+    const dt = btn && btn.dataset ? btn.dataset.tier : "";
+    if (dt === "standard" || dt === "premium" || dt === "secure") return dt;
+    if (tid.startsWith("secure_")) return "secure";
+    return "premium";
+  }
+
+  function suiteForTool(id, btn){
+    const tid = String(id || "");
+    if (tid === "breakthrough") return "breakthrough"; // force separate tab
+    return tierForTool(tid, btn); // standard | premium | secure
+  }
+
+  function injectCss(){
+    if (document.getElementById(STYLE_ID)) return;
+    const st = document.createElement("style");
+    st.id = STYLE_ID;
+    st.textContent = `
+      /* enforce suite filtering no matter what other JS does */
+      body[data-active-suite] .tool-tabs .tool-tab{ display:none !important; }
+
+      body[data-active-suite="standard"] .tool-tabs .tool-tab[data-suite="standard"]{ display:flex !important; }
+      body[data-active-suite="premium"]  .tool-tabs .tool-tab[data-suite="premium"]{  display:flex !important; }
+      body[data-active-suite="secure"]   .tool-tabs .tool-tab[data-suite="secure"]{   display:flex !important; }
+      body[data-active-suite="breakthrough"] .tool-tabs .tool-tab[data-suite="breakthrough"]{ display:flex !important; }
+
+      /* Secure Suite: never show breakthrough even if some code tries */
+      body[data-active-suite="secure"] .tool-tabs .tool-tab[data-tool="breakthrough"]{ display:none !important; }
+    `;
+    document.head.appendChild(st);
+  }
+
+  function tagSuites(){
+    const tabs = $$(TOOL_TAB_SEL);
+    tabs.forEach(btn => {
+      const id = btn.getAttribute("data-tool") || "";
+      const suite = suiteForTool(id, btn);
+      btn.dataset.suite = suite;
+
+      // If something is secure-tier but not one of your secure suite tools, still keep it in secure tier.
+      // (You can restrict later if you want.)
+    });
+
+    // Ensure the secure core tools exist & are marked secure (if present)
+    SECURE_REQUIRED.forEach(id => {
+      const b = $(`${TOOL_TAB_SEL}[data-tool="${esc(id)}"]`);
+      if (b) b.dataset.suite = "secure";
+    });
+
+    // Ensure breakthrough is always breakthrough
+    const bt = $(`${TOOL_TAB_SEL}[data-tool="breakthrough"]`);
+    if (bt) bt.dataset.suite = "breakthrough";
+  }
+
+  function setTopActive(suite){
+    const root = $(TOOLSET_ROOT);
+    if (!root) return;
+    $$(".toolset-tab[data-toolset]", root).forEach(tab => {
+      const is = tab.getAttribute("data-toolset") === suite;
+      const btn = tab.querySelector(".toolset-btn");
+      if (btn) btn.classList.toggle("active", is);
+    });
+  }
+
+  function firstToolInSuite(suite){
+    const btn = $(`${TOOL_TAB_SEL}[data-suite="${esc(suite)}"]`);
+    return btn ? (btn.getAttribute("data-tool") || "") : "";
+  }
+
+  function activateTool(id){
+    if (!id) return;
+    if (typeof window.__pdfrealmActivateTool === "function"){
+      window.__pdfrealmActivateTool(id);
+      return;
+    }
+    // fallback click
+    const b = $(`${TOOL_TAB_SEL}[data-tool="${esc(id)}"]`);
+    if (b) b.click();
+  }
+
+  function applySuite(suite){
+    if (!suite) suite = "standard";
+    document.body.setAttribute("data-active-suite", suite);
+    try { localStorage.setItem("pdfrealm_active_suite", suite); } catch {}
+    setTopActive(suite);
+
+    // If active tool isn't in this suite, jump to first tool in suite
+    const active = $(`${TOOL_TAB_SEL}.tool-tab-active`) || $(`${TOOL_TAB_SEL}[aria-selected="true"]`);
+    const activeSuite = active ? (active.dataset.suite || "") : "";
+    if (activeSuite !== suite){
+      const first = firstToolInSuite(suite);
+      if (first) activateTool(first);
+    }
+  }
+
+  function rebuildMenus(){
+    const root = $(TOOLSET_ROOT);
+    if (!root) return;
+
+    const allTools = $$(TOOL_TAB_SEL).map(btn => ({
+      id: btn.getAttribute("data-tool") || "",
+      label: (btn.textContent || "").replace(/\s+/g," ").trim(),
+      suite: btn.dataset.suite || "standard",
+    })).filter(x => x.id);
+
+    const bySuite = {
+      standard: allTools.filter(t => t.suite === "standard"),
+      premium: allTools.filter(t => t.suite === "premium"),
+      secure: allTools.filter(t => t.suite === "secure" && t.id !== "breakthrough"),
+      breakthrough: allTools.filter(t => t.suite === "breakthrough"),
+      governance: [], // reserved if you later want a governance subset
+    };
+
+    $$(".toolset-tab[data-toolset]", root).forEach(tab => {
+      const suite = tab.getAttribute("data-toolset") || "standard";
+      const menu = tab.querySelector(".toolset-menu");
+      if (!menu) return;
+
+      const items = bySuite[suite] || [];
+      menu.innerHTML = "";
+
+      if (!items.length){
+        const empty = document.createElement("div");
+        empty.style.padding = "10px 12px";
+        empty.style.opacity = "0.75";
+        empty.textContent = "No tools in this suite yet.";
+        menu.appendChild(empty);
+        return;
+      }
+
+      for (const it of items){
+        const a = document.createElement("a");
+        a.href = "#";
+        a.className = "toolset-item";
+        a.setAttribute("data-tool", it.id);
+        a.textContent = it.label;
+        menu.appendChild(a);
+      }
+    });
+  }
+
+  function closeMenus(except=null){
+    const root = $(TOOLSET_ROOT);
+    if (!root) return;
+    $$(".toolset-tab", root).forEach(t => { if (except && t === except) return; t.classList.remove("open"); });
+  }
+
+  function wire(){
+    const root = $(TOOLSET_ROOT);
+    if (!root) return;
+
+    // capture clicks on top suite buttons + dropdown items
+    document.addEventListener("click", (e) => {
+      const t = e.target;
+
+      const suiteBtn = t.closest && t.closest(`${TOOLSET_ROOT} .toolset-btn`);
+      if (suiteBtn){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const tab = suiteBtn.closest(".toolset-tab[data-toolset]");
+        const suite = tab ? (tab.getAttribute("data-toolset") || "standard") : "standard";
+
+        tagSuites();
+        rebuildMenus();
+        applySuite(suite);
+
+        const willOpen = !tab.classList.contains("open");
+        closeMenus(tab);
+        tab.classList.toggle("open", willOpen);
+        return;
+      }
+
+      const item = t.closest && t.closest(`${TOOLSET_ROOT} .toolset-menu .toolset-item[data-tool]`);
+      if (item){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const id = item.getAttribute("data-tool") || "";
+        const btn = $(`${TOOL_TAB_SEL}[data-tool="${esc(id)}"]`);
+        const suite = btn ? (btn.dataset.suite || "standard") : "standard";
+        applySuite(suite);
+        activateTool(id);
+        closeMenus();
+        return;
+      }
+
+      if (!t.closest || !t.closest(TOOLSET_ROOT)) closeMenus();
+    }, true);
+  }
+
+  function init(){
+    injectCss();
+    tagSuites();
+    rebuildMenus();
+
+    let suite = "standard";
+    try { suite = localStorage.getItem("pdfrealm_active_suite") || "standard"; } catch {}
+    applySuite(suite);
+
+    wire();
+    console.log("[suite-filter] active suite =", suite);
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();

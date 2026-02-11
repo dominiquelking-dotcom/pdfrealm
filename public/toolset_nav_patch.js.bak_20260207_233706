@@ -1,0 +1,288 @@
+/* PDFREALM_TOOLSET_NAV_PATCH_V1
+   - Makes top Toolset tabs (Standard/Premium/Secure Suite/Doc Gov/Breakthrough) filter tools
+   - Makes sidebar tool buttons actually switch tool views
+   - Populates dropdowns under the top toolset tabs
+   - Uses CAPTURE click handler so it still works even if other handlers are broken
+*/
+(() => {
+  "use strict";
+
+  const TOOL_TAB_SEL  = ".tool-tabs .tool-tab[data-tool]";
+  const TOOL_VIEW_SEL = ".tool-view[data-tool-view]";
+  const TOOLSET_ROOT_SEL = "#toolsetTabs";
+
+  // Your known "Standard Tools" ids (everything else becomes Premium unless Secure/DocGov/Breakthrough)
+  const STANDARD_SET = new Set([
+    "studio",
+    "rasterize",
+    "compress",
+    "embedvideo",
+    "embedaudio",
+    "embedimage",
+    "merge",
+    "split",
+    "pageszip",
+    "metasanitize",
+    "reorder",
+    "rotate",
+    "delete",
+    "watermark",
+    "pagenums",
+    "stamp",
+    "repair",
+    "compare",
+    "blank",
+    "extracttext",
+    "resize",
+    "redact",
+    "flatten",
+    "metadata",
+    "encrypt",
+    "quicksign",
+    "ocr",
+  ]);
+
+  function suiteForTool(toolId) {
+    if (!toolId) return "standard";
+    if (toolId === "docgov") return "governance";
+    if (toolId === "breakthrough") return "breakthrough";
+    // secure suite tools commonly start with secure*
+    if (toolId.startsWith("secure") || toolId === "containers" || toolId === "encryptedcontainers") return "secure";
+    if (STANDARD_SET.has(toolId)) return "standard";
+    return "premium";
+  }
+
+  function getToolTabs() {
+    return Array.from(document.querySelectorAll(TOOL_TAB_SEL));
+  }
+
+  function getToolViews() {
+    return Array.from(document.querySelectorAll(TOOL_VIEW_SEL));
+  }
+
+  function toolIdFromTab(btn) {
+    return btn?.getAttribute("data-tool") || "";
+  }
+
+  function cleanLabelFromTab(btn) {
+    if (!btn) return "";
+    const clone = btn.cloneNode(true);
+    clone.querySelectorAll(".tag").forEach(n => n.remove());
+    return (clone.textContent || "").replace(/\s+/g, " ").trim();
+  }
+
+  function setActiveTabUI(toolId) {
+    getToolTabs().forEach(btn => {
+      const is = toolIdFromTab(btn) === toolId;
+      btn.setAttribute("aria-selected", is ? "true" : "false");
+      btn.classList.toggle("tool-tab-active", is);
+    });
+  }
+
+  function showToolView(toolId) {
+    const views = getToolViews();
+    let target = null;
+
+    for (const v of views) {
+      const is = v.getAttribute("data-tool-view") === toolId;
+      v.classList.toggle("tool-view-active", is);
+      v.setAttribute("aria-hidden", is ? "false" : "true");
+      if (is) target = v;
+    }
+
+    if (!target) {
+      console.warn("[toolset_nav] Missing tool view for:", toolId);
+      return false;
+    }
+    return true;
+  }
+
+  function openTool(toolId) {
+    if (!toolId) return;
+    setActiveTabUI(toolId);
+    showToolView(toolId);
+  }
+
+  function firstVisibleToolId() {
+    const tabs = getToolTabs().filter(b => b.style.display !== "none");
+    return toolIdFromTab(tabs[0] || null) || "";
+  }
+
+  function currentActiveToolId() {
+    const active = document.querySelector(`${TOOL_TAB_SEL}[aria-selected="true"]`) ||
+                   document.querySelector(`${TOOL_TAB_SEL}.tool-tab-active`);
+    return toolIdFromTab(active || null);
+  }
+
+  function setSuite(suite) {
+    if (!suite) suite = "standard";
+    try { localStorage.setItem("pdfrealm_toolset", suite); } catch {}
+
+    // highlight top suite tabs
+    const root = document.querySelector(TOOLSET_ROOT_SEL);
+    if (root) {
+      root.querySelectorAll(".toolset-tab").forEach(tab => {
+        const is = (tab.getAttribute("data-toolset") === suite);
+        tab.querySelectorAll(".toolset-btn").forEach(btn => btn.classList.toggle("active", is));
+      });
+    }
+
+    // filter sidebar tool buttons
+    const tabs = getToolTabs();
+    let any = false;
+    for (const btn of tabs) {
+      const id = toolIdFromTab(btn);
+      const show = suiteForTool(id) === suite;
+      btn.style.display = show ? "" : "none";
+      if (show) any = true;
+    }
+
+    // If current tool isn't in this suite, jump to first visible tool
+    const activeId = currentActiveToolId();
+    if (!activeId || suiteForTool(activeId) !== suite) {
+      const first = firstVisibleToolId();
+      if (first) openTool(first);
+    }
+
+    // ensure tools are clickable even if some other gating forgot to set this
+    document.body?.setAttribute("data-tier-ready", "1");
+  }
+
+  function buildMenus() {
+    const root = document.querySelector(TOOLSET_ROOT_SEL);
+    if (!root) return;
+
+    const tabs = getToolTabs();
+    const toolMeta = tabs.map(btn => ({
+      id: toolIdFromTab(btn),
+      label: cleanLabelFromTab(btn),
+      suite: suiteForTool(toolIdFromTab(btn)),
+    })).filter(x => x.id);
+
+    // stable-ish ordering: keep whatever order the sidebar already has
+    const bySuite = {
+      standard: toolMeta.filter(x => x.suite === "standard"),
+      premium: toolMeta.filter(x => x.suite === "premium"),
+      secure: toolMeta.filter(x => x.suite === "secure"),
+      governance: toolMeta.filter(x => x.suite === "governance"),
+      breakthrough: toolMeta.filter(x => x.suite === "breakthrough"),
+    };
+
+    root.querySelectorAll(".toolset-tab").forEach(tab => {
+      const suite = tab.getAttribute("data-toolset") || "standard";
+      const menu = tab.querySelector(".toolset-menu");
+      if (!menu) return;
+
+      menu.innerHTML = "";
+      const items = bySuite[suite] || [];
+
+      if (!items.length) {
+        const empty = document.createElement("div");
+        empty.className = "toolset-empty";
+        empty.style.padding = "10px 12px";
+        empty.style.opacity = "0.8";
+        empty.textContent = "No tools in this suite yet.";
+        menu.appendChild(empty);
+        return;
+      }
+
+      for (const it of items) {
+        const a = document.createElement("a");
+        a.href = "#";
+        a.className = "toolset-item";
+        a.setAttribute("data-tool", it.id);
+        a.textContent = it.label;
+        menu.appendChild(a);
+      }
+    });
+  }
+
+  function closeAllMenus(exceptTab = null) {
+    const root = document.querySelector(TOOLSET_ROOT_SEL);
+    if (!root) return;
+    root.querySelectorAll(".toolset-tab").forEach(t => {
+      if (exceptTab && t === exceptTab) return;
+      t.classList.remove("open");
+    });
+  }
+
+  function removeLegacyDuplicateBars() {
+    // If any old/duplicate tier/toolset panels exist, remove them
+    document.querySelectorAll(".toolset-panel, .tier-tabs, .tier-pager").forEach(el => el.remove());
+  }
+
+  function bindClicksCapture() {
+    document.addEventListener("click", (e) => {
+      const t = e.target;
+
+      // 1) Sidebar tool click -> switch tool view
+      const toolBtn = t.closest?.(TOOL_TAB_SEL);
+      if (toolBtn) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const id = toolIdFromTab(toolBtn);
+        if (id) openTool(id);
+        return;
+      }
+
+      // 2) Top toolset tab click -> set suite + toggle menu open
+      const toolsetBtn = t.closest?.(`${TOOLSET_ROOT_SEL} .toolset-btn`);
+      if (toolsetBtn) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const tab = toolsetBtn.closest(".toolset-tab");
+        const suite = tab?.getAttribute("data-toolset") || "standard";
+        setSuite(suite);
+
+        // toggle open (click-open for desktop + helpful for touch)
+        const willOpen = !tab.classList.contains("open");
+        closeAllMenus(tab);
+        tab.classList.toggle("open", willOpen);
+        return;
+      }
+
+      // 3) Dropdown item click -> open tool (and ensure suite matches)
+      const menuItem = t.closest?.(`${TOOLSET_ROOT_SEL} .toolset-menu .toolset-item[data-tool]`);
+      if (menuItem) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const id = menuItem.getAttribute("data-tool") || "";
+        if (id) {
+          setSuite(suiteForTool(id));
+          openTool(id);
+        }
+        closeAllMenus();
+        return;
+      }
+
+      // 4) Click outside -> close menus
+      const within = t.closest?.(TOOLSET_ROOT_SEL);
+      if (!within) closeAllMenus();
+    }, true);
+  }
+
+  function init() {
+    removeLegacyDuplicateBars();
+    buildMenus();
+
+    // default suite
+    let suite = "standard";
+    try { suite = localStorage.getItem("pdfrealm_toolset") || "standard"; } catch {}
+    setSuite(suite);
+
+    // ensure we always have an active tool
+    const activeId = currentActiveToolId();
+    if (!activeId) {
+      const first = firstVisibleToolId();
+      if (first) openTool(first);
+    }
+
+    bindClicksCapture();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();

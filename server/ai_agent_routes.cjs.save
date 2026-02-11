@@ -1,0 +1,760 @@
+
+/**
+ * PDFRealm AI Agent (Plan -> Execute) for public QuickTools.
+ * Endpoints:
+ *  POST /api/ai/upload (multipart field: files[] OR file)
+ *  POST /api/ai/plan   { message, files:[{id,name,mime,size}], activeFileId? }
+ *  POST /api/ai/run    { message, plan?, fileIds?, activeFileId? }
+ *  GET  /api/ai/job/:jobId
+ *  GET  /api/ai/job/:jobId/download
+ *
+ * Notes:
+ * - Additive module; does not change existing tools.
+ * - Executes existing /api/* tools by calling them via internal fetch against same server.
+ */
+
+const express = require("express");
+const os = require("os");
+const path = require("path");
+const fs = require("fs");
+const crypto = require("crypto");
+const multer = require("multer");
+
+function uuid() {
+  return crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString("hex");
+}
+
+function safeName(name) {
+  return String(name || "file").replace(/[^\w.\-]+/g, "_").slice(0, 120);
+}
+
+function ensureDir(p) {
+  fs.mkdirSync(p, { recursive: true });
+  return p;
+}
+
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function getBaseUrl(req) {
+  const proto = (req.headers["x-forwarded-proto"] || req.protocol || "http").split(",")[0].trim();
+  const host = (req.headers["x-forwarded-host"] || req.headers.host || `localhost:${process.env.PORT || 8080}`)
+    .split(",")[0]
+    .trim();
+  return `${proto}://${host}`;
+}
+
+function makeRegistry() {
+  // IMPORTANT: All endpoints below exist in your server.js (QuickTools).
+  // Most accept upload.single("file") except merge uses upload.array("files").
+  return {
+    flatten:   { endpoint: "/api/flatten",   method: "POST", fileField: "file", kind: "single" },
+    rotate:    { endpoint: "/api/rotate",    method: "POST", fileField: "file", kind: "single", args: ["degrees","pages","password","inputPassword","outputPassword"] },
+    encrypt:   { endpoint: "/api/encrypt",   method: "POST", fileField: "file", kind: "single", args: ["password","outputPassword"] },
+    decrypt:   { endpoint: "/api/decrypt",   method: "POST", fileField: "file", kind: "single", args: ["password","inputPassword"] },
+    merge:     { endpoint: "/api/merge",     method: "POST", fileField: "files", kind: "multi" },
+    split:     { endpoint: "/api/split",     method: "POST", fileField: "file", kind: "single", args: ["mode","ranges","password","inputPassword"] },
+    compress:  { endpoint: "/api/compress",  method: "POST", fileField: "file", kind: "single", args: ["level","password","inputPassword"] },
+    watermark: { endpoint: "/api/watermark", method: "POST", fileField: "file", kind: "single", args: ["text","position","opacity","size","password","inputPassword"] },
+    ocr:       { endpoint: "/api/ocr",       method: "POST", fileField: "file", kind: "single", args: ["lang","output"] },
+
+    // Conversions (common)
+    jpg2pdf:   { endpoint: "/api/jpg-to-pdf", method: "POST", fileField: "file", kind: "single" },
+    png2pdf:   { endpoint: "/api/png-to-pdf", method: "POST", fileField: "file", kind: "single" },
+    tiff2pdf:  { endpoint: "/api/tiff-to-pdf", method: "POST", fileField: "file", kind: "single" },
+    img2pdf:   { endpoint: "/api/multi-image-to-pdf", method: "POST", fileField: "files", kind: "multi" },
+
+    pdf2word:  { endpoint: "/api/pdf-to-word", method: "POST", fileField: "file", kind: "single", args: ["password","inputPassword"] },
+
+    text2pdf:  { endpoint: "/api/text-to-pdf", method: "POST", fileField: "file", kind: "single", args: ["text","title"] },
+    md2pdf:    { endpoint: "/api/markdown-to-pdf", method: "POST", fileField: "file", kind: "single" },
+    html2pdf:  { endpoint: "/api/html-to-pdf", method: "POST", fileField: "file", kind: "single" },
+    url2pdf:   { endpoint: "/api/url-to-pdf", method: "POST", fileField: "file", kind: "single", args: ["url"] },
+  };
+}
+
+function planSchema(toolNames) {
+  // Strict schema for the planner.
+  return {
+    strict: true,
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        needs_user_input: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              field: { type: "string" },
+              prompt: { type: "string" }
+            },
+            required: ["field", "prompt"]
+          }
+        },
+        steps: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              tool: { type: "string", enum: toolNames },
+              input: {
+                // "active" or list of file indices (for merge/img2pdf)
+                anyOf: [
+                  { type: "string", enum: ["active"] },
+                  { type: "array", items: { type: "integer", minimum: 0 }, minItems: 1 }
+                ]
+              },
+              args: { type: "object" }
+            },
+            required: ["tool", "input", "args"]
+          }
+        },
+        final_output: { type: "string", enum: ["pdf", "docx", "zip"] },
+        user_message: { type: "string" }
+      },
+      required: ["needs_user_input", "steps", "final_output", "user_message"]
+    }
+  };
+}
+
+async function openaiPlan({ apiKey, model, message, files, toolNames }) {
+  const schema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    needs_user_input: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          field: { type: "string" },
+          prompt: { type: "string" }
+        },
+        required: ["field", "prompt"]
+      }
+    },
+    steps: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          tool: { type: "string" },
+          args: { type: "object", additionalProperties: true }
+        },
+        required: ["tool", "args"]
+      }
+    },
+    final_output: { type: "string" }
+  },
+  required: ["needs_user_input", "steps", "final_output"]
+};
+
+const sys = [
+    "You are PDFRealm AI Operator.",
+    "You MUST return valid JSON that matches the provided schema.",
+    "Plan steps using only the allowed tool names.",
+    "If required info is missing (password, degrees, pages, merge selection), ask in needs_user_input and leave steps empty.",
+    "Defaults: rotate degrees=90 clockwise, pages=all unless specified.",
+    "Use input='active' for single-file operations. Use input=[0,1,...] for multi-file operations (merge, img2pdf).",
+    "Never include sensitive passwords in user_message; if user provided a password, do not echo it back.",
+  ].join("\n");
+
+  const user = {
+    message,
+    files: (files || []).map(f => ({ id: f.id, name: f.name, mime: f.mime, size: f.size }))
+  };
+
+  const payload = {
+    model: model || "gpt-4o-mini",
+    input: [
+      { role: "system", content: sys },
+      { role: "user", content: JSON.stringify(user) }
+    ],
+    // Structured Outputs (json_schema)
+    text: { format: { type: "json_schema",
+              name: "pdfrealm_ai_plan", schema: schema,
+              strict: true,} },
+  };
+
+  const res = await fetch("https://api.openai.com/v1/responses", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const txt = await res.text();
+  let data = null;
+  try { data = txt ? JSON.parse(txt) : null; } catch (_) {}
+  if (!res.ok) {
+    const msg = data?.error?.message || txt || `OpenAI error ${res.status}`;
+    const err = new Error(msg);
+    err.status = res.status;
+    err.data = data;
+    throw err;
+  }
+
+  // Extract the JSON output from responses API.
+  // Typical shape: output[0].content[0].text
+  const out = data?.output?.[0]?.content?.find?.(c => c.type === "output_text")?.text
+    || data?.output_text
+    || data?.output?.[0]?.content?.[0]?.text
+    || null;
+
+  if (!out) throw new Error("OpenAI returned no output_text.");
+
+  let plan = null;
+  try { plan = JSON.parse(out); } catch (e) {
+    throw new Error("Planner returned non-JSON output.");
+cd ~/Desktop/projects/pdfrealm
+
+# 0) stop server (Ctrl+C)
+
+# 1) backup the current ai agent routes
+TS=$(date +%Y%m%d_%H%M%S)
+mkdir -p backups/ai_agent_fix_$TS
+cp -a server/ai_agent_routes.cjs backups/ai_agent_fix_$TS/ 2>/dev/null || true
+
+# 2) overwrite the file entirely
+cat > server/ai_agent_routes.cjs <<'EOF'
+/**
+ * PDFRealm AI Operator - Planning Routes
+ *
+ * Fix: Use OpenAI "json_object" response_format (NOT json_schema), to avoid:
+ *  - Missing required parameter: 'text.format.name'
+ *  - Missing required parameter: 'text.format.schema'
+ *  - invalid_json_schema additionalProperties requirements
+ *
+ * Endpoints:
+ *  POST /api/ai/plan  -> returns a JSON plan { steps: [...], userMessage, notes }
+ *
+ * This module exports an Express router directly (app.use("/api/ai", router)).
+ */
+const express = require("express");
+
+// Use global fetch if available (Node 18+). If not, lazy import node-fetch.
+const _fetch = global.fetch
+  ? global.fetch.bind(global)
+  : (...args) => import("node-fetch").then(({ default: f }) => f(...args));
+
+const router = express.Router();
+
+router.use(express.json({ limit: "2mb" }));
+
+function env(name, fallback = "") {
+  return process.env[name] || fallback;
+}
+
+function isAuthed(req) {
+  // PDFRealm patterns vary; accept any of these:
+  if (req.user) return true;
+  if (req.session && req.session.user) return true;
+  const auth = req.headers.authorization || "";
+  if (auth.startsWith("Bearer ")) return true; // allow dev/testing
+  return false;
+}
+
+function toolCatalog() {
+  // Keep this conservative and tool-name based; your client/executor can map these.
+  // Add more tools anytime—this is the "planner vocabulary".
+  return [
+    { tool: "rotate", desc: "Rotate PDF pages in 90° increments." },
+    { tool: "encrypt", desc: "Encrypt PDF with password." },
+    { tool: "decrypt", desc: "Decrypt/unlock PDF using password." },
+    { tool: "flatten", desc: "Flatten PDF forms/annotations into static content." },
+    { tool: "merge", desc: "Merge multiple PDFs." },
+    { tool: "split", desc: "Split/extract pages from a PDF." },
+    { tool: "delete_pages", desc: "Delete selected pages." },
+    { tool: "reorder_pages", desc: "Reorder pages." },
+    { tool: "compress", desc: "Compress/optimize PDF size." },
+    { tool: "watermark", desc: "Add watermark text/image." },
+    { tool: "ocr", desc: "OCR images/PDF to searchable text." },
+    { tool: "pdf_to_jpg", desc: "Convert PDF pages to JPG." },
+    { tool: "jpg_to_pdf", desc: "Convert JPG(s) to PDF." },
+    { tool: "word_to_pdf", desc: "Convert DOCX to PDF." },
+    { tool: "pdf_to_word", desc: "Convert PDF to DOCX." }
+  ];
+}
+
+function buildSystemPrompt() {
+  const catalog = toolCatalog()
+    .map((t) => `- ${t.tool}: ${t.desc}`)
+    .join("\n");
+
+  return `You are the PDFRealm AI Operator planner.
+You output ONLY valid JSON (no markdown, no commentary).
+
+You must produce a plan for executing the user's request using the available PDFRealm tools.
+
+Available tools:
+${catalog}
+
+Rules:
+- Output must be a single JSON object.
+- steps is an array of actions in order.
+- Each step must have: tool, args.
+- args must be an object. If no args, use {}.
+- If a password is mentioned, include it in args.password.
+- If degrees is mentioned for rotation, convert to increments of 90 only. If user asks 45°, round to nearest 90 and note it in notes.
+- If you are missing required info (like password), include a step tool="need_user_input" with args.fields=[...].
+- Be concise, deterministic, and do not invent files.
+
+Schema (informal):
+{
+  "userMessage": "...",
+  "notes": ["..."],
+  "steps": [
+    { "tool": "rotate", "args": { "degrees": 90 } },
+    { "tool": "encrypt", "args": { "password": "..." } }
+  ]
+}`;
+}
+
+function normalizePlan(obj, userMessage) {
+  const out = {
+    userMessage: String(userMessage || obj.userMessage || "").slice(0, 2000),
+    notes: Array.isArray(obj.notes) ? obj.notes.map(String).slice(0, 20) : [],
+    steps: Array.isArray(obj.steps) ? obj.steps : []
+  };
+
+  // Validate and sanitize steps
+  const allowed = new Set(toolCatalog().map((t) => t.tool));
+  allowed.add("need_user_input");
+
+  out.steps = out.steps
+    .map((s) => {
+      const tool = s && typeof s.tool === "string" ? s.tool.trim() : "";
+      const args = s && typeof s.args === "object" && s.args ? s.args : {};
+      return { tool, args };
+    })
+    .filter((s) => s.tool && allowed.has(s.tool))
+    .slice(0, 12);
+
+  if (!out.steps.length) {
+    // very safe fallback
+    out.steps = [{ tool: "need_user_input", args: { fields: ["clarify_request"] } }];
+    out.notes.push("I couldn't confidently map that request to available tools.");
+  }
+
+  return out;
+}
+
+function ruleBasedPlan(message) {
+  // Minimal deterministic fallback if OpenAI call fails.
+  const m = String(message || "").toLowerCase();
+
+  const steps = [];
+  const notes = [];
+
+  // rotation
+  const rotMatch = m.match(/rotate\s+(-?\d+)\s*(deg|degree|degrees)?/);
+  if (rotMatch) {
+    let deg = parseInt(rotMatch[1], 10);
+    if (!Number.isFinite(deg)) deg = 90;
+    // normalize to nearest 90
+    const rounded = Math.round(deg / 90) * 90 || 90;
+    if (rounded !== deg) notes.push(`Rotation requested ${deg}°, using ${rounded}° (90° increments only).`);
+    steps.push({ tool: "rotate", args: { degrees: rounded } });
+  } else if (m.includes("rotate")) {
+    steps.push({ tool: "rotate", args: { degrees: 90 } });
+  }
+
+  // flatten
+  if (m.includes("flatten")) steps.push({ tool: "flatten", args: {} });
+
+  // decrypt/unlock
+  if (m.includes("decrypt") || m.includes("unlock")) {
+    const pw = (m.match(/password\s+([^\s"']+)/) || [])[1];
+    if (pw) steps.push({ tool: "decrypt", args: { password: pw } });
+    else steps.push({ tool: "need_user_input", args: { fields: ["password"] } });
+  }
+
+  // encrypt
+  if (m.includes("encrypt")) {
+    const pw = (m.match(/password\s+([^\s"']+)/) || [])[1];
+    if (pw) steps.push({ tool: "encrypt", args: { password: pw } });
+    else steps.push({ tool: "need_user_input", args: { fields: ["password"] } });
+  }
+
+  if (!steps.length) steps.push({ tool: "need_user_input", args: { fields: ["clarify_request"] } });
+
+  return normalizePlan({ userMessage: message, notes, steps }, message);
+}
+
+async function openaiPlan({ message }) {
+  const apiKey = env("OPENAI_API_KEY");
+  if (!apiKey) throw new Error("OPENAI_API_KEY is not set.");
+
+  const model = env("OPENAI_LLM_MODEL", "gpt-4o-mini");
+
+  // Using Chat Completions-style endpoint with response_format json_object.
+  // This avoids the Responses API json_schema pitfalls entirely.
+  const payload = {
+    model,
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: buildSystemPrompt() },
+      { role: "user", content: String(message || "").slice(0, 6000) }
+    ],
+    temperature: 0.2
+  };
+
+  const res = await _fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const text = await res.text();
+  if (!res.ok) {
+    let detail = text;
+    try {
+      const j = JSON.parse(text);
+      detail = j && j.error && j.error.message ? j.error.message : text;
+    } catch (_) {}
+    const err = new Error(detail || `OpenAI error ${res.status}`);
+    err.status = res.status;
+    err.raw = text;
+    throw err;
+  }
+
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (_) {
+    throw new Error("OpenAI returned non-JSON response.");
+  }
+
+  const content =
+    data &&
+    data.choices &&
+    data.choices[0] &&
+    data.choices[0].message &&
+    data.choices[0].message.content
+      ? data.choices[0].message.content
+      : "";
+
+  if (!content) throw new Error("OpenAI returned empty content.");
+
+  let obj;
+  try {
+    obj = JSON.parse(content);
+  } catch (e) {
+    // Sometimes model can still produce JSON-looking but invalid; fall back.
+    throw new Error("OpenAI returned invalid JSON content.");
+  }
+
+  return normalizePlan(obj, message);
+}
+
+/**
+ * POST /api/ai/plan
+ * Body: { message: string, files?: [{name,id,type}] }
+ */
+router.post("/plan", async (req, res) => {
+  try {
+    if (!isAuthed(req)) {
+      // Your server currently returns 403 for unauth routes; keep consistent.
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+
+    const message = (req.body && req.body.message) || "";
+    if (!message || typeof message !== "string") {
+      return res.status(400).json({ error: "Missing message" });
+    }
+
+    // 1) Try OpenAI
+    try {
+      const plan = await openaiPlan({ message });
+      return res.json(plan);
+    } catch (e) {
+      // 2) Fall back to deterministic plan so the UI doesn't brick.
+      console.error("ai plan error:", e && e.message ? e.message : e);
+      const plan = ruleBasedPlan(message);
+      plan.notes = plan.notes || [];
+      plan.notes.unshift("AI planning fell back to local rules due to provider error.");
+      return res.json(plan);
+    }
+  } catch (e) {
+    console.error("ai plan fatal error:", e);
+    return res.status(500).json({ error: "AI planning failed.", details: String(e && (e.message || e) || e) });
+  }
+});
+
+// Basic health
+router.get("/health", (req, res) => res.json({ ok: true }));
+
+module.exports = router;
+EOF
+
+# 3) sanity check the new file
+node --check server/ai_agent_routes.cjs
+
+# 4) restart
+node server.js
+  }
+  return plan;
+}
+
+async function callToolEndpoint({ baseUrl, registryItem, inputBuffers, args, signal }) {
+  const url = baseUrl + registryItem.endpoint;
+  const method = registryItem.method || "POST";
+
+  const fd = new FormData();
+
+  // Add args as form fields
+  if (args && typeof args === "object") {
+    for (const [k, v] of Object.entries(args)) {
+      if (v === undefined || v === null) continue;
+      fd.append(k, String(v));
+    }
+  }
+
+  if (registryItem.kind === "multi") {
+    for (let i = 0; i < inputBuffers.length; i++) {
+      const buf = inputBuffers[i];
+      const file = new File([buf], `input_${i}.bin`, { type: "application/octet-stream" });
+      fd.append(registryItem.fileField, file);
+    }
+  } else {
+    const buf = inputBuffers[0];
+    const file = new File([buf], `input.bin`, { type: "application/octet-stream" });
+    fd.append(registryItem.fileField, file);
+  }
+
+  const res = await fetch(url, { method, body: fd, signal });
+  const arr = await res.arrayBuffer();
+  if (!res.ok) {
+    // try decode json error
+    let msg = `Tool ${registryItem.endpoint} failed (HTTP ${res.status})`;
+    try {
+      const j = JSON.parse(Buffer.from(arr).toString("utf8"));
+      msg = j.error || j.message || msg;
+    } catch (_) {
+      // ignore
+    }
+    const err = new Error(msg);
+    err.status = res.status;
+    throw err;
+  }
+
+  return Buffer.from(arr);
+}
+
+module.exports = function createAiAgentRoutes({ app }) {
+  const router = express.Router();
+  const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 1024 * 1024 * 150 } }); // 150MB
+
+  const registry = makeRegistry();
+  const toolNames = Object.keys(registry);
+
+  // In-memory job store (MVP)
+  const JOBS = new Map();
+
+  // In-memory uploaded file store: id -> { buffer, name, mime, size, createdAt }
+  const FILES = new Map();
+
+  function jobUpdate(jobId, patch) {
+    const j = JOBS.get(jobId);
+    if (!j) return;
+    Object.assign(j, patch);
+    j.updatedAt = nowIso();
+    JOBS.set(jobId, j);
+  }
+
+  router.post("/upload", upload.any(), async (req, res) => {
+    try {
+      const files = req.files || [];
+      if (!files.length) return res.status(400).json({ error: "No files uploaded." });
+
+      const ids = [];
+      for (const f of files) {
+        const id = uuid();
+        FILES.set(id, {
+          id,
+          name: safeName(f.originalname || "file"),
+          mime: f.mimetype || "application/octet-stream",
+          size: f.size || (f.buffer ? f.buffer.length : 0),
+          buffer: f.buffer,
+          createdAt: nowIso()
+        });
+        ids.push(id);
+      }
+      return res.json({ fileIds: ids, files: ids.map(id => ({ id, name: FILES.get(id).name, size: FILES.get(id).size })) });
+    } catch (e) {
+      console.error("ai upload error:", e);
+      return res.status(500).json({ error: "Upload failed." });
+    }
+  });
+
+  router.post("/plan", express.json({ limit: "1mb" }), async (req, res) => {
+    try {
+      const apiKey = process.env.OPENAI_API_KEY;
+      if (!apiKey) return res.status(501).json({ error: "OPENAI_API_KEY not configured." });
+
+      const message = String(req.body?.message || "").trim();
+      if (!message) return res.status(400).json({ error: "message required" });
+
+      const fileIds = Array.isArray(req.body?.fileIds) ? req.body.fileIds : [];
+      const files = fileIds.map(id => FILES.get(id)).filter(Boolean);
+
+      const model = process.env.AI_AGENT_MODEL || process.env.OPENAI_LLM_MODEL || "gpt-4o-mini";
+      const plan = await openaiPlan({ apiKey, model, message, files, toolNames });
+
+      return res.json({ plan });
+    } catch (e) {
+      console.error("ai plan error:", e);
+      return res.status(500).json({ error: "AI planning failed.", details: String(e?.message || e) });
+    }
+  });
+
+  router.post("/run", express.json({ limit: "2mb" }), async (req, res) => {
+    try {
+      const message = String(req.body?.message || "").trim();
+      const plan = req.body?.plan || null;
+      const fileIds = Array.isArray(req.body?.fileIds) ? req.body.fileIds : [];
+
+      if (!plan && !message) return res.status(400).json({ error: "Provide message or plan." });
+      if (!fileIds.length) return res.status(400).json({ error: "Upload at least one file first." });
+
+      const apiKey = process.env.OPENAI_API_KEY;
+      const baseUrl = req.body?.baseUrl || getBaseUrl(req);
+
+      // If no plan was provided, generate one.
+      let effectivePlan = plan;
+      if (!effectivePlan) {
+        if (!apiKey) return res.status(501).json({ error: "OPENAI_API_KEY not configured." });
+        const files = fileIds.map(id => FILES.get(id)).filter(Boolean);
+        const model = process.env.AI_AGENT_MODEL || process.env.OPENAI_LLM_MODEL || "gpt-4o-mini";
+        effectivePlan = await openaiPlan({ apiKey, model, message, files, toolNames });
+      }
+
+      if (effectivePlan.needs_user_input && effectivePlan.needs_user_input.length) {
+        return res.json({ needs_user_input: effectivePlan.needs_user_input, plan: effectivePlan });
+      }
+
+      const jobId = uuid();
+      const jobDir = ensureDir(path.join(os.tmpdir(), "pdfrealm_ai", jobId));
+      const job = {
+        id: jobId,
+        status: "QUEUED",
+        progress: "Queued",
+        createdAt: nowIso(),
+        updatedAt: nowIso(),
+        plan: effectivePlan,
+        fileIds,
+        resultName: null,
+        resultPath: null,
+        error: null
+      };
+      JOBS.set(jobId, job);
+
+      // Kick off async in-process execution
+      setImmediate(async () => {
+        const ac = new AbortController();
+        try {
+          jobUpdate(jobId, { status: "PROCESSING", progress: "Starting..." });
+
+          // Prepare buffers
+          const buffers = fileIds.map(id => FILES.get(id)?.buffer).filter(Boolean);
+          if (!buffers.length) throw new Error("Uploaded file buffers not found.");
+
+          let active = buffers[0];
+          let activeName = FILES.get(fileIds[0])?.name || "document.pdf";
+
+          const steps = Array.isArray(effectivePlan.steps) ? effectivePlan.steps : [];
+          for (let i = 0; i < steps.length; i++) {
+            const step = steps[i];
+            const tool = step.tool;
+            const reg = registry[tool];
+            if (!reg) throw new Error(`Unknown tool: ${tool}`);
+
+            jobUpdate(jobId, { progress: `${tool} (${i + 1}/${steps.length})` });
+
+            // Determine inputs
+            let inputBufs = [];
+            if (Array.isArray(step.input)) {
+              inputBufs = step.input.map(idx => buffers[idx]).filter(Boolean);
+              if (!inputBufs.length) throw new Error(`Step input indices invalid for tool ${tool}`);
+            } else {
+              inputBufs = [active];
+            }
+
+            const outBuf = await callToolEndpoint({
+              baseUrl,
+              registryItem: reg,
+              inputBuffers: inputBufs,
+              args: step.args || {},
+              signal: ac.signal
+            });
+
+            active = outBuf;
+            activeName = `ai_${tool}_${safeName(activeName)}`;
+
+            // Add output as new buffer for potential later index references
+            buffers.push(outBuf);
+          }
+
+          const outPath = path.join(jobDir, safeName(activeName || "pdfrealm_ai_output.pdf"));
+          fs.writeFileSync(outPath, active);
+
+          jobUpdate(jobId, {
+            status: "READY",
+            progress: "Done",
+            resultName: path.basename(outPath),
+            resultPath: outPath
+          });
+        } catch (e) {
+          console.error("ai run job error:", e);
+          jobUpdate(jobId, { status: "FAILED", progress: "Failed", error: String(e?.message || e) });
+        }
+      });
+
+      return res.json({ jobId, plan: effectivePlan });
+    } catch (e) {
+      console.error("ai run error:", e);
+      return res.status(500).json({ error: "AI run failed.", details: String(e?.message || e) });
+    }
+  });
+
+  router.get("/job/:jobId", async (req, res) => {
+    const job = JOBS.get(req.params.jobId);
+    if (!job) return res.status(404).json({ error: "Job not found." });
+
+    return res.json({
+      jobId: job.id,
+      status: job.status,
+      progress: job.progress,
+      error: job.error,
+      downloadUrl: job.status === "READY" ? `/api/ai/job/${job.id}/download` : null,
+      plan: job.plan
+    });
+  });
+
+  router.get("/job/:jobId/download", async (req, res) => {
+    const job = JOBS.get(req.params.jobId);
+    if (!job) return res.status(404).send("Not found");
+    if (job.status !== "READY" || !job.resultPath || !fs.existsSync(job.resultPath)) {
+      return res.status(409).json({ error: "Job not ready." });
+    }
+    const buf = fs.readFileSync(job.resultPath);
+    res.setHeader("Content-Type", "application/octet-stream");
+    res.setHeader("Content-Disposition", `attachment; filename="${job.resultName || "pdfrealm_ai_output.bin"}"`);
+    return res.send(buf);
+  });
+
+  // Mount
+  app.use("/api/ai", router);
+  console.log("AI Agent mounted: /api/ai/*");
+};

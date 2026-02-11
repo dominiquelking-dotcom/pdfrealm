@@ -1,0 +1,309 @@
+(() => {
+  "use strict";
+
+  const state = { uploadId: null, lastPlan: null, running: false };
+
+  const qs = (sel, root = document) => root.querySelector(sel);
+  const el = (tag, attrs = {}, kids = []) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (k === "class") n.className = v;
+      else if (k === "style") n.setAttribute("style", v);
+      else if (k.startsWith("on") && typeof v === "function") n.addEventListener(k.slice(2), v);
+      else if (v === false || v === null || typeof v === "undefined") {}
+      else n.setAttribute(k, String(v));
+    }
+    for (const c of kids) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    return n;
+  };
+
+  function ensureStyles() {
+    if (qs("#aiopInlineStyles")) return;
+    const css = `
+      #aiOperatorModal .modal-card { max-height: 92vh; display:flex; flex-direction:column; }
+      #aiOperatorModal .modal-body { flex:1; min-height:0; overflow:auto; }
+      #aiOperatorModal #aiOpLog { height: 40vh; overflow:auto; padding-right:6px; }
+      #aiOperatorModal textarea#aiOpInput { width:100%; min-height:120px; resize:vertical; }
+      #aiOperatorModal .aiop-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+      #aiOperatorModal .aiop-muted { color: var(--muted); font-size: 0.9rem; }
+      #aiOperatorModal .aiop-pill { padding: 3px 8px; border-radius:999px; background: rgba(255,255,255,0.08); font-size: 0.8rem; }
+      #aiOperatorModal .aiop-line { padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.06); white-space:pre-wrap; word-break:break-word; }
+    `;
+    document.head.appendChild(el("style", { id: "aiopInlineStyles" }, [css]));
+  }
+
+  function openModalCompat(modal) {
+    if (!modal) return;
+    if (typeof window.openModal === "function") {
+      try { window.openModal(modal); return; } catch (_) {}
+    }
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+  }
+  function closeModalCompat(modal) {
+    if (!modal) return;
+    if (typeof window.closeModal === "function") {
+      try { window.closeModal(modal); return; } catch (_) {}
+    }
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+  }
+
+  function setStatus(t) { const n = qs("#aiOpStatus"); if (n) n.textContent = t || ""; }
+  function logLine(msg, kind = "info") {
+    const box = qs("#aiOpLog"); if (!box) return;
+    box.prepend(el("div", { class: "aiop-line aiop-" + kind }, [String(msg ?? "")]));
+  }
+
+  async function readTextSafe(r) { try { return await r.text(); } catch (_) { return ""; } }
+  async function postJSON(url, payload) {
+    const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload || {}) });
+    const ct = (r.headers.get("content-type") || "").toLowerCase();
+    let data = null;
+    if (ct.includes("application/json")) { try { data = await r.json(); } catch (_) { data = null; } }
+    if (data === null) { const t = await readTextSafe(r); data = t ? { text: t } : {}; }
+    return { ok: r.ok, status: r.status, data };
+  }
+
+  function normalizePlan(d) {
+    if (!d) return null;
+    if (typeof d === "string") return d;
+    if (d.plan) return typeof d.plan === "string" ? d.plan : JSON.stringify(d.plan, null, 2);
+    if (d.steps) return Array.isArray(d.steps) ? d.steps.map((s,i)=>`${i+1}. ${s}`).join("\n") : JSON.stringify(d.steps, null, 2);
+    if (d.text) return String(d.text);
+    if (d.message) return String(d.message);
+    return null;
+  }
+  function normalizeResult(d) {
+    if (!d) return null;
+    if (typeof d === "string") return d;
+    for (const k of ["result","output","text","message"]) if (d[k]) return typeof d[k] === "string" ? d[k] : JSON.stringify(d[k], null, 2);
+    return JSON.stringify(d, null, 2);
+  }
+
+  async function uploadSelectedFile() {
+    const inp = qs("#aiOpFile");
+    const f = inp && inp.files && inp.files[0];
+    if (!f) return alert("Choose a document first.");
+
+    const btn = qs("#aiOpUploadBtn");
+    if (btn) btn.disabled = true;
+
+    try {
+      setStatus("Uploading...");
+      logLine("Uploading: " + f.name, "info");
+
+      const fd = new FormData();
+      fd.append("file", f);
+
+      const r = await fetch("/api/ai/upload", { method: "POST", body: fd });
+      const ct = (r.headers.get("content-type") || "").toLowerCase();
+      let data = null;
+      if (ct.includes("application/json")) { try { data = await r.json(); } catch (_) { data = null; } }
+      if (!data) { const t = await readTextSafe(r); data = t ? { text: t } : {}; }
+
+      if (!r.ok) {
+        const err = data.error || data.message || data.text || ("Upload failed (HTTP " + r.status + ")");
+        logLine("UPLOAD ERROR:\n" + err, "error");
+        setStatus("Upload failed");
+        return;
+      }
+
+      const uploadId = data.uploadId || data.upload_id || data.id || data.fileId || data.file_id || null;
+      state.uploadId = uploadId;
+
+      const name = qs("#aiOpFileName");
+      if (name) name.textContent = uploadId ? ("Uploaded: " + f.name) : ("Uploaded: " + f.name + " (no id returned)");
+
+      logLine(uploadId ? ("Upload OK. uploadId=" + uploadId) : "Upload OK.", "result");
+      setStatus("Ready");
+    } catch (e) {
+      logLine("UPLOAD ERROR:\n" + (e?.message || String(e)), "error");
+      setStatus("Upload error");
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  function buildPayloadVariants(prompt, planText) {
+    const p = String(prompt || "").trim();
+    const fromMessages = [{ role: "user", content: p }];
+    const base = {};
+    if (state.uploadId) base.uploadId = state.uploadId;
+    if (planText) { base.plan = planText; base.steps = planText; }
+    return [
+      { ...base, prompt: p, messages: fromMessages },
+      { ...base, input: p, messages: fromMessages },
+      { ...base, task: p, messages: fromMessages },
+      { ...base, command: p, messages: fromMessages },
+      { ...base, text: p, messages: fromMessages },
+      { ...base, messages: fromMessages },
+    ];
+  }
+
+  async function planThenRun() {
+    const prompt = String(qs("#aiOpInput")?.value || "").trim();
+    if (!prompt) return alert("Type a command first.");
+
+    const runBtn = qs("#aiOpRun");
+    state.running = true;
+    if (runBtn) runBtn.disabled = true;
+
+    try {
+      setStatus("Planning...");
+      logLine("Planning...", "info");
+
+      const planVariants = buildPayloadVariants(prompt, null);
+      let planText = null;
+      let planErr = null;
+
+      for (const body of planVariants) {
+        const resp = await postJSON("/api/ai/plan", body);
+        if (resp.status === 404) continue;
+        if (!resp.ok) {
+          planErr = resp.data?.error || resp.data?.message || resp.data?.text || ("Plan failed (HTTP " + resp.status + ")");
+          if (resp.status === 401 || resp.status === 403) break;
+          continue;
+        }
+        planText = normalizePlan(resp.data) || "(No plan returned)";
+        break;
+      }
+
+      if (!planText) {
+        logLine("PLAN ERROR:\n" + (planErr || "Plan failed."), "error");
+        setStatus("Plan failed");
+        return;
+      }
+
+      state.lastPlan = planText;
+      logLine("PLAN:\n" + planText, "plan");
+
+      setStatus("Running...");
+      logLine("Running...", "info");
+
+      const runVariants = buildPayloadVariants(prompt, planText);
+      let out = null;
+      let runErr = null;
+
+      for (const body of runVariants) {
+        const resp = await postJSON("/api/ai/run", body);
+        if (!resp.ok) {
+          runErr = resp.data?.error || resp.data?.message || resp.data?.text || ("Run failed (HTTP " + resp.status + ")");
+          if (resp.status === 401 || resp.status === 403) break;
+          // keep trying other shapes on 400
+          continue;
+        }
+        out = normalizeResult(resp.data) || "(No output returned)";
+        break;
+      }
+
+      if (!out) {
+        logLine("RUN ERROR:\n" + (runErr || "Run failed."), "error");
+        setStatus("Run failed");
+        return;
+      }
+
+      logLine("RESULT:\n" + out, "result");
+      setStatus("Done");
+    } catch (e) {
+      logLine("ERROR:\n" + (e?.message || String(e)), "error");
+      setStatus("Error");
+    } finally {
+      state.running = false;
+      if (runBtn) runBtn.disabled = false;
+    }
+  }
+
+  function ensureUI() {
+    if (qs("#aiOperatorModal")) return;
+    ensureStyles();
+
+    const modal = el("div", { id: "aiOperatorModal", class: "modal", "aria-hidden": "true", role: "dialog", "aria-modal": "true" }, [
+      el("div", { class: "modal-card" }, [
+        el("div", { class: "modal-head" }, [
+          el("div", { class: "mh" }, ["AI Operator ", el("span", { class: "aiop-pill" }, ["BETA"])]),
+          el("button", { id: "aiOpClose", class: "btn btn-secondary", type: "button" }, ["Close"])
+        ]),
+        el("div", { class: "modal-body" }, [
+          el("div", { class: "aiop-muted", style: "margin-bottom:10px;" }, [
+            "Upload a doc (optional), type your command, then Run (it will plan and execute)."
+          ]),
+          el("div", { class: "aiop-row", style: "margin-bottom:10px;" }, [
+            el("input", { id: "aiOpFile", type: "file", accept: ".pdf,.png,.jpg,.jpeg,.webp,.txt,.doc,.docx" }),
+            el("button", { id: "aiOpUploadBtn", class: "btn btn-secondary", type: "button" }, ["Upload"]),
+            el("div", { id: "aiOpFileName", class: "aiop-muted" }, ["No document uploaded."])
+          ]),
+          el("textarea", { id: "aiOpInput", placeholder: "Example: Summarize this PDF and extract key dates, then generate a clean bullet report." }),
+          el("div", { class: "aiop-row", style: "margin-top:12px;" }, [
+            el("button", { id: "aiOpRun", class: "btn btn-primary", type: "button" }, ["Run"]),
+            el("div", { id: "aiOpStatus", class: "aiop-muted" }, [""])
+          ]),
+          el("div", { class: "card", style: "margin-top:12px;" }, [
+            el("div", { style: "font-weight:600; margin-bottom:8px;" }, ["Output"]),
+            el("div", { id: "aiOpLog" }, [])
+          ])
+        ])
+      ])
+    ]);
+
+    document.body.appendChild(modal);
+
+    qs("#aiOpClose").addEventListener("click", () => closeModalCompat(modal));
+    modal.addEventListener("click", (e) => { if (e.target === modal) closeModalCompat(modal); });
+
+    qs("#aiOpUploadBtn").addEventListener("click", uploadSelectedFile);
+    qs("#aiOpRun").addEventListener("click", planThenRun);
+  }
+
+  function shouldOpenFromClick(target) {
+    if (!target) return false;
+
+    // explicit hooks
+    if (target.closest && target.closest("#aiOperatorNav")) return true;
+    if (target.closest && target.closest("[data-ai-nav]")) return true;
+
+    // any link to ?ai=1
+    const a = target.closest && target.closest("a");
+    if (a) {
+      const href = a.getAttribute("href") || "";
+      if (href.includes("ai=1")) return true;
+    }
+
+    // text match for nav chips/buttons
+    const chip = target.closest && target.closest(".nav-chip, button, a, div, span");
+    if (chip) {
+      const txt = (chip.textContent || "").trim().toLowerCase();
+      if (txt.includes("ai operator")) return true;
+    }
+
+    return false;
+  }
+
+  function bindNav() {
+    // capture-phase delegation so nothing else can swallow it
+    document.addEventListener("click", (e) => {
+      if (!shouldOpenFromClick(e.target)) return;
+
+      // stop navigation + stop other handlers
+      e.preventDefault();
+      e.stopPropagation();
+
+      ensureUI();
+      openModalCompat(qs("#aiOperatorModal"));
+    }, true);
+  }
+
+  function init() {
+    bindNav();
+    try {
+      const u = new URL(location.href);
+      if (u.searchParams.get("ai") === "1") {
+        ensureUI();
+        openModalCompat(qs("#aiOperatorModal"));
+      }
+    } catch (_) {}
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();

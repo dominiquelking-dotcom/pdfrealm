@@ -1,0 +1,351 @@
+/* PDFREALM_TOOLSET_NAV_PATCH_V2
+   - Organizes suites using the REAL resource mapping: window.PDFREALM_TIER.getTierForTool()
+   - Secure Suite includes: send/chat/video/voip (+ containers), NOT breakthrough
+   - Document Governance includes docgov only
+   - Breakthrough is its own suite
+   - Sidebar tool tabs + top suite tabs always work (capture click)
+*/
+(() => {
+  "use strict";
+
+  const TOOL_TAB_SEL    = ".tool-tabs .tool-tab[data-tool]";
+  const TOOL_VIEW_SEL   = ".tool-view[data-tool-view]";
+  const TOOLSET_ROOT_SEL = "#toolsetTabs";
+
+  const SECURE_SUITE_IDS = [
+    "secure_send",
+    "secure_chat",
+    "secure_video",
+    "secure_voip",
+    "secure_containers",
+  ];
+
+  function $ (sel, root=document){ return root.querySelector(sel); }
+  function $$ (sel, root=document){ return Array.from(root.querySelectorAll(sel)); }
+
+  function cssEscape(s){
+    try { return CSS.escape(String(s)); }
+    catch { return String(s).replace(/[^a-zA-Z0-9_-]/g, "\\$&"); }
+  }
+
+  function getToolTabs(){ return $$(TOOL_TAB_SEL); }
+  function getToolViews(){ return $$(TOOL_VIEW_SEL); }
+
+  function toolIdFromTab(btn){ return btn?.getAttribute("data-tool") || ""; }
+
+  function cleanLabelFromTab(btn){
+    if (!btn) return "";
+    const clone = btn.cloneNode(true);
+    clone.querySelectorAll?.(".tag")?.forEach?.(n => n.remove());
+    return (clone.textContent || "").replace(/\s+/g," ").trim();
+  }
+
+  function getTierForTool(toolId){
+    const id = String(toolId || "");
+    try{
+      if (window.PDFREALM_TIER && typeof window.PDFREALM_TIER.getTierForTool === "function"){
+        const t = window.PDFREALM_TIER.getTierForTool(id);
+        return (t === "standard" || t === "premium" || t === "secure") ? t : "standard";
+      }
+    }catch{}
+    // fallback
+    if (id.startsWith("secure_")) return "secure";
+    return "standard";
+  }
+
+  function suiteForTool(toolId){
+    const id = String(toolId || "");
+    if (id === "breakthrough") return "breakthrough";
+    if (id === "docgov") return "governance";
+
+    const tier = getTierForTool(id);
+    if (tier === "standard" || tier === "premium" || tier === "secure") return tier;
+    return "standard";
+  }
+
+  function setTopActiveSuite(suite){
+    const root = $(TOOLSET_ROOT_SEL);
+    if (!root) return;
+    $$(".toolset-tab[data-toolset]", root).forEach(tab => {
+      const is = tab.getAttribute("data-toolset") === suite;
+      tab.querySelectorAll(".toolset-btn").forEach(btn => btn.classList.toggle("active", is));
+    });
+  }
+
+  function setActiveSidebarTabUI(toolId){
+    const id = String(toolId || "");
+    getToolTabs().forEach(btn => {
+      const is = toolIdFromTab(btn) === id;
+      btn.setAttribute("aria-selected", is ? "true" : "false");
+      btn.classList.toggle("tool-tab-active", is);
+    });
+  }
+
+  function showToolView(toolId){
+    const id = String(toolId || "");
+    let found = false;
+    getToolViews().forEach(v => {
+      const is = v.getAttribute("data-tool-view") === id;
+      v.classList.toggle("tool-view-active", is);
+      v.setAttribute("aria-hidden", is ? "false" : "true");
+      if (is) found = true;
+    });
+    return found;
+  }
+
+  function openTool(toolId){
+    const id = String(toolId || "");
+    if (!id) return;
+    setActiveSidebarTabUI(id);
+    showToolView(id);
+  }
+
+  function firstVisibleToolId(){
+    const tabs = getToolTabs().filter(b => b.style.display !== "none" && !b.hidden);
+    return toolIdFromTab(tabs[0] || null) || "";
+  }
+
+  function currentActiveToolId(){
+    const active = $(`${TOOL_TAB_SEL}[aria-selected="true"]`) || $(`${TOOL_TAB_SEL}.tool-tab-active`);
+    return toolIdFromTab(active || null);
+  }
+
+  function hideTool(toolId){
+    const id = String(toolId || "");
+    const btn = $(`${TOOL_TAB_SEL}[data-tool="${cssEscape(id)}"]`);
+    if (!btn) return;
+    btn.hidden = true;
+    btn.style.display = "none";
+    btn.setAttribute("aria-hidden","true");
+  }
+
+  function showTool(toolId){
+    const id = String(toolId || "");
+    const btn = $(`${TOOL_TAB_SEL}[data-tool="${cssEscape(id)}"]`);
+    if (!btn) return;
+    btn.hidden = false;
+    btn.style.display = "";
+    btn.setAttribute("aria-hidden","false");
+  }
+
+  function showOnly(toolIds){
+    const keep = new Set((toolIds || []).map(String));
+    getToolTabs().forEach(btn => {
+      const id = toolIdFromTab(btn);
+      const show = keep.has(id);
+      btn.hidden = !show;
+      btn.style.display = show ? "" : "none";
+      btn.setAttribute("aria-hidden", show ? "false" : "true");
+    });
+  }
+
+  function applySuite(suite){
+    if (!suite) suite = "standard";
+    try { localStorage.setItem("pdfrealm_toolset", suite); } catch {}
+    setTopActiveSuite(suite);
+
+    // Standard / Premium / Secure use the REAL tier engine
+    if (suite === "standard" || suite === "premium" || suite === "secure"){
+      try {
+        if (window.PDFREALM_TIER && typeof window.PDFREALM_TIER.setTier === "function"){
+          window.PDFREALM_TIER.setTier(suite);
+        }
+      } catch {}
+
+      // docgov should NOT leak into tier suites
+      hideTool("docgov");
+
+      // Secure Suite should NOT include breakthrough; must include the secure_* tools
+      if (suite === "secure"){
+        hideTool("breakthrough");
+        // ensure these are visible
+        SECURE_SUITE_IDS.forEach(showTool);
+      }
+
+      // If active tool is hidden, jump to first visible
+      const active = currentActiveToolId();
+      if (!active || ($(`${TOOL_TAB_SEL}[data-tool="${cssEscape(active)}"]`)?.style.display === "none")){
+        const first = firstVisibleToolId();
+        if (first) openTool(first);
+      }
+      document.body?.setAttribute("data-tier-ready","1");
+      return;
+    }
+
+    // Document Governance = docgov only (use premium context)
+    if (suite === "governance"){
+      try { window.PDFREALM_TIER?.setTier?.("premium"); } catch {}
+      showOnly(["docgov"]);
+      openTool("docgov");
+      return;
+    }
+
+    // Breakthrough = breakthrough only (use secure context)
+    if (suite === "breakthrough"){
+      try { window.PDFREALM_TIER?.setTier?.("secure"); } catch {}
+      showOnly(["breakthrough"]);
+      openTool("breakthrough");
+      return;
+    }
+  }
+
+  function getPriceLabel(toolId){
+    const id = String(toolId || "");
+    try{
+      if (window.PDFREALM_TIER && typeof window.PDFREALM_TIER.getPriceLabelForTool === "function"){
+        return window.PDFREALM_TIER.getPriceLabelForTool(id) || "";
+      }
+    }catch{}
+    return "";
+  }
+
+  function buildMenus(){
+    const root = $(TOOLSET_ROOT_SEL);
+    if (!root) return;
+
+    const tabs = getToolTabs(); // DOM order = your intended ordering
+    const meta = tabs.map(btn => {
+      const id = toolIdFromTab(btn);
+      return {
+        id,
+        label: cleanLabelFromTab(btn),
+        suite: suiteForTool(id),
+        price: getPriceLabel(id),
+      };
+    }).filter(x => x.id);
+
+    // Force Secure suite list to the exact secure suite tools (and not breakthrough)
+    const secureList = [];
+    for (const id of SECURE_SUITE_IDS){
+      const found = meta.find(x => x.id === id);
+      if (found) secureList.push(found);
+    }
+
+    const bySuite = {
+      standard: meta.filter(x => x.suite === "standard"),
+      premium: meta.filter(x => x.suite === "premium"),
+      secure: secureList,
+      governance: meta.filter(x => x.suite === "governance"),
+      breakthrough: meta.filter(x => x.suite === "breakthrough"),
+    };
+
+    $$(".toolset-tab[data-toolset]", root).forEach(tab => {
+      const suite = tab.getAttribute("data-toolset") || "standard";
+      const menu = tab.querySelector(".toolset-menu");
+      if (!menu) return;
+
+      menu.innerHTML = "";
+      const items = bySuite[suite] || [];
+
+      if (!items.length){
+        const empty = document.createElement("div");
+        empty.style.padding = "10px 12px";
+        empty.style.opacity = "0.75";
+        empty.textContent = "No tools in this suite yet.";
+        menu.appendChild(empty);
+        return;
+      }
+
+      for (const it of items){
+        const a = document.createElement("a");
+        a.href = "#";
+        a.className = "toolset-item";
+        a.setAttribute("data-tool", it.id);
+
+        // label + small price hint (resource-based)
+        a.textContent = it.label;
+        if (it.price){
+          const small = document.createElement("span");
+          small.style.marginLeft = "8px";
+          small.style.opacity = "0.7";
+          small.style.fontSize = "12px";
+          small.textContent = it.price;
+          a.appendChild(small);
+        }
+
+        menu.appendChild(a);
+      }
+    });
+  }
+
+  function closeAllMenus(exceptTab=null){
+    const root = $(TOOLSET_ROOT_SEL);
+    if (!root) return;
+    $$(".toolset-tab", root).forEach(t => {
+      if (exceptTab && t === exceptTab) return;
+      t.classList.remove("open");
+    });
+  }
+
+  function bindClicksCapture(){
+    document.addEventListener("click", (e) => {
+      const t = e.target;
+
+      // Sidebar tool click -> open tool view
+      const toolBtn = t.closest?.(TOOL_TAB_SEL);
+      if (toolBtn){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const id = toolIdFromTab(toolBtn);
+        if (id) openTool(id);
+        // keep top suite highlight synced
+        setTopActiveSuite(suiteForTool(id));
+        return;
+      }
+
+      // Top suite button click -> apply suite + toggle menu
+      const suiteBtn = t.closest?.(`${TOOLSET_ROOT_SEL} .toolset-btn`);
+      if (suiteBtn){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const tab = suiteBtn.closest(".toolset-tab[data-toolset]");
+        const suite = tab?.getAttribute("data-toolset") || "standard";
+
+        applySuite(suite);
+
+        const willOpen = !tab.classList.contains("open");
+        closeAllMenus(tab);
+        tab.classList.toggle("open", willOpen);
+        return;
+      }
+
+      // Dropdown item click -> open tool (and jump suite)
+      const item = t.closest?.(`${TOOLSET_ROOT_SEL} .toolset-menu .toolset-item[data-tool]`);
+      if (item){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const id = item.getAttribute("data-tool") || "";
+        const suite = suiteForTool(id);
+        applySuite(suite);
+        openTool(id);
+        closeAllMenus();
+        return;
+      }
+
+      // Outside click closes menus
+      if (!t.closest?.(TOOLSET_ROOT_SEL)) closeAllMenus();
+    }, true);
+  }
+
+  function init(){
+    // build dropdowns from real tier mapping
+    buildMenus();
+
+    // restore last suite (default standard)
+    let suite = "standard";
+    try { suite = localStorage.getItem("pdfrealm_toolset") || "standard"; } catch {}
+    applySuite(suite);
+
+    // ensure something is active
+    const active = currentActiveToolId();
+    if (!active){
+      const first = firstVisibleToolId();
+      if (first) openTool(first);
+    }
+
+    bindClicksCapture();
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();

@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PDFRealm Secure Share</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; background:#0b1020; color:#e8ecff; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 28px 16px; }
+    .card { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 16px; }
+    h1 { font-size: 18px; margin: 0 0 10px; }
+    .muted { color: rgba(232,236,255,.72); font-size: 13px; }
+    label { display:block; margin-top: 12px; font-size: 13px; color: rgba(232,236,255,.78); }
+    input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,.10); background: rgba(0,0,0,.25); color:#e8ecff; outline:none; }
+    button { margin-top: 12px; padding: 10px 12px; border-radius: 10px; border: 0; cursor:pointer; background:#3b82f6; color:white; font-weight: 600; }
+    button:disabled { opacity:.55; cursor:not-allowed; }
+    .err { margin-top: 12px; color:#ffb4b4; }
+    .ok { margin-top: 12px; color:#bfffc8; }
+    .files { margin-top: 14px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 12px; }
+    .file { display:flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .file:last-child { border-bottom:0; }
+    a { color:#93c5fd; text-decoration:none; }
+    a:hover { text-decoration: underline; }
+    .pill { font-size:12px; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,.08); color: rgba(232,236,255,.85); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Secure Share</h1>
+      <div id="note" class="muted"></div>
+
+      <div id="unlockArea">
+        <label for="passcode">Passcode</label>
+        <input id="passcode" type="password" autocomplete="one-time-code" placeholder="Enter passcode" />
+        <button id="unlockBtn">Unlock</button>
+        <div id="status" class="muted" style="margin-top:10px;"></div>
+        <div id="err" class="err"></div>
+      </div>
+
+      <div id="filesArea" class="files" style="display:none;">
+        <div class="muted" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+          <span>Files</span>
+          <span id="perm" class="pill"></span>
+        </div>
+        <div id="files"></div>
+        <div id="ok" class="ok"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function() {
+  const token = location.pathname.split("/").pop();
+  const $ = (id) => document.getElementById(id);
+
+  let accessToken = "";
+  let allowDownload = false;
+
+  async function api(path, opts) {
+    const res = await fetch(path, opts || {});
+    const data = await res.json().catch(() => null);
+    if (!res.ok) throw new Error(data?.error || data?.message || ("Request failed (" + res.status + ")"));
+    return data;
+  }
+
+  async function loadMeta() {
+    try {
+      const meta = await api("/api/secure-share/" + encodeURIComponent(token) + "/meta");
+      $("note").textContent = meta.note ? ("Message: " + meta.note) : "";
+      $("perm").textContent = meta.allow_download ? "Download allowed" : "View only";
+      if (!meta.require_passcode) {
+        // auto-unlock (no passcode)
+        accessToken = (await api("/api/secure-share/" + encodeURIComponent(token) + "/unlock", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({})
+        })).access_token;
+        await loadFiles();
+      }
+    } catch (e) {
+      $("err").textContent = e.message;
+      $("unlockBtn").disabled = true;
+    }
+  }
+
+  async function loadFiles() {
+    $("err").textContent = "";
+    $("status").textContent = "Loading files...";
+    const filesResp = await api("/api/secure-share/" + encodeURIComponent(token) + "/files", {
+      headers: { "Authorization": "Bearer " + accessToken }
+    });
+    const files = filesResp.files || [];
+    const root = $("files");
+    root.innerHTML = "";
+    for (const f of files) {
+      const row = document.createElement("div");
+      row.className = "file";
+      const left = document.createElement("div");
+      left.innerHTML = "<div>" + (f.name || f.id) + "</div><div class='muted'>" + (f.mime_type || "") + "</div>";
+      const right = document.createElement("div");
+      if (allowDownload) {
+      const a = document.createElement("a");
+      a.href = "/api/secure-share/" + encodeURIComponent(token) + "/download/" + encodeURIComponent(f.id);
+      a.textContent = "Download";
+      a.addEventListener("click", (ev) => {
+        // add auth header via fetch download? simplest: open in new tab with token in query isn't allowed; so do fetch->blob
+        ev.preventDefault();
+        fetch(a.href, { headers: { "Authorization": "Bearer " + accessToken } })
+          .then(r => {
+            if (!r.ok) return r.json().then(j => { throw new Error(j.error || 'Download blocked'); });
+            return r.blob();
+          })
+          .then(blob => {
+            const url = URL.createObjectURL(blob);
+            const dl = document.createElement("a");
+            dl.href = url;
+            dl.download = f.name || "file";
+            document.body.appendChild(dl);
+            dl.click();
+            dl.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+          })
+          .catch(err => $("err").textContent = err.message);
+      });
+      right.appendChild(a);
+      } else {
+        const span = document.createElement('span');
+        span.className = 'muted';
+        span.textContent = 'View-only';
+        right.appendChild(span);
+      }
+      row.appendChild(left);
+      row.appendChild(right);
+      root.appendChild(row);
+    }
+
+    $("status").textContent = "";
+    $("unlockArea").style.display = "none";
+    $("filesArea").style.display = "block";
+  }
+
+  $("unlockBtn").addEventListener("click", async () => {
+    $("err").textContent = "";
+    $("status").textContent = "Unlocking...";
+    try {
+      const passcode = $("passcode").value;
+      const r = await api("/api/secure-share/" + encodeURIComponent(token) + "/unlock", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ passcode })
+      });
+      accessToken = r.access_token;
+      await loadFiles();
+    } catch (e) {
+      $("status").textContent = "";
+      $("err").textContent = e.message;
+    }
+  });
+
+  loadMeta();
+})();
+</script>
+</body>
+</html>

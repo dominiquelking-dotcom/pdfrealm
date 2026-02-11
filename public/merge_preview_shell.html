@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Merge Preview</title>
+  <style>
+    html,body{margin:0;padding:0;height:100%;background:#0b0f16;color:#e9eefc;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    .wrap{display:flex;flex-direction:column;height:100%}
+    .hdr{display:flex;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02)}
+    .pill{font-size:12px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px;height:100%;min-height:0}
+    .panel{display:flex;flex-direction:column;min-height:0;border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;background:rgba(255,255,255,.02)}
+    .ph{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.08);font-size:12px;opacity:.9}
+    .frame{flex:1;min-height:0}
+    iframe{width:100%;height:100%;border:0;background:#111827}
+    .empty{display:flex;align-items:center;justify-content:center;height:100%;opacity:.7;font-size:12px}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <div class="pill" id="status">Waiting for files…</div>
+    <div class="pill" id="meta"></div>
+  </div>
+  <div class="grid">
+    <div class="panel">
+      <div class="ph"><span>Top PDF</span><span id="topHint"></span></div>
+      <div class="frame" id="topHost"><div class="empty">No file selected</div></div>
+    </div>
+    <div class="panel">
+      <div class="ph"><span>Bottom PDF</span><span id="botHint"></span></div>
+      <div class="frame" id="botHost"><div class="empty">No file selected</div></div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  const statusEl = document.getElementById("status");
+  const metaEl = document.getElementById("meta");
+  const topHost = document.getElementById("topHost");
+  const botHost = document.getElementById("botHost");
+  const topHint = document.getElementById("topHint");
+  const botHint = document.getElementById("botHint");
+
+  function setFrame(host, url){
+    host.innerHTML = "";
+    if (!url) { host.innerHTML = '<div class="empty">No file selected</div>'; return; }
+    const f = document.createElement("iframe");
+    f.src = url;
+    host.appendChild(f);
+  }
+  function short(u){
+    if (!u) return "";
+    try {
+      if (u.startsWith("blob:")) return "blob";
+      const x = new URL(u, location.href);
+      return x.pathname.split("/").slice(-1)[0] || x.hostname;
+    } catch { return ""; }
+  }
+
+  try { window.parent.postMessage({ type: "pdfrealm:mergePreviewReady" }, location.origin); } catch {}
+
+  window.addEventListener("message", (ev) => {
+    if (ev.origin !== location.origin) return;
+    const d = ev.data || {};
+    if (d.type !== "pdfrealm:mergePreview") return;
+
+    const topUrl = d.topUrl || "";
+    const bottomUrl = d.bottomUrl || "";
+    setFrame(topHost, topUrl);
+    setFrame(botHost, bottomUrl);
+    topHint.textContent = short(topUrl);
+    botHint.textContent = short(bottomUrl);
+
+    if (topUrl || bottomUrl) {
+      statusEl.textContent = "Preview ready";
+      metaEl.textContent = [topUrl ? "Top" : null, bottomUrl ? "Bottom" : null].filter(Boolean).join(" + ");
+    } else {
+      statusEl.textContent = "Waiting for files…";
+      metaEl.textContent = "";
+    }
+  });
+})();
+</script>
+</body>
+</html>

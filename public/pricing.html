@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PDFRealm – Pricing</title>
+
+    <link rel="icon" href="data:;base64,=" />
+    <link rel="stylesheet" href="/styles.css" />
+
+    <style>
+      body { margin: 0; }
+      main.wrap { max-width: 100%; margin: 0; }
+
+      /* Page layout */
+      .pricing-wrap {
+        width: min(1100px, calc(100vw - 32px));
+        margin: 0 auto;
+        padding: 18px 0 28px;
+      }
+
+      .pricing-hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 14px;
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(15, 23, 42, 0.70);
+        box-shadow: var(--shadow);
+      }
+
+      .pricing-hero h1 {
+        margin: 0;
+        font-size: 1.6rem;
+        letter-spacing: .2px;
+      }
+
+      .pricing-hero p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        max-width: 760px;
+        line-height: 1.35;
+      }
+
+      .pricing-badges {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .badge {
+        border-radius: 999px;
+        padding: 6px 10px;
+        border: 1px solid rgba(148, 163, 184, 0.45);
+        color: var(--muted);
+        background: rgba(0,0,0,0.15);
+        font-size: 0.85rem;
+        white-space: nowrap;
+      }
+
+      .badge-strong {
+        border-color: rgba(96, 165, 250, 0.65);
+        color: var(--text);
+      }
+
+      /* Tables */
+      .table-card {
+        margin-top: 14px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(15, 23, 42, 0.70);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .table-card .head {
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255,255,255,0.03);
+      }
+
+      .table-card .head h2 {
+        margin: 0;
+        font-size: 1.05rem;
+      }
+
+      .table-card .head .sub {
+        color: var(--muted);
+        font-size: 0.92rem;
+        margin: 0;
+      }
+
+      table.pricing {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+      }
+
+      table.pricing th, table.pricing td {
+        padding: 12px 12px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+        vertical-align: top;
+        text-align: left;
+      }
+
+      table.pricing th {
+        color: var(--muted);
+        font-weight: 700;
+        font-size: 0.9rem;
+        background: rgba(0,0,0,0.10);
+      }
+
+      .price {
+        font-weight: 900;
+        font-size: 1.05rem;
+        color: var(--text);
+        white-space: nowrap;
+      }
+
+      .muted { color: var(--muted); }
+      .small { font-size: 0.88rem; }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 0.82rem;
+        color: var(--muted);
+        background: rgba(0,0,0,0.12);
+        white-space: nowrap;
+      }
+
+      .pill-strong {
+        border-color: rgba(45, 212, 191, 0.45);
+        color: var(--text);
+      }
+
+      .list-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-top: 14px;
+      }
+
+      @media (max-width: 980px) {
+        .pricing-hero { flex-direction: column; align-items: flex-start; }
+        .pricing-badges { justify-content: flex-start; }
+        .list-grid { grid-template-columns: 1fr; }
+      }
+
+      /* Header alignment: reuse vault.html style without changing global styles.css */
+      .brand-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .brand-text {
+        font-weight: 800;
+        letter-spacing: 0.2px;
+      }
+
+      .brand-divider {
+        width: 1px;
+        align-self: stretch;
+        background: var(--line);
+        margin: 0 10px;
+        opacity: 0.9;
+      }
+
+      .left-secure-nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .nav-chip {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: default;
+        opacity: 0.9;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .nav-chip:hover { background: rgba(255, 255, 255, 0.06); }
+      .nav-chip-pill {
+        font-size: 0.78rem;
+        color: var(--muted);
+        border-radius: 999px;
+        padding: 3px 8px;
+        border: 1px solid var(--line);
+        background: rgba(0, 0, 0, 0.3);
+      }
+      .nav-chip-active {
+        border-color: rgba(96, 165, 250, 0.8);
+        box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.4);
+        opacity: 1;
+      }
+
+      .right-nav-cluster {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .top-nav {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .nav-link {
+        border-radius: 999px;
+        padding: 8px 14px;
+        border: 1px solid transparent;
+        background: transparent;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--muted);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+      }
+
+      .nav-link:hover { background: rgba(255, 255, 255, 0.04); color: var(--text); }
+      .nav-link-active {
+        border-color: var(--line);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+      }
+
+      .workspace-menu { position: relative; }
+      .workspace-toggle { cursor: pointer; }
+      .workspace-caret { font-size: 0.8rem; opacity: 0.8; }
+
+      .workspace-dropdown {
+        position: absolute;
+        right: 0;
+        top: 100%;
+        margin-top: 8px;
+        background: rgba(15, 22, 36, 0.96);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+        padding: 8px;
+        display: none;
+        flex-direction: column;
+        min-width: 280px;
+        z-index: 80;
+      }
+
+      .workspace-item {
+        padding: 8px 10px;
+        border-radius: 10px;
+        font-size: 0.92rem;
+        color: var(--muted);
+        text-align: left;
+        border: none;
+        background: transparent;
+        width: 100%;
+        cursor: pointer;
+        text-decoration: none;
+        display: block;
+        white-space: nowrap;
+      }
+
+      .workspace-item:hover { background: rgba(255, 255, 255, 0.04); color: var(--text); }
+      .workspace-menu.workspace-open .workspace-dropdown { display: flex; }
+
+      @media (max-width: 980px) {
+        .brand-left { flex-wrap: wrap; }
+        .right-nav-cluster { gap: 10px; }
+        .workspace-dropdown { right: auto; left: 0; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- HEADER (match vault.html style) -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <!-- LEFT: Brand + Secure tabs -->
+        <div class="brand-left">
+          <div class="brand">
+            <div class="logo"></div>
+            <div class="brand-text">PDFRealm</div>
+          </div>
+
+          <div class="brand-divider"></div>
+
+          <nav class="left-secure-nav" aria-label="Secure">
+            <a href="/vault.html" class="nav-chip">
+              Secure Vault
+              <span class="nav-chip-pill">AES-256</span>
+            </a>
+            <a href="/vault.html#send" class="nav-chip">
+              Secure Send
+              <span class="nav-chip-pill">Expiring links</span>
+            </a>
+          </nav>
+        </div>
+
+        <!-- RIGHT: Tools + Industry Packs + Pricing + Account -->
+        <div class="right-nav-cluster">
+          <nav class="top-nav" aria-label="Primary">
+            <a href="/" class="nav-link">Tools</a>
+
+            <div class="workspace-menu" id="industryMenuWrap">
+              <button class="nav-link workspace-toggle" type="button" id="industryToggle">
+                Industry Packs
+                <span class="workspace-caret">▾</span>
+              </button>
+              <div class="workspace-dropdown" id="industryDropdown" role="menu" aria-label="Industry Packs">
+                <a class="workspace-item" role="menuitem" href="/broker.html">Broker TMS Dashboard</a>
+                <a class="workspace-item" role="menuitem" href="/carrier.html">Carrier Dashboard</a>
+                <div style="height:1px; background: rgba(255,255,255,0.10); margin: 8px 10px;"></div>
+                <a class="workspace-item" role="menuitem" href="/legal.html">Legal Workspace</a>
+                <a class="workspace-item" role="menuitem" href="/real-estate.html">Real Estate Dashboard</a>
+                <a class="workspace-item" role="menuitem" href="/accounting.html">Accounting Dashboard</a>
+                <a class="workspace-item" role="menuitem" href="/hr.html">HR Dashboard</a>
+                <a class="workspace-item" role="menuitem" href="/marketing.html">Marketing Dashboard</a>
+                <a class="workspace-item" role="menuitem" href="/csuite.html">C-Suite Dashboard</a>
+              </div>
+            </div>
+
+            <a href="/pricing.html" class="nav-link nav-link-active">Pricing</a>
+          </nav>
+
+          <div class="top-actions">
+            <button
+              id="accountLoginBtn"
+              class="btn"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="accountModal"
+            >
+              <span id="accountDot" class="dot"></span>
+              Account
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <div class="pricing-wrap">
+        <!-- HERO -->
+        <section class="pricing-hero">
+          <div>
+            <h1>Pricing that matches how you actually work</h1>
+            <p>
+              PDFRealm combines fast PDF tools, secure storage, and industry workspaces with workflows.
+              Start with Tools, then upgrade into a Workspace (Broker TMS, Legal, Real Estate, Accounting, HR, Marketing, or C-Suite).
+            </p>
+          </div>
+          <div class="pricing-badges">
+            <span class="badge badge-strong">Workflows included in Workspaces</span>
+            <span class="badge">Storage add-ons available</span>
+            <span class="badge">Teams supported</span>
+          </div>
+        </section>
+
+        <!-- PRICING LIST -->
+        <section class="table-card">
+          <div class="head">
+            <div>
+              <h2>Pricing list</h2>
+              <p class="sub">Simple baseline prices you can publish now (fine-tune later).</p>
+            </div>
+          </div>
+
+          <table class="pricing" aria-label="Pricing list">
+            <thead>
+              <tr>
+                <th style="width:26%;">Plan / Workspace</th>
+                <th style="width:16%;">Price</th>
+                <th>Includes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>Tools</b></td>
+                <td class="price">$12.99/mo</td>
+                <td>
+                  Core PDF tools + previews + paywall-safe exports
+                  <div class="small muted" style="margin-top:6px;">
+                    Storage included: <b>50GB</b>
+                  </div>
+                </td>
+              </tr>
+
+              <tr>
+                <td><b>Broker TMS Dashboard</b></td>
+                <td class="price">$79.99/mo</td>
+                <td>
+                  Broker TMS workspace + workflows + vault
+                  <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+                    <span class="pill pill-strong">Unlimited driver tracking</span>
+                    <span class="pill">Workspace storage: 100GB</span>
+                    <span class="pill">Workflow runs included</span>
+                  </div>
+                  <div class="small muted" style="margin-top:8px;">
+                    Additional agent (operational seat): <b>$49.99/mo per agent</b>
+                  </div>
+                </td>
+              </tr>
+
+              <tr>
+                <td><b>Legal Workspace</b></td>
+                <td class="price">$49.99/mo</td>
+                <td>
+                  Legal workflows (intake → docs → filing packets) + vault + secure collaboration hooks
+                  <div class="small muted" style="margin-top:6px;">Workspace storage: <b>100GB</b></div>
+                </td>
+              </tr>
+
+              <tr>
+                <td><b>Real Estate Dashboard</b></td>
+                <td class="price">$49.99/mo</td>
+                <td>
+                  Title/closing workflows + document packets + vault
+                  <div class="small muted" style="margin-top:6px;">Workspace storage: <b>100GB</b></div>
+                </td>
+              </tr>
+
+              <tr>
+                <td><b>Accounting Dashboard</b></td>
+                <td class="price">$49.99/mo</td>
+                <td>
+                  Receipts → categorization → reports workflows + vault
+                  <div class="small muted" style="margin-top:6px;">Workspace storage: <b>100GB</b></div>
+                </td>
+              </tr>
+
+              <tr>
+                <td><b>HR Dashboard</b></td>
+                <td class="price">$49.99/mo</td>
+                <td>
+                  Recruiting + onboarding workflows + document checklists + vault
+                  <div class="small muted" style="margin-top:6px;">Workspace storage: <b>100GB</b></div>
+                </td>
+              </tr>
+
+              <tr>
+                <td><b>Marketing Dashboard</b></td>
+                <td class="price">$49.99/mo</td>
+                <td>
+                  Creative approval workflows + brand kits + content packets + vault
+                  <div class="small muted" style="margin-top:6px;">Workspace storage: <b>100GB</b></div>
+                </td>
+              </tr>
+
+              <tr>
+                <td><b>C-Suite Dashboard</b></td>
+                <td class="price">$49.99/mo</td>
+                <td>
+                  Executive reporting workflows + KPI packets + board-ready exports + vault
+                  <div class="small muted" style="margin-top:6px;">Workspace storage: <b>100GB</b></div>
+                </td>
+              </tr>
+
+              <tr>
+                <td><b>Teams (collaboration)</b></td>
+                <td class="price">$49.99/mo</td>
+                <td>
+                  Team sharing + permissions + collaboration features across vault/workflows
+                  <div class="small muted" style="margin-top:6px;">Additional user (collab seat): <b>$14.99/mo per user</b></div>
+                </td>
+              </tr>
+
+              <tr>
+                <td><b>Storage add-on</b></td>
+                <td class="price">$5.99/mo</td>
+                <td>+100GB storage (repeatable in 100GB blocks)</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- COMPARISON TABLE -->
+        <section class="table-card">
+          <div class="head">
+            <div>
+              <h2>Plan comparison</h2>
+              <p class="sub">A single table that helps buyers self-select quickly.</p>
+            </div>
+          </div>
+
+          <table class="pricing" aria-label="Plan comparison table">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Tools ($12.99)</th>
+                <th>Workspaces ($49.99)</th>
+                <th>Broker TMS ($79.99)</th>
+                <th>Teams</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>PDF tool suite</b></td>
+                <td>Yes</td>
+                <td>Yes</td>
+                <td>Yes</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td><b>Workflow engine (industry workflows)</b></td>
+                <td class="muted">Limited (basic)</td>
+                <td>Included</td>
+                <td>Included</td>
+                <td>Included (for team use)</td>
+              </tr>
+              <tr>
+                <td><b>Included storage</b></td>
+                <td>50GB</td>
+                <td>100GB</td>
+                <td>100GB</td>
+                <td class="muted">Uses account storage</td>
+              </tr>
+              <tr>
+                <td><b>Unlimited driver tracking</b></td>
+                <td>No</td>
+                <td>No</td>
+                <td><b>Yes</b></td>
+                <td class="muted">N/A</td>
+              </tr>
+              <tr>
+                <td><b>Multi-user collaboration</b></td>
+                <td class="muted">Basic</td>
+                <td class="muted">Optional</td>
+                <td class="muted">Optional</td>
+                <td><b>Yes</b> (+$14.99/user)</td>
+              </tr>
+              <tr>
+                <td><b>Operational agent seats</b></td>
+                <td>No</td>
+                <td class="muted">Varies</td>
+                <td><b>$49.99/agent</b></td>
+                <td class="muted">Not operational</td>
+              </tr>
+              <tr>
+                <td><b>Storage add-on</b></td>
+                <td colspan="4">+$5.99 per additional 100GB</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- COMPETITOR COMPARISON -->
+        <section class="table-card">
+          <div class="head">
+            <div>
+              <h2>Competitor positioning (freight TMS focus)</h2>
+              <p class="sub">Use this in sales calls and on the page as “market context.”</p>
+            </div>
+          </div>
+
+          <table class="pricing" aria-label="Competitor comparison">
+            <thead>
+              <tr>
+                <th style="width:22%;">Product</th>
+                <th style="width:20%;">Typical pricing signal</th>
+                <th>How PDFRealm Broker TMS positions vs them</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>PDFRealm Broker TMS</b></td>
+                <td class="price">$79.99/mo</td>
+                <td>
+                  Entry price designed to land SMB brokers fast:
+                  <span class="pill pill-strong" style="margin-left:8px;">Unlimited driver tracking</span>
+                  <div class="small muted" style="margin-top:6px;">
+                    Plus: workflows + vault + document toolchain in one place.
+                  </div>
+                </td>
+              </tr>
+
+              <tr>
+                <td><b>AscendTMS</b></td>
+                <td class="muted">
+                  Listings commonly show starting around <b>$99/user/month</b> and note a free version exists.
+                </td>
+                <td>
+                  PDFRealm can undercut per-user ramp-up costs at the entry tier and differentiate on
+                  <b>document workflows + vault + integrated PDF toolchain</b> (especially for freight paperwork).
+                </td>
+              </tr>
+
+              <tr>
+                <td><b>Tailwind TMS</b></td>
+                <td class="muted">
+                  Published tiers: <b>$249 / $399 / $499 per month</b> (plan-dependent).
+                </td>
+                <td>
+                  PDFRealm can position as a lower-friction on-ramp with strong paperwork automation,
+                  while keeping a path to higher tiers via agents, teams, storage, and advanced workflows.
+                </td>
+              </tr>
+
+              <tr>
+                <td><b>Other TMS tools</b></td>
+                <td class="muted">Often “quote-based”</td>
+                <td>
+                  PDFRealm’s advantage is fast activation + transparent pricing + workflow packs that map to how brokers actually operate.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="padding: 14px 16px;">
+            <div class="small muted">
+              Notes: AscendTMS pricing signals vary by listing/channel; Tailwind’s tier pricing is published.
+              Always confirm current pricing during procurement.
+            </div>
+          </div>
+        </section>
+
+        <!-- NOTES / CLARITY -->
+        <div class="list-grid">
+          <section class="table-card">
+            <div class="head">
+              <div>
+                <h2>How to explain “Workflows inside Industry Packs”</h2>
+                <p class="sub">Keep the message simple and defensible.</p>
+              </div>
+            </div>
+            <div style="padding:14px 16px; color: var(--muted); line-height: 1.35;">
+              <b style="color:var(--text);">Industry Packs = workflows + UI + reporting.</b>
+              The “pack” is not just a dashboard; it’s the full workflow engine for that industry:
+              intake → document generation → routing → approvals → exports → audit-ready storage.
+              <div style="margin-top:10px;">
+                This is how you justify premium pricing: buyers are not paying for “PDF tools,” they’re paying for
+                <b style="color:var(--text);">time saved and compliance-ready process</b>.
+              </div>
+            </div>
+          </section>
+
+          <section class="table-card">
+            <div class="head">
+              <div>
+                <h2>Recommended clarifications (reduce churn)</h2>
+                <p class="sub">These remove pricing objections.</p>
+              </div>
+            </div>
+            <div style="padding:14px 16px; color: var(--muted); line-height: 1.35;">
+              <ul style="margin:0; padding-left: 18px;">
+                <li><b style="color:var(--text);">Define “Agent seat” vs “Team seat”</b> (operational vs collaboration).</li>
+                <li><b style="color:var(--text);">Define storage scope</b>: pooled per account or per workspace (pick one).</li>
+                <li><b style="color:var(--text);">Define “Unlimited driver tracking”</b>: what’s included (pings, geofence alerts, retention).</li>
+                <li><b style="color:var(--text);">Define workflows</b>: templates, runs, approvals, audit logs (even if “audit logs planned”).</li>
+              </ul>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div>© <span id="year"></span> PDFRealm. All rights reserved.</div>
+    </footer>
+
+    <!-- Account Modal (kept consistent with your site pattern) -->
+    <div id="accountModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div class="mh">Account</div>
+          <button id="accountModalClose" class="btn btn-secondary" type="button">Close</button>
+        </div>
+        <div class="modal-body">
+          <div class="card">
+            <label for="loginEmail">Email</label>
+            <input id="loginEmail" type="email" placeholder="you@example.com" />
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" type="password" placeholder="••••••••" />
+            <div class="modal-row">
+              <button id="loginSubmitBtn" class="btn btn-primary" type="button">Login</button>
+              <button id="subscribeMonthlyBtn" class="btn btn-secondary" type="button">Subscribe (stub)</button>
+              <button id="subscribeYearlyBtn" class="btn btn-secondary" type="button">Subscribe (stub)</button>
+            </div>
+            <div id="loginStatus" style="margin-top:10px; color: var(--muted); font-size: 0.95rem;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        var y = document.getElementById("year");
+        if (y) y.textContent = new Date().getFullYear();
+      })();
+    </script>
+
+    <!-- Industry Packs dropdown behavior (vault-style) -->
+    <script>
+      (function () {
+        var wrap = document.getElementById("industryMenuWrap");
+        var toggle = document.getElementById("industryToggle");
+        if (!wrap || !toggle) return;
+
+        toggle.addEventListener("click", function (e) {
+          e.stopPropagation();
+          wrap.classList.toggle("workspace-open");
+        });
+
+        document.addEventListener("click", function () {
+          wrap.classList.remove("workspace-open");
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,35 @@
+node_modules/
+.env
+.env.*
+*aws*key*
+Access keys for aws
+uploads/
+backups/
+data/
+db.dump
+schema.sql
+*.log
+.DS_Store
+.idea/
+.vscode/
+
+# docker/dev artifacts
+node_modules/
+uploads/
+backups/
+data/
+
+# secrets
+.env
+.env.*
+Access keys for aws
+.env
+
+# --- secrets / env ---
+.env
+.env.*
+!.env.example
+
+# --- python venvs ---
+.venv*
+venv*

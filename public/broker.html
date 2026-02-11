@@ -1,0 +1,1866 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PDFRealm – Broker TMS Dashboard</title>
+
+    <link rel="icon" href="data:;base64,=" />
+    <link rel="stylesheet" href="/styles.css" />
+
+    <style>
+      body { margin: 0; overflow-y: auto; }
+      main.wrap { max-width: 100%; margin: 0; padding: 0; }
+
+      /* ===== HEADER (MATCH pricing.html EXACTLY) ===== */
+      .brand-left { display: flex; align-items: center; gap: 14px; }
+      .brand-text { font-weight: 800; letter-spacing: 0.2px; }
+      .brand-divider { width: 1px; align-self: stretch; background: var(--line); margin: 0 10px; opacity: 0.9; }
+      .left-secure-nav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+      .nav-chip {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: default;
+        opacity: 0.9;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .nav-chip:hover { background: rgba(255, 255, 255, 0.06); }
+
+      .nav-chip-pill {
+        font-size: 0.78rem;
+        color: var(--muted);
+        border-radius: 999px;
+        padding: 3px 8px;
+        border: 1px solid var(--line);
+        background: rgba(0, 0, 0, 0.3);
+      }
+      .nav-chip-active {
+        border-color: rgba(96, 165, 250, 0.8);
+        box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.4);
+        opacity: 1;
+      }
+
+      .right-nav-cluster { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+      .top-nav { display: flex; align-items: center; gap: 10px; }
+
+      .nav-link {
+        border-radius: 999px;
+        padding: 8px 14px;
+        border: 1px solid transparent;
+        background: transparent;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--muted);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+      }
+      .nav-link:hover { background: rgba(255, 255, 255, 0.04); color: var(--text); }
+      .nav-link-active { border-color: var(--line); background: rgba(255, 255, 255, 0.04); color: var(--text); }
+
+      .workspace-menu { position: relative; }
+      .workspace-toggle { cursor: pointer; }
+      .workspace-caret { font-size: 0.8rem; opacity: 0.8; }
+
+      .workspace-dropdown {
+        position: absolute;
+        right: 0;
+        top: 100%;
+        margin-top: 8px;
+        background: rgba(15, 22, 36, 0.96);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+        padding: 8px;
+        display: none;
+        flex-direction: column;
+        min-width: 280px;
+        z-index: 80;
+      }
+      .workspace-item {
+        padding: 8px 10px;
+        border-radius: 10px;
+        font-size: 0.92rem;
+        color: var(--muted);
+        text-align: left;
+        border: none;
+        background: transparent;
+        width: 100%;
+        cursor: pointer;
+        text-decoration: none;
+        display: block;
+        white-space: nowrap;
+      }
+      .workspace-item:hover { background: rgba(255, 255, 255, 0.04); color: var(--text); }
+      .workspace-menu.workspace-open .workspace-dropdown { display: flex; }
+
+      @media (max-width: 980px) {
+        .brand-left { flex-wrap: wrap; }
+        .right-nav-cluster { gap: 10px; }
+        .workspace-dropdown { right: auto; left: 0; }
+      }
+
+      /* ===== Broker dashboard layout ===== */
+      .broker-main { display: flex; flex-direction: column; height: 100%; }
+
+      .broker-header { padding: 16px 18px; border-bottom: 1px solid var(--line); }
+      .broker-header h1 { margin: 0; font-size: 1.3rem; letter-spacing: 0.2px; }
+      .broker-header p { margin: 8px 0 0; color: var(--muted); font-size: 0.98rem; max-width: 900px; }
+
+      /* ===== Command Center KPI strip ===== */
+      .kpi-strip { padding: 14px 18px 0; }
+      .kpi-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+      .kpi {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: rgba(255,255,255,0.03);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+        padding: 12px 12px;
+        min-width: 0;
+      }
+      .kpi .k { color: var(--muted); font-size: 0.82rem; font-weight: 800; letter-spacing: 0.2px; }
+      .kpi .v { margin-top: 6px; font-size: 1.25rem; font-weight: 1000; letter-spacing: 0.2px; }
+      .kpi .s { margin-top: 6px; color: var(--muted); font-size: 0.86rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .kpi-cta { display:flex; align-items:center; justify-content: space-between; gap: 10px; }
+      .kpi-cta .btn { padding: 7px 10px; border-radius: 999px; }
+      .kpi-hot {
+        background: linear-gradient(135deg, rgba(106,168,255,0.16), rgba(255,255,255,0.02));
+        border-color: rgba(106,168,255,0.45);
+      }
+      @media (max-width: 980px) { .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+      .broker-nav {
+        padding: 10px 18px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.02);
+        flex-wrap: wrap;
+      }
+
+      .broker-tab { font-size: 0.95rem; }
+      .broker-tab-active {
+        background: linear-gradient(135deg, rgba(106, 168, 255, 0.28), rgba(93, 230, 194, 0.12));
+        border-color: rgba(106, 168, 255, 0.55);
+        box-shadow: inset 0 0 0 1px rgba(106, 168, 255, 0.25);
+      }
+
+      /* Tools dropdown inside dashboard */
+      .broker-tools-dropdown { position: relative; }
+      .broker-tools-btn { display: inline-flex; align-items: center; gap: 6px; }
+      .broker-tools-menu {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        min-width: 220px;
+        max-height: 340px;
+        overflow: auto;
+        background: rgba(12, 19, 32, 0.98);
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow);
+        padding: 8px;
+        display: none;
+        z-index: 40;
+      }
+      .broker-tools-menu.open { display: block; }
+      .broker-tools-item {
+        width: 100%;
+        text-align: left;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 0;
+        background: transparent;
+        color: var(--text);
+        font-size: 0.93rem;
+        cursor: pointer;
+      }
+      .broker-tools-item:hover { background: rgba(255, 255, 255, 0.06); }
+
+      .broker-content { padding: 16px 18px 18px; flex: 1; min-height: 0; overflow-y: auto; }
+
+      .broker-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 14px; }
+      .broker-view { display: none; }
+      .broker-view-active { display: block; }
+
+      .table-like { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+      .table-like th, .table-like td { border-bottom: 1px solid var(--line); padding: 8px 6px; text-align: left; }
+      .table-like th { color: var(--muted); font-weight: 700; font-size: 0.9rem; }
+
+      .pill-status {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        font-size: 0.84rem;
+        color: var(--muted);
+      }
+
+      /* ===== New broker modules styling (keeps your style language) ===== */
+      .row { display:flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+      .row-right { margin-left: auto; display:flex; gap: 8px; flex-wrap: wrap; align-items:center; }
+      .muted { color: var(--muted); }
+      .subtle { border: 1px solid var(--line); background: rgba(255,255,255,0.03); border-radius: 14px; padding: 10px; }
+
+      .segbar { display:flex; gap: 8px; flex-wrap: wrap; padding: 10px 0 0; }
+      .seg {
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.03);
+        color: var(--muted);
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 0.92rem;
+        font-weight: 800;
+        cursor: pointer;
+        user-select: none;
+      }
+      .seg:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+      .seg.active {
+        color: var(--text);
+        border-color: rgba(106,168,255,0.55);
+        box-shadow: inset 0 0 0 1px rgba(106,168,255,0.25);
+        background: linear-gradient(135deg, rgba(106,168,255,0.18), rgba(255,255,255,0.02));
+      }
+
+      .filters { display:grid; grid-template-columns: 1.3fr repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+      .filters input, .filters select { width: 100%; }
+      @media (max-width: 980px) { .filters { grid-template-columns: 1fr; } }
+
+      .bulkbar {
+        margin-top: 10px;
+        display:flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        padding: 10px 10px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255,255,255,0.02);
+      }
+      .bulkbar .chk { display:inline-flex; align-items:center; gap: 8px; color: var(--muted); font-size: 0.92rem; font-weight: 700; }
+
+      .table-wrap {
+        margin-top: 10px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+        background: rgba(255,255,255,0.02);
+      }
+      .table-wrap table { width: 100%; border-collapse: collapse; }
+      .table-wrap th, .table-wrap td {
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+        padding: 10px 10px;
+        font-size: 0.94rem;
+        text-align: left;
+        vertical-align: middle;
+      }
+      .table-wrap th {
+        color: var(--muted);
+        font-size: 0.86rem;
+        font-weight: 900;
+        letter-spacing: 0.2px;
+        background: rgba(255,255,255,0.02);
+      }
+      .table-wrap tr:hover td { background: rgba(255,255,255,0.02); }
+
+      .pill {
+        display:inline-flex;
+        align-items:center;
+        gap: 8px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        padding: 4px 10px;
+        font-size: 0.84rem;
+        color: var(--muted);
+      }
+      .pill.good { border-color: rgba(93,230,194,0.35); background: rgba(93,230,194,0.08); color: var(--text); }
+      .pill.warn { border-color: rgba(245,158,11,0.35); background: rgba(245,158,11,0.08); color: var(--text); }
+      .pill.bad  { border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.08); color: var(--text); }
+
+      .money.pos { color: rgba(93,230,194,0.95); font-weight: 900; }
+      .money.neg { color: rgba(239,68,68,0.95); font-weight: 900; }
+      .mono { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+
+      .drawer {
+        position: fixed;
+        top: 0; right: 0;
+        width: min(520px, 100vw);
+        height: 100vh;
+        background: rgba(12,19,32,0.98);
+        border-left: 1px solid var(--line);
+        box-shadow: var(--shadow);
+        transform: translateX(102%);
+        transition: transform 180ms ease;
+        z-index: 130;
+        display:flex;
+        flex-direction: column;
+      }
+      .drawer.open { transform: translateX(0); }
+      .drawer-head {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+        display:flex;
+        align-items:center;
+        justify-content: space-between;
+        gap: 10px;
+        background: rgba(255,255,255,0.02);
+      }
+      .drawer-title { font-weight: 1000; letter-spacing: 0.2px; }
+      .drawer-body { padding: 12px 14px; overflow: auto; min-height: 0; }
+      .drawer-section { margin-top: 12px; }
+      .drawer-section h4 { margin: 0; font-size: 0.98rem; }
+      .drawer-section p { margin: 6px 0 0; color: var(--muted); font-size: 0.92rem; }
+      .drawer-actions { display:flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+
+      .doc-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+      @media (max-width: 980px) { .doc-grid { grid-template-columns: 1fr; } }
+      .doc-card { border: 1px solid var(--line); border-radius: 14px; padding: 10px; background: rgba(255,255,255,0.03); }
+      .doc-card .t { font-weight: 1000; }
+      .doc-card .m { margin-top: 4px; color: var(--muted); font-size: 0.9rem; }
+      .doc-card .a { margin-top: 10px; display:flex; gap: 8px; flex-wrap: wrap; }
+
+      .two-col-split { display:grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 14px; }
+      @media (max-width: 980px) { .two-col-split { grid-template-columns: 1fr; } }
+
+      .driver-map-placeholder {
+        height: 260px;
+        border-radius: 14px;
+        border: 1px dashed var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      /* ===== Alerts Drawer ===== */
+      .alerts { position: fixed; inset: 0; display:none; z-index: 125; }
+      .alerts.open { display:block; }
+      .alerts-backdrop { position:absolute; inset:0; background: rgba(0,0,0,0.55); }
+      .alerts-panel {
+        position:absolute;
+        top: 0; right: 0;
+        width: min(520px, 100vw);
+        height: 100vh;
+        background: rgba(12,19,32,0.98);
+        border-left: 1px solid var(--line);
+        box-shadow: var(--shadow);
+        display:flex;
+        flex-direction: column;
+      }
+      .alerts-head {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+        display:flex;
+        align-items:center;
+        justify-content: space-between;
+        gap: 10px;
+        background: rgba(255,255,255,0.02);
+      }
+      .alerts-body { padding: 12px 14px; overflow:auto; }
+      .alert-row {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 10px;
+        background: rgba(255,255,255,0.03);
+        margin-bottom: 10px;
+      }
+      .alert-row .t { font-weight: 1000; }
+      .alert-row .m { margin-top: 6px; color: var(--muted); font-size: 0.92rem; }
+      .alert-row .a { margin-top: 10px; display:flex; gap: 8px; flex-wrap: wrap; }
+
+      /* ===== Clock + Calendar button (far-right on broker tabs row) ===== */
+      .broker-right-rail { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+      .clock-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255,255,255,0.04);
+        padding: 6px 10px;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+        white-space: nowrap;
+      }
+      .clock-time {
+        font-weight: 900;
+        letter-spacing: 0.5px;
+        font-variant-numeric: tabular-nums;
+        font-size: 0.95rem;
+      }
+      .clock-tz {
+        color: var(--muted);
+        font-size: 0.82rem;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.10);
+        background: rgba(0,0,0,0.25);
+      }
+      .tz-select {
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.14);
+        background: rgba(12,19,32,.9);
+        color: var(--text);
+        font-size: 0.85rem;
+        outline: none;
+        max-width: 210px;
+      }
+      .tz-select option { color: #000; }
+      @media (max-width: 980px) { .broker-right-rail { width: 100%; justify-content: flex-start; } .tz-select { max-width: 100%; } }
+
+      /* ===== CALENDAR MODAL (Google Calendar style shell) ===== */
+      .cal-modal { display:none; position:fixed; inset:0; z-index:120; }
+      .cal-modal.open { display:block; }
+      .cal-backdrop { position:absolute; inset:0; background: rgba(0,0,0,0.55); }
+      .cal-shell {
+        position:relative;
+        width: min(1100px, calc(100vw - 24px));
+        height: min(720px, calc(100vh - 24px));
+        margin: 12px auto;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: rgba(12,19,32,0.98);
+        box-shadow: var(--shadow);
+        display:flex;
+        flex-direction: column;
+        overflow:hidden;
+      }
+      .cal-topbar {
+        display:flex;
+        align-items:center;
+        justify-content: space-between;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255,255,255,0.02);
+        gap: 10px;
+      }
+      .cal-left { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+      .cal-title { font-weight: 900; letter-spacing: 0.2px; }
+      .cal-sub { color: var(--muted); font-size: 0.92rem; }
+      .cal-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+
+      .cal-body { display:grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 0; height: 100%; }
+      .cal-grid-wrap { border-right: 1px solid var(--line); display:flex; flex-direction: column; min-width: 0; }
+      .cal-weekdays { display:grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-bottom: 1px solid var(--line); background: rgba(255,255,255,0.02); }
+      .cal-weekday { padding: 10px 10px; font-size: 0.86rem; color: var(--muted); border-right: 1px solid rgba(255,255,255,0.06); }
+      .cal-weekday:last-child { border-right: none; }
+      .cal-grid { display:grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-auto-rows: 92px; flex: 1; min-height: 0; }
+      .cal-day { border-right: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 8px 8px; cursor:pointer; background: transparent; min-width: 0; }
+      .cal-day:hover { background: rgba(255,255,255,0.03); }
+      .cal-day:nth-child(7n) { border-right:none; }
+      .cal-day-head { display:flex; align-items:center; justify-content: space-between; gap:8px; }
+      .cal-day-num { font-weight: 900; font-size: 0.92rem; }
+      .cal-day-muted { color: rgba(255,255,255,0.35); }
+      .cal-badges { display:flex; gap:6px; align-items:center; }
+      .cal-dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(106,168,255,0.9); box-shadow: 0 0 0 2px rgba(106,168,255,0.15); }
+      .cal-items { margin-top: 8px; display:flex; flex-direction:column; gap:6px; }
+      .cal-item { border: 1px solid rgba(106,168,255,0.35); background: rgba(106,168,255,0.10); color: var(--text); border-radius: 10px; padding: 6px 8px; font-size: 0.86rem; overflow:hidden; white-space: nowrap; text-overflow: ellipsis; }
+      .cal-item small { color: rgba(255,255,255,0.70); }
+      .cal-side { padding: 12px 14px; overflow-y: auto; min-width: 0; }
+      .cal-side h3 { margin: 0; font-size: 1.05rem; }
+      .cal-side p { margin: 8px 0 0; color: var(--muted); font-size: 0.92rem; }
+      .cal-form { margin-top: 12px; }
+      .cal-form label { display:block; margin-top: 10px; }
+      .cal-form input, .cal-form textarea, .cal-form select { width: 100%; }
+      .cal-mini { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+      .cal-event-list { margin-top: 10px; }
+      .cal-event-row { border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,0.03); padding: 10px; margin-bottom: 10px; }
+      .cal-event-row .t { font-weight: 900; }
+      .cal-event-row .m { color: var(--muted); font-size: 0.92rem; margin-top: 4px; }
+      .cal-event-row .a { margin-top: 10px; display:flex; gap: 8px; flex-wrap: wrap; }
+
+      @media (max-width: 980px) {
+        .cal-body { grid-template-columns: 1fr; }
+        .cal-grid-wrap { border-right: none; border-bottom: 1px solid var(--line); }
+        .cal-grid { grid-auto-rows: 88px; }
+      }
+
+      /* ===== Account modal backdrop (robust click-to-close) ===== */
+      
+/* ===== Load modal ===== */
+#loadModal.modal { display:none; position:fixed; inset:0; z-index:9999; }
+#loadModal.modal.open { display:block; }
+#loadModal .modal-backdrop { position:absolute; inset:0; background:rgba(0,0,0,.55); }
+#loadModal .modal-card {
+  position:relative;
+  max-width: 860px;
+  margin: 6vh auto 0;
+  background: var(--panel, #111827);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 16px;
+  box-shadow: 0 20px 80px rgba(0,0,0,.5);
+  overflow:hidden;
+}
+#loadModal .modal-header{
+  display:flex; align-items:flex-start; justify-content:space-between;
+  padding: 18px 18px 10px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+#loadModal .modal-title{ font-weight:800; font-size:18px; }
+#loadModal .modal-subtitle{ opacity:.8; margin-top:4px; font-size:13px; }
+#loadModal .modal-body{ padding: 14px 18px 18px; }
+#loadModal .form-grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 14px;
+}
+#loadModal .form-field{ display:flex; flex-direction:column; gap:6px; }
+#loadModal .form-field span{ font-size:12px; opacity:.8; }
+#loadModal input, #loadModal select{
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.12);
+  color: inherit;
+  border-radius: 12px;
+  padding: 10px 12px;
+  outline:none;
+}
+#loadModal input:focus, #loadModal select:focus{ border-color: rgba(99,102,241,.65); }
+#loadModal .span-2{ grid-column: 1 / span 2; }
+#loadModal .modal-actions{
+  display:flex; align-items:center; gap:10px;
+  padding-top: 14px;
+}
+#loadModal .form-msg{ margin-left:auto; font-size:12px; opacity:.85; }
+
+#accountModal.modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 140;
+      }
+      #accountModal.modal.open { display: block; }
+      #accountModal .modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.55);
+      }
+      #accountModal .modal-card {
+        position: relative;
+        width: min(720px, calc(100vw - 24px));
+        margin: 12px auto;
+        max-height: calc(100vh - 24px);
+        overflow: auto;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- HEADER (match pricing.html) -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <!-- LEFT: Brand + Secure tabs -->
+        <div class="brand-left">
+          <div class="brand">
+            <div class="logo"></div>
+            <div class="brand-text">PDFRealm</div>
+          </div>
+
+          <div class="brand-divider"></div>
+
+          <nav class="left-secure-nav" aria-label="Secure">
+            <a href="/vault.html" class="nav-chip">
+              Secure Vault
+              <span class="nav-chip-pill">AES-256</span>
+            </a>
+            <a href="/vault.html#send" class="nav-chip">
+              Secure Send
+              <span class="nav-chip-pill">Expiring links</span>
+            </a>
+          </nav>
+        </div>
+
+        <!-- RIGHT: Tools + Industry Packs + Pricing + Account -->
+        <div class="right-nav-cluster">
+          <nav class="top-nav" aria-label="Primary">
+            <a href="/" class="nav-link">Tools</a>
+
+            <div class="workspace-menu" id="industryMenuWrap">
+              <button class="nav-link workspace-toggle" type="button" id="industryToggle">
+                Industry Packs
+                <span class="workspace-caret">▾</span>
+              </button>
+              <div class="workspace-dropdown" id="industryDropdown" role="menu" aria-label="Industry Packs">
+                <a class="workspace-item" role="menuitem" href="/broker.html">Broker TMS Dashboard</a>
+                <a class="workspace-item" role="menuitem" href="/carrier.html">Carrier Dashboard</a>
+                <div style="height:1px; background: rgba(255,255,255,0.10); margin: 8px 10px;"></div>
+                <a class="workspace-item" role="menuitem" href="/legal.html">Legal Workspace</a>
+                <a class="workspace-item" role="menuitem" href="/real-estate.html">Real Estate Dashboard</a>
+                <a class="workspace-item" role="menuitem" href="/accounting.html">Accounting Dashboard</a>
+                <a class="workspace-item" role="menuitem" href="/hr.html">HR Dashboard</a>
+                <a class="workspace-item" role="menuitem" href="/marketing.html">Marketing Dashboard</a>
+                <a class="workspace-item" role="menuitem" href="/csuite.html">C-Suite Dashboard</a>
+              </div>
+            </div>
+
+            <a href="/pricing.html" class="nav-link">Pricing</a>
+          </nav>
+
+          <div class="top-actions">
+            <button
+              id="accountLoginBtn"
+              class="btn"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="accountModal"
+            >
+              <span id="accountDot" class="dot"></span>
+              Account
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <!-- Pure dashboard -->
+      <section class="panel broker-main">
+        <!-- Broker heading -->
+        <div class="broker-header">
+          <h1>Broker TMS Dashboard</h1>
+          <p>
+            Central command for your brokerage: manage loads, carriers, shippers, tracking, documents, and financials —
+            while running PDFRealm tools inside the workflow.
+          </p>
+        </div>
+
+        <!-- ===== Command Center KPI strip ===== -->
+        <div class="kpi-strip">
+          <div class="kpi-grid">
+            <div class="kpi">
+              <div class="k">Loads Today</div>
+              <div class="v mono" id="kpiLoadsToday">12</div>
+              <div class="s">Created 7 • Booked 3 • Delivered 2</div>
+            </div>
+            <div class="kpi">
+              <div class="k">In Transit</div>
+              <div class="v mono" id="kpiInTransit">8</div>
+              <div class="s">ETA risk <span class="mono" id="kpiEtaRisk">2</span></div>
+            </div>
+            <div class="kpi">
+              <div class="k">Gross Margin</div>
+              <div class="v mono" id="kpiGrossMargin">$3,420</div>
+              <div class="s">RPM <span class="mono" id="kpiRpm">$2.38</span></div>
+            </div>
+            <div class="kpi">
+              <div class="k">A/R Outstanding</div>
+              <div class="v mono" id="kpiAR">$18,900</div>
+              <div class="s">Overdue <span class="mono" id="kpiAROverdue">$4,100</span></div>
+            </div>
+            <div class="kpi">
+              <div class="k">Docs Missing</div>
+              <div class="v mono" id="kpiDocsMissing">5</div>
+              <div class="s">POD 3 • BOL 2</div>
+            </div>
+            <div class="kpi kpi-hot">
+              <div class="kpi-cta">
+                <div>
+                  <div class="k">Exceptions</div>
+                  <div class="v mono" id="kpiExceptions">3</div>
+                  <div class="s">Late pickup • Late delivery • COI expiring</div>
+                </div>
+                <button class="btn btn-secondary" type="button" id="openAlertsBtn">View</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Broker nav -->
+        <div class="broker-nav">
+          <button class="btn broker-tab broker-tab-active" type="button" data-broker-tab="loads">Loads</button>
+          <button class="btn broker-tab" type="button" data-broker-tab="carriers">Carriers</button>
+          <button class="btn broker-tab" type="button" data-broker-tab="shippers">Shippers</button>
+          <button class="btn broker-tab" type="button" data-broker-tab="documents">Documents</button>
+          <button class="btn broker-tab" type="button" data-broker-tab="financials">Financials</button>
+          <button class="btn broker-tab" type="button" data-broker-tab="reports">Reports</button>
+          <button class="btn broker-tab" type="button" data-broker-tab="workflow">Workflow</button>
+          <button class="btn broker-tab" type="button" data-broker-tab="edi">EDI</button>
+
+          <div class="broker-tools-dropdown">
+            <button class="btn broker-tab broker-tools-btn" type="button" id="brokerToolsToggle">
+              Tools <span>▾</span>
+            </button>
+            <div class="broker-tools-menu" id="brokerToolsMenu">
+              <button class="broker-tools-item" data-tool-target="studio">PDF Studio</button>
+              <button class="broker-tools-item" data-tool-target="quick">Quick Sign</button>
+              <button class="broker-tools-item" data-tool-target="password">Password Protect</button>
+              <button class="broker-tools-item" data-tool-target="merge">Merge PDF</button>
+              <button class="broker-tools-item" data-tool-target="delete">Delete Page</button>
+              <button class="broker-tools-item" data-tool-target="split">Split / Extract</button>
+              <button class="broker-tools-item" data-tool-target="docs">Invoice / Receipt / Paystub</button>
+              <button class="broker-tools-item" data-tool-target="convert">Convert</button>
+              <button class="broker-tools-item" data-tool-target="compress">Compress</button>
+              <button class="broker-tools-item" data-tool-target="rotate">Rotate</button>
+              <button class="broker-tools-item" data-tool-target="reorder">Reorder</button>
+              <button class="broker-tools-item" data-tool-target="watermark">Watermark</button>
+              <button class="broker-tools-item" data-tool-target="metadata">Metadata</button>
+              <button class="broker-tools-item" data-tool-target="flatten">Flatten</button>
+              <button class="broker-tools-item" data-tool-target="blank">Remove Blank</button>
+              <button class="broker-tools-item" data-tool-target="pagenums">Page Numbers</button>
+              <button class="broker-tools-item" data-tool-target="stamp">Stamp</button>
+              <button class="broker-tools-item" data-tool-target="redact">Redact</button>
+              <button class="broker-tools-item" data-tool-target="jpg2pdf">JPG → PDF</button>
+              <button class="broker-tools-item" data-tool-target="png2pdf">PNG → PDF</button>
+              <button class="broker-tools-item" data-tool-target="pdf2jpg">PDF → JPG (stub)</button>
+              <button class="broker-tools-item" data-tool-target="pdf2png">PDF → PNG (stub)</button>
+              <button class="broker-tools-item" data-tool-target="ocr">OCR</button>
+              <button class="broker-tools-item" data-tool-target="bates">Bates Numbering</button>
+              <button class="broker-tools-item" data-tool-target="templates">Templates</button>
+            </div>
+          </div>
+
+          <button class="btn broker-tab" type="button" data-broker-tab="drivers">Driver Tracking</button>
+
+          <!-- FAR RIGHT -->
+          <div class="broker-right-rail">
+            <button class="btn broker-tab" type="button" id="brokerCalendarBtn">Calendar</button>
+
+            <div class="clock-wrap" title="Real-time clock (select timezone)">
+              <div class="clock-time" id="liveClock">--:--:--</div>
+              <div class="clock-tz" id="liveClockTz">Local</div>
+              <select class="tz-select" id="tzSelect" aria-label="Timezone"></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Broker content views -->
+        <div class="broker-content">
+          <!-- ===== Loads view ===== -->
+          <div class="broker-view broker-view-active" data-broker-view="loads">
+            <div class="card">
+              <div class="row">
+                <h3 class="h3" style="margin:0;">Loads</h3>
+                <div class="row-right">
+                  <button class="btn btn-primary" type="button" id="newLoadBtn">+ New Load</button>
+                  <button class="btn btn-secondary" type="button">Import Tender</button>
+                  <button class="btn btn-secondary" type="button">Generate Docs</button>
+                </div>
+              </div>
+
+              <div class="segbar" role="tablist" aria-label="Load Views">
+                <div class="seg active" data-load-view="all">All</div>
+                <div class="seg" data-load-view="today">Today</div>
+                <div class="seg" data-load-view="intransit">In Transit</div>
+                <div class="seg" data-load-view="exceptions">Exceptions</div>
+                <div class="seg" data-load-view="delivered">Delivered</div>
+                <div class="seg" data-load-view="needsinvoice">Needs Invoice</div>
+                <div class="seg" data-load-view="unpaid">Unpaid</div>
+                <div class="seg" data-load-view="archived">Archived</div>
+              </div>
+
+              <div class="filters">
+                <input id="loadSearch" type="text" placeholder="Search load #, customer, carrier, lane…" />
+                <select id="loadStatusFilter">
+                  <option value="">Status</option>
+                  <option>Booked</option>
+                  <option>In Transit</option>
+                  <option>Delivered</option>
+                  <option>Exception</option>
+                  <option>Archived</option>
+                </select>
+                <select id="loadCustomerFilter">
+                  <option value="">Customer</option>                </select>
+                <select id="loadAgentFilter">
+                  <option value="">Agent</option>                </select>
+                <select id="loadDateFilter">
+                  <option value="">Date</option>
+                  <option>Today</option>
+                  <option>This Week</option>
+                  <option>This Month</option>
+                </select>
+              </div>
+
+              <div class="bulkbar">
+                <label class="chk"><input id="loadSelectAll" type="checkbox" /> Select all</label>
+                <button class="btn btn-secondary" type="button">Update Status</button>
+                <button class="btn btn-secondary" type="button">Assign Agent</button>
+                <button class="btn btn-secondary" type="button">Request Check Call</button>
+                <button class="btn btn-secondary" type="button">Send to Accounting</button>
+                <button class="btn btn-secondary" type="button">Archive</button>
+                <div class="muted" style="margin-left:auto; font-size:0.92rem;">Multi-select loads for bulk actions.</div>
+              </div>
+
+              <div class="table-wrap">
+                <table aria-label="Loads table">
+                  <thead>
+                    <tr>
+                      <th style="width:44px;"></th>
+                      <th>Load</th>
+                      <th>Status</th>
+                      <th>Customer</th>
+                      <th>Carrier</th>
+                      <th>Lane</th>
+                      <th>Pickup</th>
+                      <th>Delivery</th>
+                      <th>Revenue</th>
+                      <th>Cost</th>
+                      <th>Margin</th>
+                      <th style="width:88px;"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="loadsTbody">
+                    <tr class="empty-row"><td colspan="99" class="muted">No loads yet.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="row" style="margin-top: 12px;">
+                <div class="subtle" style="flex:1; min-width: 260px;">
+                  <div style="font-weight:1000;">Route Review & Optimization (UI)</div>
+                  <div class="muted" style="margin-top:6px; font-size:0.92rem;">
+                    Distance/tolls/multi-stop optimization will wire to Maps later. UI is ready.
+                  </div>
+                  <div class="row" style="margin-top:10px;">
+                    <span class="pill">Avoid tolls</span>
+                    <span class="pill">Avoid states</span>
+                    <span class="pill">Multi-stop</span>
+                    <span class="pill">ETA risk scoring</span>
+                  </div>
+                </div>
+
+                <div class="subtle" style="flex:1; min-width: 260px;">
+                  <div style="font-weight:1000;">Order Management (UI)</div>
+                  <div class="muted" style="margin-top:6px; font-size:0.92rem;">
+                    Convert quote → order → load with templates + tasks. Coming with backend wiring.
+                  </div>
+                  <div class="row" style="margin-top:10px;">
+                    <button class="btn btn-secondary" type="button">Create Quote</button>
+                    <button class="btn btn-secondary" type="button">Convert to Load</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== Carriers view ===== -->
+          <div class="broker-view" data-broker-view="carriers">
+            <div class="broker-grid">
+              <div class="card">
+                <div class="row">
+                  <h3 class="h3" style="margin:0;">Carrier List</h3>
+                  <div class="row-right">
+                    <span class="pill">Compliance: COI • W-9 • Authority</span>
+                    <span class="pill">Scorecard</span>
+                    <span class="pill">Notes + Attachments</span>
+                  </div>
+                </div>
+
+                <table class="table-like" style="margin-top:10px;">
+                  <thead>
+                    <tr>
+                      <th>Carrier Name</th>
+                      <th>MC / DOT</th>
+                      <th>Status</th>
+                      <th>Primary Contact</th>
+                    </tr>
+                  </thead>
+                  <tbody id="carriersTbody">
+                    <tr class="empty-row"><td colspan="99" class="muted">No carriers yet.</td></tr>
+                  </tbody>
+                </table>
+
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Carrier Management — quick actions</div>
+                  <div class="row" style="margin-top:10px;">
+                    <button class="btn btn-secondary" type="button">Request COI</button>
+                    <button class="btn btn-secondary" type="button">Request W-9</button>
+                    <button class="btn btn-secondary" type="button">Send Packet</button>
+                    <button class="btn btn-secondary" type="button">Rate Agreement</button>
+                    <button class="btn btn-secondary" type="button">Add Lane Preference</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <h3 class="h3">Add / Edit Carrier</h3>
+                <label for="carrierName">Carrier name</label>
+                <input id="carrierName" type="text" />
+
+                <label for="carrierMcDot">MC / DOT</label>
+                <input id="carrierMcDot" type="text" />
+
+                <label for="carrierContact">Primary contact</label>
+                <input id="carrierContact" type="text" />
+
+                <label for="carrierPhone">Phone</label>
+                <input id="carrierPhone" type="text" />
+
+                <label for="carrierEmail">Email</label>
+                <input id="carrierEmail" type="email" />
+
+                <label for="carrierNotes">Notes</label>
+                <textarea id="carrierNotes" rows="3"></textarea>
+
+                <div class="tool-actions">
+                  <button class="btn btn-primary" type="button" id="carrierSaveBtn">Save Carrier (stub)</button>
+                  <button class="btn btn-secondary" type="button" id="carrierClearBtn">Clear</button>
+                </div>
+
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Compliance (UI)</div>
+                  <div class="muted" style="margin-top:6px; font-size:0.92rem;">
+                    Store COI/W-9/Authority checks in Vault. Set expirations and auto alerts.
+                  </div>
+                  <div class="row" style="margin-top:10px;">
+                    <span class="pill">COI: —</span>
+                    <span class="pill">W-9: —</span>
+                    <span class="pill">Authority: —</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== Shippers view ===== -->
+          <div class="broker-view" data-broker-view="shippers">
+            <div class="broker-grid">
+              <div class="card">
+                <div class="row">
+                  <h3 class="h3" style="margin:0;">Shipper List</h3>
+                  <div class="row-right">
+                    <span class="pill">CRM-lite</span>
+                    <span class="pill">Lane history</span>
+                    <span class="pill">Outstanding balance</span>
+                  </div>
+                </div>
+
+                <table class="table-like" style="margin-top:10px;">
+                  <thead>
+                    <tr>
+                      <th>Shipper Name</th>
+                      <th>City / State</th>
+                      <th>Status</th>
+                      <th>Primary Contact</th>
+                    </tr>
+                  </thead>
+                  <tbody id="shippersTbody">
+                    <tr class="empty-row"><td colspan="99" class="muted">No shippers yet.</td></tr>
+                  </tbody>
+                </table>
+
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Shipper CRM (UI)</div>
+                  <div class="muted" style="margin-top:6px; font-size:0.92rem;">
+                    Notes, follow-ups, quote history, lanes, and statement generation.
+                  </div>
+                  <div class="row" style="margin-top:10px;">
+                    <button class="btn btn-secondary" type="button">Create Quote</button>
+                    <button class="btn btn-secondary" type="button">Statement</button>
+                    <button class="btn btn-secondary" type="button">Add Follow-up</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <h3 class="h3">Add / Edit Shipper</h3>
+                <label for="shipperName">Shipper name</label>
+                <input id="shipperName" type="text" />
+
+                <label for="shipperLocation">City / State</label>
+                <input id="shipperLocation" type="text" />
+
+                <label for="shipperContact">Primary contact</label>
+                <input id="shipperContact" type="text" />
+
+                <label for="shipperPhone">Phone</label>
+                <input id="shipperPhone" type="text" />
+
+                <label for="shipperEmail">Email</label>
+                <input id="shipperEmail" type="email" />
+
+                <label for="shipperNotes">Notes</label>
+                <textarea id="shipperNotes" rows="3"></textarea>
+
+                <div class="tool-actions">
+                  <button class="btn btn-primary" type="button" id="shipperSaveBtn">Save Shipper (stub)</button>
+                  <button class="btn btn-secondary" type="button" id="shipperClearBtn">Clear</button>
+                </div>
+
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Billing Profile (UI)</div>
+                  <div class="muted" style="margin-top:6px; font-size:0.92rem;">
+                    Default terms, invoice email, and auto statements will wire later.
+                  </div>
+                  <div class="row" style="margin-top:10px;">
+                    <span class="pill">Terms: Net 30</span>
+                    <span class="pill">Invoice: AP@shipper.com</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== Documents view ===== -->
+          <div class="broker-view" data-broker-view="documents">
+            <div class="two-col-split">
+              <div class="card">
+                <div class="row">
+                  <h3 class="h3" style="margin:0;">Documents & Vault</h3>
+                  <div class="row-right">
+                    <button class="btn btn-secondary" type="button">Upload</button>
+                    <button class="btn btn-secondary" type="button">Request POD</button>
+                    <button class="btn btn-secondary" type="button">Request BOL</button>
+                  </div>
+                </div>
+
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Per-Load Doc Checklist (UI)</div>
+                  <div class="muted" style="margin-top:6px; font-size:0.92rem;">
+                    Attach docs to loads; missing docs create alerts and block invoicing until resolved.
+                  </div>
+                  <div class="row" style="margin-top:10px;">
+                    <span class="pill warn">POD missing</span>
+                    <span class="pill warn">BOL missing</span>
+                    <span class="pill">RateCon ok</span>
+                    <span class="pill">Invoice draft</span>
+                  </div>
+                </div>
+
+                <div class="doc-grid">
+                  <div class="doc-card">
+                    <div class="t">Carrier Confirmation</div>
+                    <div class="m">Template • E-Sign ready</div>
+                    <div class="a">
+                      <button class="btn btn-secondary" type="button">Generate</button>
+                      <button class="btn btn-secondary" type="button">Send for Sign</button>
+                    </div>
+                  </div>
+                  <div class="doc-card">
+                    <div class="t">Customer Confirmation</div>
+                    <div class="m">Template • Shareable link</div>
+                    <div class="a">
+                      <button class="btn btn-secondary" type="button">Generate</button>
+                      <button class="btn btn-secondary" type="button">Send</button>
+                    </div>
+                  </div>
+                  <div class="doc-card">
+                    <div class="t">Invoice</div>
+                    <div class="m">Auto from load financials</div>
+                    <div class="a">
+                      <button class="btn btn-secondary" type="button">Generate</button>
+                      <button class="btn btn-secondary" type="button">Email</button>
+                    </div>
+                  </div>
+                  <div class="doc-card">
+                    <div class="t">BOL / POD</div>
+                    <div class="m">Upload • Track missing</div>
+                    <div class="a">
+                      <button class="btn btn-secondary" type="button">Upload</button>
+                      <button class="btn btn-secondary" type="button">Mark Received</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="row">
+                  <h3 class="h3" style="margin:0;">Inline PDF Actions</h3>
+                  <div class="row-right">
+                    <button class="btn btn-secondary" type="button">Merge</button>
+                    <button class="btn btn-secondary" type="button">Flatten</button>
+                    <button class="btn btn-secondary" type="button">Watermark</button>
+                    <button class="btn btn-secondary" type="button">Optimize</button>
+                  </div>
+                </div>
+
+                <div class="driver-map-placeholder" id="docsDropzone" style="height: 220px; margin-top: 12px;">
+                  Drop documents here or select from Vault. Tools run without leaving the dashboard.
+                </div>
+
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Electronic Signatures (UI)</div>
+                  <div class="muted" style="margin-top:6px; font-size:0.92rem;">
+                    Send Carrier/Customer confirmations for signature; store signed versions automatically in Vault.
+                  </div>
+                  <div class="row" style="margin-top:10px;">
+                    <button class="btn btn-secondary" type="button">Send RateCon for Sign</button>
+                    <button class="btn btn-secondary" type="button">Send POD for Sign</button>
+                  </div>
+                </div>
+
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Customizable Documents (UI)</div>
+                  <div class="muted" style="margin-top:6px; font-size:0.92rem;">
+                    Templates + clauses + variables by customer/carrier/agent.
+                  </div>
+                  <div class="row" style="margin-top:10px;">
+                    <button class="btn btn-secondary" type="button">Manage Templates</button>
+                    <button class="btn btn-secondary" type="button">Add Clause</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== Financials view ===== -->
+          <div class="broker-view" data-broker-view="financials">
+            <div class="two-col-split">
+              <div class="card">
+                <div class="row">
+                  <h3 class="h3" style="margin:0;">Load Financials</h3>
+                  <div class="row-right">
+                    <button class="btn btn-secondary" type="button">Connect QuickBooks (UI)</button>
+                    <button class="btn btn-secondary" type="button">Export CSV</button>
+                  </div>
+                </div>
+
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Profit Monitoring (UI)</div>
+                  <div class="muted" style="margin-top:6px; font-size:0.92rem;">
+                    Revenue, carrier cost, accessorials, margin, RPM, and approval workflow.
+                  </div>
+                  <div class="row" style="margin-top:10px;">
+                    <span class="pill">Revenue: $2,450</span>
+                    <span class="pill">Carrier: $1,900</span>
+                    <span class="pill good">Margin: $550</span>
+                    <span class="pill">RPM: $2.38</span>
+                  </div>
+                </div>
+
+                <div class="table-wrap" style="margin-top:12px;">
+                  <table aria-label="A/R aging">
+                    <thead>
+                      <tr>
+                        <th>Customer</th>
+                        <th>Outstanding</th>
+                        <th>0–30</th>
+                        <th>31–60</th>
+                        <th>61–90</th>
+                        <th>90+</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Sample Manufacturing Co</td>
+                        <td class="mono">$9,300</td>
+                        <td class="mono">$6,200</td>
+                        <td class="mono">$2,100</td>
+                        <td class="mono">$1,000</td>
+                        <td class="mono">$0</td>
+                      </tr>
+                      <tr>
+                        <td>Test Distribution Center</td>
+                        <td class="mono">$4,800</td>
+                        <td class="mono">$4,100</td>
+                        <td class="mono">$700</td>
+                        <td class="mono">$0</td>
+                        <td class="mono">$0</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Statements & Outstanding Balances (UI)</div>
+                  <div class="row" style="margin-top:10px;">
+                    <button class="btn btn-secondary" type="button">Generate Statement</button>
+                    <button class="btn btn-secondary" type="button">Email Statement</button>
+                    <button class="btn btn-secondary" type="button">Mark Paid (stub)</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="row">
+                  <h3 class="h3" style="margin:0;">Carrier Pay</h3>
+                  <div class="row-right">
+                    <button class="btn btn-secondary" type="button">Pay Schedule (UI)</button>
+                    <button class="btn btn-secondary" type="button">QuickPay (UI)</button>
+                  </div>
+                </div>
+
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Driver Pay Management (UI)</div>
+                  <div class="muted" style="margin-top:6px; font-size:0.92rem;">
+                    Calculate pay by percent, per-mile, or flat. Attach docs + approvals.
+                  </div>
+                  <div class="row" style="margin-top:10px;">
+                    <span class="pill">Percent</span>
+                    <span class="pill">Per-mile</span>
+                    <span class="pill">Flat</span>
+                  </div>
+                </div>
+
+                <div class="table-wrap" style="margin-top:12px;">
+                  <table aria-label="Payables">
+                    <thead>
+                      <tr>
+                        <th>Carrier/Driver</th>
+                        <th>Load</th>
+                        <th>Amount</th>
+                        <th>Due</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Example Logistics LLC</td>
+                        <td class="mono">MFT-000123</td>
+                        <td class="mono">$1,900</td>
+                        <td class="mono">12/26</td>
+                        <td><span class="pill warn">Pending</span></td>
+                      </tr>
+                      <tr>
+                        <td>Demo Transport Inc</td>
+                        <td class="mono">MFT-000124</td>
+                        <td class="mono">$1,420</td>
+                        <td class="mono">12/27</td>
+                        <td><span class="pill">Scheduled</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Accounting Module (UI)</div>
+                  <div class="muted" style="margin-top:6px; font-size:0.92rem;">
+                    Post invoices/bills/journal entries via integrations; keep a reconciled ledger.
+                  </div>
+                  <div class="row" style="margin-top:10px;">
+                    <button class="btn btn-secondary" type="button">Connect Accounting</button>
+                    <button class="btn btn-secondary" type="button">Send Batch</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== Reports view ===== -->
+          <div class="broker-view" data-broker-view="reports">
+            <div class="two-col-split">
+              <div class="card">
+                <div class="row">
+                  <h3 class="h3" style="margin:0;">KPI Reports</h3>
+                  <div class="row-right">
+                    <button class="btn btn-secondary" type="button">Save Report</button>
+                    <button class="btn btn-secondary" type="button">Export</button>
+                  </div>
+                </div>
+
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Customizable Load Reports (UI)</div>
+                  <div class="muted" style="margin-top:6px; font-size:0.92rem;">
+                    Choose columns, groupings, filters, and saved views (customer/lane/agent).
+                  </div>
+                  <div class="row" style="margin-top:10px;">
+                    <span class="pill">Margin by customer</span>
+                    <span class="pill">On-time %</span>
+                    <span class="pill">Tender acceptance</span>
+                    <span class="pill">Dwell time</span>
+                    <span class="pill">Accessorial frequency</span>
+                  </div>
+                </div>
+
+                <div class="table-wrap" style="margin-top:12px;">
+                  <table aria-label="Report preview">
+                    <thead>
+                      <tr>
+                        <th>Metric</th>
+                        <th>This Week</th>
+                        <th>Last Week</th>
+                        <th>Trend</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>On-time pickup</td><td class="mono">92%</td><td class="mono">89%</td><td><span class="pill good">Up</span></td></tr>
+                      <tr><td>On-time delivery</td><td class="mono">88%</td><td class="mono">90%</td><td><span class="pill warn">Down</span></td></tr>
+                      <tr><td>Avg margin / load</td><td class="mono">$460</td><td class="mono">$410</td><td><span class="pill good">Up</span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="card">
+                <h3 class="h3" style="margin:0;">Report Builder (UI)</h3>
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Columns</div>
+                  <div class="row" style="margin-top:10px;">
+                    <span class="pill">Load #</span><span class="pill">Status</span><span class="pill">Customer</span>
+                    <span class="pill">Carrier</span><span class="pill">Lane</span><span class="pill">Revenue</span>
+                    <span class="pill">Cost</span><span class="pill">Margin</span><span class="pill">Agent</span>
+                  </div>
+                </div>
+
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Grouping</div>
+                  <div class="row" style="margin-top:10px;">
+                    <button class="btn btn-secondary" type="button">By Customer</button>
+                    <button class="btn btn-secondary" type="button">By Lane</button>
+                    <button class="btn btn-secondary" type="button">By Agent</button>
+                  </div>
+                </div>
+
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Schedule</div>
+                  <div class="muted" style="margin-top:6px; font-size:0.92rem;">
+                    Email weekly KPI digest to owners/ops (wire to backend later).
+                  </div>
+                  <div class="row" style="margin-top:10px;">
+                    <button class="btn btn-secondary" type="button">Schedule</button>
+                    <button class="btn btn-secondary" type="button">Recipients</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== Workflow view ===== -->
+          <div class="broker-view" data-broker-view="workflow">
+            <div class="two-col-split">
+              <div class="card">
+                <div class="row">
+                  <h3 class="h3" style="margin:0;">Workflow Automation</h3>
+                  <div class="row-right">
+                    <button class="btn btn-primary" type="button">+ New Rule</button>
+                    <button class="btn btn-secondary" type="button">Templates</button>
+                  </div>
+                </div>
+
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Rules Engine (UI)</div>
+                  <div class="muted" style="margin-top:6px; font-size:0.92rem;">
+                    Trigger on status/doc/ETA risk and auto-run tasks: notify, generate docs, request signatures, push to accounting.
+                  </div>
+                </div>
+
+                <div class="alert-row" style="margin-top:12px;">
+                  <div class="t">When load becomes “Delivered” → Generate Invoice + Email customer</div>
+                  <div class="m">Action chain: Create invoice PDF → Attach POD → Send email → Log in timeline.</div>
+                  <div class="a">
+                    <button class="btn btn-secondary" type="button">Edit</button>
+                    <button class="btn btn-secondary" type="button">Disable</button>
+                  </div>
+                </div>
+
+                <div class="alert-row">
+                  <div class="t">If POD missing 24h after delivery → Alert dispatch + request POD from carrier</div>
+                  <div class="m">Action chain: SMS/email + task + carrier message.</div>
+                  <div class="a">
+                    <button class="btn btn-secondary" type="button">Edit</button>
+                    <button class="btn btn-secondary" type="button">Disable</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <h3 class="h3" style="margin:0;">Task Queue (UI)</h3>
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Work items</div>
+                  <div class="muted" style="margin-top:6px; font-size:0.92rem;">
+                    Auto-generated from rules and manual assignments. Will wire to DB.
+                  </div>
+                </div>
+
+                <div class="table-wrap" style="margin-top:12px;">
+                  <table aria-label="Tasks">
+                    <thead>
+                      <tr><th>Task</th><th>Load</th><th>Due</th><th>Owner</th></tr>
+                    </thead>
+                    <tbody id="tasksTbody">
+                    <tr class="empty-row"><td colspan="99" class="muted">No tasks yet.</td></tr>
+                  </tbody>
+                  </table>
+                </div>
+
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Notifications (UI)</div>
+                  <div class="muted" style="margin-top:6px; font-size:0.92rem;">
+                    Email/SMS/push settings per agent; audit trail per notification.
+                  </div>
+                  <div class="row" style="margin-top:10px;">
+                    <button class="btn btn-secondary" type="button">Settings</button>
+                    <button class="btn btn-secondary" type="button">Audit Log</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== EDI view ===== -->
+          <div class="broker-view" data-broker-view="edi">
+            <div class="two-col-split">
+              <div class="card">
+                <div class="row">
+                  <h3 class="h3" style="margin:0;">Inbound EDI Load Tenders (UI)</h3>
+                  <div class="row-right">
+                    <button class="btn btn-secondary" type="button">Connect EDI</button>
+                    <button class="btn btn-secondary" type="button">Mapping</button>
+                  </div>
+                </div>
+
+                <div class="table-wrap" style="margin-top:12px;">
+                  <table aria-label="Inbound tenders">
+                    <thead>
+                      <tr>
+                        <th>Tender</th><th>Shipper</th><th>Lane</th><th>Pickup</th><th>Rate</th><th>Status</th><th style="width:170px;"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="mono">EDI-90031</td><td>Sample Manufacturing Co</td><td>Louisville, KY → Dayton, OH</td>
+                        <td class="mono">12/26 08:00</td><td class="mono">$1,250</td><td><span class="pill warn">New</span></td>
+                        <td><button class="btn btn-secondary" type="button">Accept</button> <button class="btn btn-secondary" type="button">Decline</button></td>
+                      </tr>
+                      <tr>
+                        <td class="mono">EDI-90032</td><td>Test Distribution Center</td><td>Indy, IN → St. Louis, MO</td>
+                        <td class="mono">12/27 10:00</td><td class="mono">$1,980</td><td><span class="pill">Viewed</span></td>
+                        <td><button class="btn btn-secondary" type="button">Accept</button> <button class="btn btn-secondary" type="button">Decline</button></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Auto-create loads (UI)</div>
+                  <div class="muted" style="margin-top:6px; font-size:0.92rem;">
+                    Parse tenders → map locations/refs → create load + tasks + docs.
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="row">
+                  <h3 class="h3" style="margin:0;">Outbound EDI (UI)</h3>
+                  <div class="row-right">
+                    <button class="btn btn-primary" type="button">Send Tender</button>
+                    <button class="btn btn-secondary" type="button">History</button>
+                  </div>
+                </div>
+
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Tender Wizard (UI)</div>
+                  <div class="muted" style="margin-top:6px; font-size:0.92rem;">
+                    Select shipper + load → generate payload → send → track acknowledgements.
+                  </div>
+                  <div class="row" style="margin-top:10px;">
+                    <span class="pill">204</span><span class="pill">990</span><span class="pill">214</span><span class="pill">210</span>
+                  </div>
+                </div>
+
+                <div class="table-wrap" style="margin-top:12px;">
+                  <table aria-label="Outbound tenders">
+                    <thead><tr><th>Load</th><th>Recipient</th><th>Sent</th><th>Status</th></tr></thead>
+                    <tbody>
+                      <tr><td class="mono">MFT-000124</td><td>Shipper EDI Endpoint</td><td class="mono">12/24 10:22</td><td><span class="pill good">ACK</span></td></tr>
+                      <tr><td class="mono">MFT-000123</td><td>Carrier EDI Endpoint</td><td class="mono">12/24 09:10</td><td><span class="pill warn">Pending</span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== Driver Tracking view ===== -->
+          <div class="broker-view" data-broker-view="drivers">
+            <div class="broker-grid">
+              <div class="card">
+                <div class="row">
+                  <h3 class="h3" style="margin:0;">Driver Tracking</h3>
+                  <div class="row-right">
+                    <span class="pill">Check calls</span><span class="pill">Geofences</span><span class="pill">ETA risk</span>
+                  </div>
+                </div>
+
+                <p style="color: var(--muted); font-size: 0.95rem; margin-top: 8px;">
+                  Lightweight tracking view for active loads. Later we can wire this to live GPS pings and geofences.
+                </p>
+
+                <table class="table-like" style="margin-top: 10px;">
+                  <thead>
+                    <tr><th>Driver</th><th>Truck / Trailer</th><th>Last Location</th><th>Load #</th><th>Status</th></tr>
+                  </thead>
+                  <tbody id="driversTbody">
+                    <tr class="empty-row"><td colspan="99" class="muted">No drivers yet.</td></tr>
+                  </tbody>
+                </table>
+
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Tracking Actions (UI)</div>
+                  <div class="row" style="margin-top:10px;">
+                    <button class="btn btn-secondary" type="button">Request Update</button>
+                    <button class="btn btn-secondary" type="button">Send Tracking Link</button>
+                    <button class="btn btn-secondary" type="button">Create Exception</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <h3 class="h3">Map / Location Panel</h3>
+                <div class="driver-map-placeholder">
+                  Map / live GPS view placeholder. Later: Leaflet/Mapbox + geofences + alerts.
+                </div>
+
+                <h3 class="h3" style="margin-top: 16px;">Manual Status Update (stub)</h3>
+                <label for="driverSelect">Driver</label>
+                <input id="driverSelect" type="text" placeholder="Driver Example" />
+
+                <label for="driverLocation">Current location</label>
+                <input id="driverLocation" type="text" placeholder="City, State" />
+
+                <label for="driverStatus">Status</label>
+                <select id="driverStatus">
+                  <option value="en_route">En Route</option>
+                  <option value="at_shipper">At Shipper</option>
+                  <option value="loaded">Loaded</option>
+                  <option value="at_receiver">At Receiver</option>
+                  <option value="empty">Empty</option>
+                </select>
+
+                <div class="tool-actions">
+                  <button class="btn btn-primary" type="button" id="driverUpdateBtn">Update Status (stub)</button>
+                </div>
+
+                <div class="subtle" style="margin-top:12px;">
+                  <div style="font-weight:1000;">Geofence Alerts (UI)</div>
+                  <div class="muted" style="margin-top:6px; font-size:0.92rem;">
+                    Auto-detect at shipper/receiver, dwell time, and late arrival alerts.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div>© <span id="year"></span> PDFRealm. All rights reserved.</div>
+    </footer>
+
+    <!-- ===== Load Drawer ===== -->
+    <div class="drawer" id="loadDrawer" aria-hidden="true">
+      <div class="drawer-head">
+        <div>
+          <div class="drawer-title" id="drawerLoadId">Load</div>
+          <div class="muted" id="drawerLoadSub" style="font-size:0.92rem;">Details • timeline • docs • financials</div>
+        </div>
+        <button class="btn btn-secondary" type="button" id="closeLoadDrawerBtn">Close</button>
+      </div>
+      <div class="drawer-body">
+        <div class="subtle">
+          <div style="font-weight:1000;">Snapshot</div>
+          <div class="row" style="margin-top:10px;">
+            <span class="pill" id="drawerStatusPill">Status: —</span>
+            <span class="pill" id="drawerLanePill">Lane: —</span>
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <span class="pill" id="drawerRevenuePill">Revenue: —</span>
+            <span class="pill" id="drawerCostPill">Cost: —</span>
+            <span class="pill" id="drawerMarginPill">Margin: —</span>
+          </div>
+          <div class="drawer-actions">
+            <button class="btn btn-secondary" type="button">Generate Invoice</button>
+            <button class="btn btn-secondary" type="button">Send for E-Sign</button>
+            <button class="btn btn-secondary" type="button">Request POD</button>
+            <button class="btn btn-secondary" type="button">Check Call</button>
+          </div>
+        </div>
+
+        <div class="drawer-section">
+          <h4>Timeline (UI)</h4>
+          <p>Booked → Dispatched → In Transit → Delivered → Invoiced → Paid</p>
+          <div class="subtle" style="margin-top:10px;">
+            <div class="muted" style="font-size:0.92rem;">This will be wired to DB events and notifications.</div>
+          </div>
+        </div>
+
+        <div class="drawer-section">
+          <h4>Documents (UI)</h4>
+          <div class="row" style="margin-top:10px;">
+            <span class="pill warn">POD missing</span>
+            <span class="pill">RateCon ok</span>
+            <span class="pill">Invoice draft</span>
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <button class="btn btn-secondary" type="button">Upload</button>
+            <button class="btn btn-secondary" type="button">Open in Vault</button>
+            <button class="btn btn-secondary" type="button">Inline Tools</button>
+          </div>
+        </div>
+
+        <div class="drawer-section">
+          <h4>Tracking (UI)</h4>
+          <p>Last ping • ETA • stop timeline • exceptions</p>
+          <div class="driver-map-placeholder" style="height: 180px; margin-top:10px;">
+            Tracking map placeholder (Leaflet/Mapbox later).
+          </div>
+        </div>
+
+        <div class="drawer-section">
+          <h4>Notes (UI)</h4>
+          <textarea id="drawerNoteText" rows="4" placeholder="Internal notes, exceptions, billing notes…"></textarea>
+          <div class="row" style="margin-top:10px;">
+            <button class="btn btn-primary" type="button" id="drawerSaveNoteBtn">Save Note (stub)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Alerts Drawer ===== -->
+    <div class="alerts" id="alertsDrawer" aria-hidden="true">
+      <div class="alerts-backdrop" id="alertsBackdrop"></div>
+      <div class="alerts-panel">
+        <div class="alerts-head">
+          <div style="font-weight:1000;">Exceptions & Alerts</div>
+          <button class="btn btn-secondary" type="button" id="closeAlertsBtn">Close</button>
+        </div>
+        <div class="alerts-body">
+          <div class="alert-row">
+            <div class="t">Late pickup risk — MFT-000125</div>
+            <div class="m">Pickup appointment passed by 35 minutes. Trigger: ETA risk score.</div>
+            <div class="a">
+              <button class="btn btn-secondary" type="button">Open Load</button>
+              <button class="btn btn-secondary" type="button">Request Update</button>
+            </div>
+          </div>
+
+          <div class="alert-row">
+            <div class="t">POD missing — MFT-000123</div>
+            <div class="m">Delivered 12/24 • POD not uploaded. Invoicing blocked until received.</div>
+            <div class="a">
+              <button class="btn btn-secondary" type="button">Request POD</button>
+              <button class="btn btn-secondary" type="button">Open Load</button>
+            </div>
+          </div>
+
+          <div class="alert-row">
+            <div class="t">Carrier COI expiring — Demo Transport Inc</div>
+            <div class="m">COI expires in 5 days. Auto-onboarding will pause new dispatches.</div>
+            <div class="a">
+              <button class="btn btn-secondary" type="button">Request COI</button>
+              <button class="btn btn-secondary" type="button">Open Carrier</button>
+            </div>
+          </div>
+
+          <div class="subtle">
+            <div style="font-weight:1000;">Automation-ready</div>
+            <div class="muted" style="margin-top:6px; font-size:0.92rem;">
+              Alerts feed will wire to rules + notifications + audit log.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Modal (JWT: /api/login + Bearer → /api/broker/me) -->
+    <!-- Load Modal -->
+<div id="loadModal" class="modal" aria-hidden="true">
+  <div class="modal-backdrop" data-close="loadModal"></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="loadModalTitle">
+    <div class="modal-header">
+      <div>
+        <div id="loadModalTitle" class="modal-title">New Load</div>
+        <div class="modal-subtitle">Create or edit a load in your TMS.</div>
+      </div>
+      <button class="icon-btn" type="button" data-close="loadModal" aria-label="Close">✕</button>
+    </div>
+
+    <form id="loadForm" class="modal-body">
+      <input type="hidden" id="loadId" value="" />
+
+      <div class="form-grid">
+        <label class="form-field">
+          <span>Load #</span>
+          <input id="load_number" type="text" placeholder="e.g., 24001" autocomplete="off" />
+        </label>
+
+        <label class="form-field">
+          <span>Status</span>
+          <select id="status">
+            <option value="NEW">NEW</option>
+            <option value="BOOKED">BOOKED</option>
+            <option value="IN_TRANSIT">IN TRANSIT</option>
+            <option value="DELIVERED">DELIVERED</option>
+            <option value="BILLED">BILLED</option>
+            <option value="PAID">PAID</option>
+            <option value="CANCELLED">CANCELLED</option>
+          </select>
+        </label>
+
+        <label class="form-field span-2">
+          <span>Shipper</span>
+          <input id="shipper_name" type="text" placeholder="Company name" autocomplete="organization" />
+        </label>
+
+        <label class="form-field">
+          <span>Pickup City</span>
+          <input id="pickup_city" type="text" placeholder="City" autocomplete="address-level2" />
+        </label>
+
+        <label class="form-field">
+          <span>Pickup State</span>
+          <input id="pickup_state" type="text" placeholder="ST" maxlength="2" autocomplete="address-level1" />
+        </label>
+
+        <label class="form-field">
+          <span>Delivery City</span>
+          <input id="delivery_city" type="text" placeholder="City" autocomplete="address-level2" />
+        </label>
+
+        <label class="form-field">
+          <span>Delivery State</span>
+          <input id="delivery_state" type="text" placeholder="ST" maxlength="2" autocomplete="address-level1" />
+        </label>
+
+        <label class="form-field">
+          <span>Pickup Date</span>
+          <input id="pickup_date" type="date" />
+        </label>
+
+        <label class="form-field">
+          <span>Delivery Date</span>
+          <input id="delivery_date" type="date" />
+        </label>
+
+        <label class="form-field">
+          <span>Value (Rate)</span>
+          <input id="rate_total" type="number" step="0.01" min="0" placeholder="0.00" />
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button id="loadSaveBtn" type="submit" class="btn primary">Save</button>
+        <button type="button" class="btn" data-close="loadModal">Cancel</button>
+        <div id="loadFormMsg" class="form-msg" aria-live="polite"></div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="accountModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="modal-backdrop" id="accountBackdrop"></div>
+      <div class="modal-card">
+        <div class="modal-head">
+          <div class="mh">Account</div>
+          <button id="accountModalClose" class="btn btn-secondary" type="button">Close</button>
+        </div>
+        <div class="modal-body">
+          <div class="card">
+            <label for="loginEmail">Email</label>
+            <input id="loginEmail" type="email" placeholder="you@example.com" />
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" type="password" placeholder="••••••••" />
+            <div class="modal-row">
+              <button id="loginSubmitBtn" class="btn btn-primary" type="button">Login</button>
+              <button id="subscribeMonthlyBtn" class="btn btn-secondary" type="button">Subscribe (stub)</button>
+              <button id="subscribeYearlyBtn" class="btn btn-secondary" type="button">Subscribe (stub)</button>
+              <button id="logoutBtn" class="btn btn-secondary" type="button" style="display:none;">Logout</button>
+            </div>
+            <div id="loginStatus" style="margin-top:10px; color: var(--muted); font-size: 0.95rem;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== CALENDAR MODAL ===== -->
+    <div id="calendarModal" class="cal-modal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="cal-backdrop" id="calendarBackdrop"></div>
+
+      <div class="cal-shell">
+        <div class="cal-topbar">
+          <div class="cal-left">
+            <div class="cal-title">Calendar</div>
+            <div class="cal-sub" id="calMonthLabel">—</div>
+          </div>
+          <div class="cal-actions">
+            <button class="btn btn-secondary" type="button" id="calPrevBtn">◀</button>
+            <button class="btn btn-secondary" type="button" id="calTodayBtn">Today</button>
+            <button class="btn btn-secondary" type="button" id="calNextBtn">▶</button>
+            <button class="btn btn-primary" type="button" id="calNewBtn">New Event</button>
+            <button class="btn btn-secondary" type="button" id="calCloseBtn">Close</button>
+          </div>
+        </div>
+
+        <div class="cal-body">
+          <div class="cal-grid-wrap">
+            <div class="cal-weekdays">
+              <div class="cal-weekday">Sun</div><div class="cal-weekday">Mon</div><div class="cal-weekday">Tue</div>
+              <div class="cal-weekday">Wed</div><div class="cal-weekday">Thu</div><div class="cal-weekday">Fri</div><div class="cal-weekday">Sat</div>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+          </div>
+
+          <div class="cal-side">
+            <h3 id="calSideTitle">Selected day</h3>
+            <p id="calSideSub">Click a day to view events and add notes/appointments.</p>
+
+            <div class="cal-form">
+              <label for="calEventTitle">Title</label>
+              <input id="calEventTitle" type="text" placeholder="Pickup / delivery / call shipper..." />
+
+              <label for="calEventType">Type</label>
+              <select id="calEventType">
+                <option value="appointment">Appointment</option>
+                <option value="deadline">Deadline</option>
+                <option value="reminder">Reminder</option>
+                <option value="note">Note</option>
+              </select>
+
+              <label for="calEventDate">Date</label>
+              <input id="calEventDate" type="date" />
+
+              <label for="calEventTime">Time (optional)</label>
+              <input id="calEventTime" type="time" />
+
+              <label for="calEventNotes">Notes</label>
+              <textarea id="calEventNotes" rows="3" placeholder="Add details, address, phone, etc."></textarea>
+
+              <div class="cal-mini">
+                <h3 style="margin:0; font-size:1.02rem;">Reminders</h3>
+                <p style="margin-top:6px; color: var(--muted); font-size: 0.92rem;">
+                  This frontend supports in-browser reminders while the page is open. Email/SMS will be wired to backend later.
+                </p>
+
+                <label for="calRemindMinutes">Remind me (minutes before)</label>
+                <select id="calRemindMinutes">
+                  <option value="">None</option>
+                  <option value="5">5 minutes</option>
+                  <option value="10">10 minutes</option>
+                  <option value="15">15 minutes</option>
+                  <option value="30">30 minutes</option>
+                  <option value="60">60 minutes</option>
+                  <option value="1440">1 day</option>
+                </select>
+
+                <label for="calRemindEmail">Email (optional)</label>
+                <input id="calRemindEmail" type="email" placeholder="you@example.com" />
+
+                <label for="calRemindPhone">Text/SMS number (optional)</label>
+                <input id="calRemindPhone" type="text" placeholder="+15551234567" />
+
+                <div class="tool-actions" style="margin-top: 12px;">
+                  <button class="btn btn-primary" type="button" id="calSaveBtn">Save</button>
+                  <button class="btn btn-secondary" type="button" id="calClearBtn">Clear</button>
+                </div>
+
+                <div id="calStatus" style="margin-top:10px; color: var(--muted); font-size: 0.95rem;"></div>
+              </div>
+            </div>
+
+            <div class="cal-event-list">
+              <h3 style="margin-top:16px; font-size: 1.02rem;">Events on this day</h3>
+              <div id="calEventList"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/broker.js"></script>
+  </body>
+</html>
+

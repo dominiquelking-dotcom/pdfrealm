@@ -1,0 +1,26 @@
+export DATABASE_URL="postgres://postgres:YourNewPasswordHere@localhost:5432/pdfrealm"
+export DATABASE_SSL=false
+
+psql -h localhost -U postgres -d pdfrealm -W
+
+
+\c pdfrealm
+ public | artifacts               | table | postgres | permanent   | heap          | 8192 bytes | 
+ public | broker_docs             | table | postgres | permanent   | heap          | 8192 bytes | 
+ public | broker_load_notes       | table | postgres | permanent   | heap          | 8192 bytes | 
+ public | broker_loads            | table | postgres | permanent   | heap          | 16 kB      | 
+ public | broker_settings         | table | postgres | permanent   | heap          | 8192 bytes | 
+ public | broker_tasks            | table | postgres | permanent   | heap          | 8192 bytes | 
+ public | jobs                    | table | postgres | permanent   | heap          | 8192 bytes | 
+ public | pay_per_export_sessions | table | postgres | permanent   | heap          | 8192 bytes | 
+ public | secure_share_audits     | table | postgres | permanent   | heap          | 8192 bytes | 
+ public | secure_shares           | table | postgres | permanent   | heap          | 8192 bytes | 
+ public | sessions                | table | postgres | permanent   | heap          | 8192 bytes | 
+ public | subscriptions           | table | postgres | permanent   | heap          | 8192 bytes | 
+ public | tool_runs               | table | postgres | permanent   | heap          | 8192 bytes | 
+ public | usage_counters          | table | postgres | permanent   | heap          | 0 bytes    | 
+ public | users                   | table | postgres | permanent   | heap          | 16 kB      | 
+ public | vault_folders           | table | postgres | permanent   | heap          | 8192 bytes | 
+ public | vault_objects           | table | postgres | permanent   | heap          | 8192 bytes | 
+
+rk_live_51SbiAXKEsXpHR2OdXJfP0hvep5X9rXMHFayZoSj8C5znBlgmKN3gSUzBb6yHf3z1yQ7jV0QhYYj1Pa7Kr84W1c2800IghREDACTED

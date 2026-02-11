@@ -1,0 +1,1364 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PDFRealm – Legal & Contracts</title>
+
+    <link rel="icon" href="data:;base64,=" />
+    <link rel="stylesheet" href="/styles.css" />
+
+    <style>
+      body { margin: 0; overflow-y: auto; }
+      main.wrap { max-width: 100%; margin: 0; padding: 0; }
+
+      /* ===== HEADER (MATCH pricing.html EXACTLY) ===== */
+      .brand-left { display: flex; align-items: center; gap: 14px; }
+      .brand-text { font-weight: 800; letter-spacing: 0.2px; }
+      .brand-divider {
+        width: 1px; align-self: stretch; background: var(--line);
+        margin: 0 10px; opacity: 0.9;
+      }
+      .left-secure-nav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .nav-chip {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        opacity: 0.95;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .nav-chip:hover { background: rgba(255, 255, 255, 0.06); }
+      .nav-chip-pill {
+        font-size: 0.78rem;
+        color: var(--muted);
+        border-radius: 999px;
+        padding: 3px 8px;
+        border: 1px solid var(--line);
+        background: rgba(0, 0, 0, 0.3);
+      }
+      .nav-chip-active {
+        border-color: rgba(96, 165, 250, 0.8);
+        box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.4);
+        opacity: 1;
+      }
+
+      .right-nav-cluster {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .top-nav { display: flex; align-items: center; gap: 10px; }
+      .nav-link {
+        border-radius: 999px;
+        padding: 8px 14px;
+        border: 1px solid transparent;
+        background: transparent;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--muted);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+      }
+      .nav-link:hover { background: rgba(255, 255, 255, 0.04); color: var(--text); }
+      .nav-link-active { border-color: var(--line); background: rgba(255, 255, 255, 0.04); color: var(--text); }
+
+      .workspace-menu { position: relative; }
+      .workspace-toggle { cursor: pointer; }
+      .workspace-caret { font-size: 0.8rem; opacity: 0.8; }
+      .workspace-dropdown {
+        position: absolute;
+        right: 0;
+        top: 100%;
+        margin-top: 8px;
+        background: rgba(15, 22, 36, 0.96);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+        padding: 8px;
+        display: none;
+        flex-direction: column;
+        min-width: 280px;
+        z-index: 80;
+      }
+      .workspace-item {
+        padding: 8px 10px;
+        border-radius: 10px;
+        font-size: 0.92rem;
+        color: var(--muted);
+        text-align: left;
+        border: none;
+        background: transparent;
+        width: 100%;
+        cursor: pointer;
+        text-decoration: none;
+        display: block;
+        white-space: nowrap;
+      }
+      .workspace-item:hover { background: rgba(255, 255, 255, 0.04); color: var(--text); }
+      .workspace-menu.workspace-open .workspace-dropdown { display: flex; }
+
+      @media (max-width: 980px) {
+        .brand-left { flex-wrap: wrap; }
+        .right-nav-cluster { gap: 10px; }
+        .workspace-dropdown { right: auto; left: 0; }
+      }
+
+      /* ===== LEGAL WORKSPACE ===== */
+      .main-legal { display: flex; flex-direction: column; height: 100%; }
+      .legal-header { padding: 16px 18px; border-bottom: 1px solid var(--line); }
+      .legal-header h1 { margin: 0; font-size: 1.3rem; letter-spacing: 0.2px; }
+      .legal-header p { margin: 8px 0 0; color: var(--muted); font-size: 0.98rem; max-width: 900px; }
+
+      .legal-nav {
+        padding: 10px 18px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.02);
+        flex-wrap: wrap;
+      }
+
+      .legal-tab { font-size: 0.95rem; }
+      .legal-tab-active {
+        background: linear-gradient(135deg, rgba(106, 168, 255, 0.28), rgba(93, 230, 194, 0.12));
+        border-color: rgba(106, 168, 255, 0.55);
+        box-shadow: inset 0 0 0 1px rgba(106, 168, 255, 0.25);
+      }
+
+      /* Tools dropdown in legal nav */
+      .tools-dropdown { position: relative; }
+      .tools-btn { display: inline-flex; align-items: center; gap: 6px; }
+      .tools-menu {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        min-width: 240px;
+        background: rgba(12, 19, 32, 0.98);
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow);
+        padding: 8px;
+        display: none;
+        z-index: 40;
+      }
+      .tools-menu.open { display: block; }
+      .tools-item {
+        width: 100%;
+        text-align: left;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 0;
+        background: transparent;
+        color: var(--text);
+        font-size: 0.93rem;
+        cursor: pointer;
+      }
+      .tools-item:hover { background: rgba(255, 255, 255, 0.06); }
+
+      .legal-right-rail {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .clock-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255,255,255,0.04);
+        padding: 6px 10px;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+        white-space: nowrap;
+      }
+      .clock-time {
+        font-weight: 900;
+        letter-spacing: 0.5px;
+        font-variant-numeric: tabular-nums;
+        font-size: 0.95rem;
+      }
+      .clock-tz {
+        color: var(--muted);
+        font-size: 0.82rem;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.10);
+        background: rgba(0,0,0,0.25);
+      }
+      .tz-select {
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.14);
+        background: rgba(12,19,32,.9);
+        color: var(--text);
+        font-size: 0.85rem;
+        outline: none;
+        max-width: 210px;
+      }
+      .tz-select option { color: #000; }
+
+      @media (max-width: 980px) {
+        .legal-right-rail { width: 100%; justify-content: flex-start; }
+        .tz-select { max-width: 100%; }
+      }
+
+      .legal-content { padding: 16px 18px 18px; flex: 1; overflow-y: auto; }
+
+      .legal-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+        gap: 14px;
+      }
+      .legal-view { display: none; }
+      .legal-view-active { display: block; }
+
+      .table-like { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+      .table-like th, .table-like td {
+        border-bottom: 1px solid var(--line);
+        padding: 8px 6px;
+        text-align: left;
+      }
+      .table-like th { color: var(--muted); font-weight: 700; font-size: 0.9rem; }
+
+      .pill-status {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        font-size: 0.84rem;
+        color: var(--muted);
+      }
+
+      @media (max-width: 980px) { .legal-grid { grid-template-columns: 1fr; } }
+
+      /* ===== CALENDAR MODAL (same as broker) ===== */
+      .cal-modal { display:none; position:fixed; inset:0; z-index:120; }
+      .cal-modal.open { display:block; }
+      .cal-backdrop { position:absolute; inset:0; background: rgba(0,0,0,0.55); }
+      .cal-shell {
+        position:relative;
+        width: min(1100px, calc(100vw - 24px));
+        height: min(720px, calc(100vh - 24px));
+        margin: 12px auto;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: rgba(12,19,32,0.98);
+        box-shadow: var(--shadow);
+        display:flex;
+        flex-direction: column;
+        overflow:hidden;
+      }
+      .cal-topbar {
+        display:flex;
+        align-items:center;
+        justify-content: space-between;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255,255,255,0.02);
+        gap: 10px;
+      }
+      .cal-left { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+      .cal-title { font-weight: 900; letter-spacing: 0.2px; }
+      .cal-sub { color: var(--muted); font-size: 0.92rem; }
+      .cal-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+      .cal-body {
+        display:grid;
+        grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+        gap: 0;
+        height: 100%;
+      }
+      .cal-grid-wrap {
+        border-right: 1px solid var(--line);
+        display:flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .cal-weekdays {
+        display:grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        border-bottom: 1px solid var(--line);
+        background: rgba(255,255,255,0.02);
+      }
+      .cal-weekday {
+        padding: 10px 10px;
+        font-size: 0.86rem;
+        color: var(--muted);
+        border-right: 1px solid rgba(255,255,255,0.06);
+      }
+      .cal-weekday:last-child { border-right: none; }
+      .cal-grid {
+        display:grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        grid-auto-rows: 92px;
+        flex: 1;
+        min-height: 0;
+      }
+      .cal-day {
+        border-right: 1px solid rgba(255,255,255,0.06);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        padding: 8px 8px;
+        cursor:pointer;
+        background: transparent;
+        min-width: 0;
+      }
+      .cal-day:hover { background: rgba(255,255,255,0.03); }
+      .cal-day:nth-child(7n) { border-right:none; }
+      .cal-day-head { display:flex; align-items:center; justify-content: space-between; gap:8px; }
+      .cal-day-num { font-weight: 900; font-size: 0.92rem; }
+      .cal-day-muted { color: rgba(255,255,255,0.35); }
+      .cal-badges { display:flex; gap:6px; align-items:center; }
+      .cal-dot {
+        width: 8px; height: 8px; border-radius: 999px;
+        background: rgba(106,168,255,0.9);
+        box-shadow: 0 0 0 2px rgba(106,168,255,0.15);
+      }
+      .cal-items { margin-top: 8px; display:flex; flex-direction:column; gap:6px; }
+      .cal-item {
+        border: 1px solid rgba(106,168,255,0.35);
+        background: rgba(106,168,255,0.10);
+        color: var(--text);
+        border-radius: 10px;
+        padding: 6px 8px;
+        font-size: 0.86rem;
+        overflow:hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .cal-item small { color: rgba(255,255,255,0.70); }
+      .cal-side { padding: 12px 14px; overflow-y: auto; min-width: 0; }
+      .cal-side h3 { margin: 0; font-size: 1.05rem; }
+      .cal-side p { margin: 8px 0 0; color: var(--muted); font-size: 0.92rem; }
+      .cal-form { margin-top: 12px; }
+      .cal-form label { display:block; margin-top: 10px; }
+      .cal-form input, .cal-form textarea, .cal-form select { width: 100%; }
+      .cal-mini { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+      .cal-event-list { margin-top: 10px; }
+      .cal-event-row {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255,255,255,0.03);
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      .cal-event-row .t { font-weight: 900; }
+      .cal-event-row .m { color: var(--muted); font-size: 0.92rem; margin-top: 4px; }
+      .cal-event-row .a { margin-top: 10px; display:flex; gap: 8px; flex-wrap: wrap; }
+
+      @media (max-width: 980px) {
+        .cal-body { grid-template-columns: 1fr; }
+        .cal-grid-wrap { border-right: none; border-bottom: 1px solid var(--line); }
+        .cal-grid { grid-auto-rows: 88px; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- HEADER (match pricing.html) -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <!-- LEFT -->
+        <div class="brand-left">
+          <div class="brand">
+            <div class="logo"></div>
+            <div class="brand-text">PDFRealm</div>
+          </div>
+
+          <div class="brand-divider"></div>
+
+          <nav class="left-secure-nav" aria-label="Secure">
+            <a href="/vault.html" class="nav-chip">
+              Secure Vault
+              <span class="nav-chip-pill">AES-256</span>
+            </a>
+            <a href="/vault.html#send" class="nav-chip">
+              Secure Send
+              <span class="nav-chip-pill">Expiring links</span>
+            </a>
+          </nav>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="right-nav-cluster">
+          <nav class="top-nav" aria-label="Primary">
+            <a href="/" class="nav-link">Tools</a>
+
+            <div class="workspace-menu" id="industryMenuWrap">
+              <button class="nav-link workspace-toggle" type="button" id="industryToggle">
+                Industry Packs
+                <span class="workspace-caret">▾</span>
+              </button>
+              <div class="workspace-dropdown" id="industryDropdown" role="menu" aria-label="Industry Packs">
+                <a class="workspace-item" role="menuitem" href="/broker.html">Broker TMS Dashboard</a>
+                <a class="workspace-item" role="menuitem" href="/carrier.html">Carrier Dashboard</a>
+                <div style="height:1px; background: rgba(255,255,255,0.10); margin: 8px 10px;"></div>
+                <a class="workspace-item" role="menuitem" href="/legal.html">Legal Workspace</a>
+                <a class="workspace-item" role="menuitem" href="/real-estate.html">Real Estate Dashboard</a>
+                <a class="workspace-item" role="menuitem" href="/accounting.html">Accounting Dashboard</a>
+                <a class="workspace-item" role="menuitem" href="/hr.html">HR Dashboard</a>
+                <a class="workspace-item" role="menuitem" href="/marketing.html">Marketing Dashboard</a>
+                <a class="workspace-item" role="menuitem" href="/csuite.html">C-Suite Dashboard</a>
+              </div>
+            </div>
+
+            <a href="/pricing.html" class="nav-link">Pricing</a>
+          </nav>
+
+          <div class="top-actions">
+            <button
+              id="accountLoginBtn"
+              class="btn"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="accountModal"
+            >
+              <span id="accountDot" class="dot"></span>
+              Account
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section class="panel main-legal">
+        <!-- Heading -->
+        <div class="legal-header">
+          <h1>Legal &amp; Contracts Workspace</h1>
+          <p>
+            Matter-centric view for contracts, signatures, redactions, and secure document storage.
+            All PDFRealm tools are one click away from here.
+          </p>
+        </div>
+
+        <!-- Nav -->
+        <div class="legal-nav">
+          <button class="btn legal-tab legal-tab-active" type="button" data-legal-tab="matters">Matters</button>
+          <button class="btn legal-tab" type="button" data-legal-tab="contracts">Contracts</button>
+          <button class="btn legal-tab" type="button" data-legal-tab="dockets">Dockets</button>
+
+          <div class="tools-dropdown">
+            <button class="btn legal-tab tools-btn" type="button" id="legalToolsToggle">
+              Tools <span>▾</span>
+            </button>
+            <div class="tools-menu" id="legalToolsMenu">
+              <button class="tools-item" data-tool-target="studio">PDF Studio</button>
+              <button class="tools-item" data-tool-target="quick">Quick Sign</button>
+              <button class="tools-item" data-tool-target="password">Password Protect</button>
+              <button class="tools-item" data-tool-target="merge">Merge PDF</button>
+              <button class="tools-item" data-tool-target="delete">Delete Page</button>
+              <button class="tools-item" data-tool-target="split">Split / Extract</button>
+              <button class="tools-item" data-tool-target="docs">Invoice / Receipt / Paystub</button>
+              <button class="tools-item" data-tool-target="convert">Convert</button>
+              <button class="tools-item" data-tool-target="compress">Compress</button>
+              <button class="tools-item" data-tool-target="rotate">Rotate</button>
+              <button class="tools-item" data-tool-target="reorder">Reorder</button>
+              <button class="tools-item" data-tool-target="watermark">Watermark</button>
+              <button class="tools-item" data-tool-target="metadata">Metadata</button>
+              <button class="tools-item" data-tool-target="flatten">Flatten</button>
+              <button class="tools-item" data-tool-target="blank">Remove Blank</button>
+              <button class="tools-item" data-tool-target="pagenums">Page Numbers</button>
+              <button class="tools-item" data-tool-target="stamp">Stamp</button>
+              <button class="tools-item" data-tool-target="redact">Redact</button>
+              <button class="tools-item" data-tool-target="ocr">OCR</button>
+              <button class="tools-item" data-tool-target="bates">Bates Numbering</button>
+              <button class="tools-item" data-tool-target="templates">Templates</button>
+            </div>
+          </div>
+
+          <!-- FAR RIGHT: Calendar (closest) + Clock -->
+          <div class="legal-right-rail">
+            <button class="btn legal-tab" type="button" id="legalCalendarBtn">Calendar</button>
+
+            <div class="clock-wrap" title="Real-time clock (select timezone)">
+              <div class="clock-time" id="liveClock">--:--:--</div>
+              <div class="clock-tz" id="liveClockTz">Local</div>
+              <select class="tz-select" id="tzSelect" aria-label="Timezone"></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div class="legal-content">
+          <!-- Matters -->
+          <div class="legal-view legal-view-active" data-legal-view="matters">
+            <div class="legal-grid">
+              <div class="card">
+                <h3 class="h3">Matters</h3>
+                <table class="table-like">
+                  <thead>
+                    <tr>
+                      <th>Matter</th>
+                      <th>Client</th>
+                      <th>Status</th>
+                      <th>Next date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>MTR-001 – Trucking Contract Dispute</td>
+                      <td>Logistics Co A</td>
+                      <td><span class="pill-status">Open</span></td>
+                      <td>2026-01-15</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="card">
+                <h3 class="h3">Add / Edit Matter</h3>
+                <label for="matterId">Matter ID</label>
+                <input id="matterId" type="text" />
+                <label for="matterTitle">Title</label>
+                <input id="matterTitle" type="text" />
+                <label for="matterClient">Client</label>
+                <input id="matterClient" type="text" />
+                <label for="matterStatus">Status</label>
+                <select id="matterStatus">
+                  <option>Open</option>
+                  <option>Pending</option>
+                  <option>Closed</option>
+                </select>
+                <label for="matterNext">Next key date</label>
+                <input id="matterNext" type="date" />
+                <label for="matterNotes">Notes</label>
+                <textarea id="matterNotes" rows="3"></textarea>
+                <div class="tool-actions">
+                  <button class="btn btn-primary" type="button">Save (stub)</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contracts -->
+          <div class="legal-view" data-legal-view="contracts">
+            <div class="legal-grid">
+              <div class="card">
+                <h3 class="h3">Contract Repository</h3>
+                <table class="table-like">
+                  <thead>
+                    <tr>
+                      <th>Title</th>
+                      <th>Client / Counterparty</th>
+                      <th>Type</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Master Carrier Agreement</td>
+                      <td>Carrier XYZ</td>
+                      <td>MSA</td>
+                      <td><span class="pill-status">Executed</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="card">
+                <h3 class="h3">Upload / Generate Contract</h3>
+                <label for="ctrMatter">Matter (optional)</label>
+                <input id="ctrMatter" type="text" placeholder="MTR-001" />
+                <label for="ctrTitle">Title</label>
+                <input id="ctrTitle" type="text" />
+                <label for="ctrParty">Counterparty</label>
+                <input id="ctrParty" type="text" />
+                <label for="ctrFile">Upload PDF</label>
+                <input id="ctrFile" type="file" />
+                <p style="color:var(--muted); font-size:0.9rem;">
+                  Later: route into <b>Secure Vault</b> folder for this matter and open in PDF Studio,
+                  Redact, or Quick Sign automatically.
+                </p>
+                <div class="tool-actions">
+                  <button class="btn btn-primary" type="button">Upload (stub)</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dockets -->
+          <div class="legal-view" data-legal-view="dockets">
+            <div class="legal-grid">
+              <div class="card">
+                <h3 class="h3">Court / Docket Schedule</h3>
+                <table class="table-like">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Matter</th>
+                      <th>Event</th>
+                      <th>Location</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>2026-01-15</td>
+                      <td>MTR-001</td>
+                      <td>Status Conference</td>
+                      <td>Jefferson County</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="card">
+                <h3 class="h3">Add Docket Entry</h3>
+                <label for="dockDate">Date</label>
+                <input id="dockDate" type="date" />
+                <label for="dockMatter">Matter</label>
+                <input id="dockMatter" type="text" />
+                <label for="dockEvent">Event</label>
+                <input id="dockEvent" type="text" />
+                <label for="dockLocation">Location</label>
+                <input id="dockLocation" type="text" />
+                <div class="tool-actions">
+                  <button class="btn btn-primary" type="button">Save (stub)</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /legal-content -->
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div>© <span id="year"></span> PDFRealm. All rights reserved.</div>
+    </footer>
+
+    <!-- Account Modal (same shell as index/pricing) -->
+    <div id="accountModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div class="mh">Account</div>
+          <button id="accountModalClose" class="btn btn-secondary" type="button">Close</button>
+        </div>
+        <div class="modal-body">
+          <div class="card">
+            <label for="loginEmail">Email</label>
+            <input id="loginEmail" type="email" placeholder="you@example.com" />
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" type="password" placeholder="••••••••" />
+            <div class="modal-row">
+              <button id="loginSubmitBtn" class="btn btn-primary" type="button">Login</button>
+              <button id="subscribeMonthlyBtn" class="btn btn-secondary" type="button">Subscribe (stub)</button>
+              <button id="subscribeYearlyBtn" class="btn btn-secondary" type="button">Subscribe (stub)</button>
+            </div>
+            <div id="loginStatus" style="margin-top:10px; color: var(--muted); font-size: 0.95rem;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== CALENDAR MODAL (localStorage calendar; in-browser reminders while open) ===== -->
+    <div id="calendarModal" class="cal-modal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="cal-backdrop" id="calendarBackdrop"></div>
+
+      <div class="cal-shell">
+        <div class="cal-topbar">
+          <div class="cal-left">
+            <div class="cal-title">Calendar</div>
+            <div class="cal-sub" id="calMonthLabel">—</div>
+          </div>
+          <div class="cal-actions">
+            <button class="btn btn-secondary" type="button" id="calPrevBtn">◀</button>
+            <button class="btn btn-secondary" type="button" id="calTodayBtn">Today</button>
+            <button class="btn btn-secondary" type="button" id="calNextBtn">▶</button>
+            <button class="btn btn-primary" type="button" id="calNewBtn">New Event</button>
+            <button class="btn btn-secondary" type="button" id="calCloseBtn">Close</button>
+          </div>
+        </div>
+
+        <div class="cal-body">
+          <div class="cal-grid-wrap">
+            <div class="cal-weekdays">
+              <div class="cal-weekday">Sun</div><div class="cal-weekday">Mon</div><div class="cal-weekday">Tue</div>
+              <div class="cal-weekday">Wed</div><div class="cal-weekday">Thu</div><div class="cal-weekday">Fri</div>
+              <div class="cal-weekday">Sat</div>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+          </div>
+
+          <div class="cal-side">
+            <h3 id="calSideTitle">Selected day</h3>
+            <p id="calSideSub">Click a day to view events and add notes/appointments.</p>
+
+            <div class="cal-form">
+              <label for="calEventTitle">Title</label>
+              <input id="calEventTitle" type="text" placeholder="Hearing / filing deadline / client call..." />
+
+              <label for="calEventType">Type</label>
+              <select id="calEventType">
+                <option value="appointment">Appointment</option>
+                <option value="deadline">Deadline</option>
+                <option value="reminder">Reminder</option>
+                <option value="note">Note</option>
+              </select>
+
+              <label for="calEventDate">Date</label>
+              <input id="calEventDate" type="date" />
+
+              <label for="calEventTime">Time (optional)</label>
+              <input id="calEventTime" type="time" />
+
+              <label for="calEventNotes">Notes</label>
+              <textarea id="calEventNotes" rows="3" placeholder="Add details, address, case #, phone, etc."></textarea>
+
+              <div class="cal-mini">
+                <h3 style="margin:0; font-size:1.02rem;">Reminders</h3>
+                <p style="margin-top:6px; color: var(--muted); font-size: 0.92rem;">
+                  Frontend reminders work while this page is open. Email/SMS will be wired later.
+                </p>
+
+                <label for="calRemindMinutes">Remind me (minutes before)</label>
+                <select id="calRemindMinutes">
+                  <option value="">None</option>
+                  <option value="5">5 minutes</option>
+                  <option value="10">10 minutes</option>
+                  <option value="15">15 minutes</option>
+                  <option value="30">30 minutes</option>
+                  <option value="60">60 minutes</option>
+                  <option value="1440">1 day</option>
+                </select>
+
+                <label for="calRemindEmail">Email (optional)</label>
+                <input id="calRemindEmail" type="email" placeholder="you@example.com" />
+
+                <label for="calRemindPhone">Text/SMS number (optional)</label>
+                <input id="calRemindPhone" type="text" placeholder="+15551234567" />
+
+                <div class="tool-actions" style="margin-top: 12px;">
+                  <button class="btn btn-primary" type="button" id="calSaveBtn">Save</button>
+                  <button class="btn btn-secondary" type="button" id="calClearBtn">Clear</button>
+                </div>
+
+                <div id="calStatus" style="margin-top:10px; color: var(--muted); font-size: 0.95rem;"></div>
+              </div>
+            </div>
+
+            <div class="cal-event-list">
+              <h3 style="margin-top:16px; font-size: 1.02rem;">Events on this day</h3>
+              <div id="calEventList"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        // Footer year
+        var y = document.getElementById("year");
+        if (y) y.textContent = new Date().getFullYear();
+
+        // Tabs
+        function setTab(tab) {
+          document.querySelectorAll("[data-legal-tab]").forEach(function (b) {
+            b.classList.toggle("legal-tab-active", b.getAttribute("data-legal-tab") === tab);
+          });
+          document.querySelectorAll("[data-legal-view]").forEach(function (v) {
+            v.classList.toggle("legal-view-active", v.getAttribute("data-legal-view") === tab);
+          });
+        }
+        document.addEventListener("click", function (e) {
+          var tb = e.target.closest("[data-legal-tab]");
+          if (tb) setTab(tb.getAttribute("data-legal-tab"));
+        });
+
+        // Tools dropdown
+        var tToggle = document.getElementById("legalToolsToggle");
+        var tMenu = document.getElementById("legalToolsMenu");
+        if (tToggle && tMenu) {
+          tToggle.addEventListener("click", function (e) {
+            e.stopPropagation();
+            tMenu.classList.toggle("open");
+          });
+          document.addEventListener("click", function () {
+            tMenu.classList.remove("open");
+          });
+          tMenu.addEventListener("click", function (e) {
+            var item = e.target.closest(".tools-item");
+            if (!item) return;
+            var tool = item.getAttribute("data-tool-target") || "";
+            var url = tool ? "/?tool=" + encodeURIComponent(tool) : "/";
+            window.open(url, "_blank", "noopener");
+            tMenu.classList.remove("open");
+          });
+        }
+
+        // Industry Packs dropdown (pricing.html style)
+        (function () {
+          var wrap = document.getElementById("industryMenuWrap");
+          var toggle = document.getElementById("industryToggle");
+          if (!wrap || !toggle) return;
+          toggle.addEventListener("click", function (e) {
+            e.stopPropagation();
+            wrap.classList.toggle("workspace-open");
+          });
+          document.addEventListener("click", function () {
+            wrap.classList.remove("workspace-open");
+          });
+        })();
+
+        // ========= Digital Clock w/ Timezone =========
+        var CLOCK_TZ_KEY = "pdfrealm.legal.clock.timezone.v1";
+        var liveClock = document.getElementById("liveClock");
+        var liveClockTz = document.getElementById("liveClockTz");
+        var tzSelect = document.getElementById("tzSelect");
+
+        var TZ_LIST = [
+          "local",
+          "UTC",
+          "America/Kentucky/Louisville",
+          "America/New_York",
+          "America/Chicago",
+          "America/Denver",
+          "America/Los_Angeles",
+          "Europe/London",
+          "Europe/Paris",
+          "Asia/Dubai",
+          "Asia/Tokyo"
+        ];
+
+        function getSavedTz() {
+          try {
+            var v = localStorage.getItem(CLOCK_TZ_KEY);
+            if (v && TZ_LIST.indexOf(v) !== -1) return v;
+            return "local";
+          } catch (e) { return "local"; }
+        }
+        function setSavedTz(tz) { try { localStorage.setItem(CLOCK_TZ_KEY, tz); } catch (e) {} }
+        function prettyTzLabel(tz) { return tz === "local" ? "Local" : tz; }
+
+        function buildTzOptions() {
+          if (!tzSelect) return;
+          tzSelect.innerHTML = "";
+          TZ_LIST.forEach(function (tz) {
+            var opt = document.createElement("option");
+            opt.value = tz;
+            opt.textContent = prettyTzLabel(tz);
+            tzSelect.appendChild(opt);
+          });
+        }
+
+        function formatTimeForTz(dateObj, tz) {
+          var useLocal = (tz === "local");
+          try {
+            if (useLocal) {
+              return new Intl.DateTimeFormat(undefined, {
+                hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true
+              }).format(dateObj);
+            }
+            return new Intl.DateTimeFormat(undefined, {
+              timeZone: tz, hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true
+            }).format(dateObj);
+          } catch (e) {
+            var h = dateObj.getHours(), m = dateObj.getMinutes(), s = dateObj.getSeconds();
+            var ampm = h >= 12 ? "PM" : "AM";
+            h = h % 12; if (h === 0) h = 12;
+            function p2(n){ return String(n).padStart(2,"0"); }
+            return p2(h) + ":" + p2(m) + ":" + p2(s) + " " + ampm;
+          }
+        }
+
+        function startClock() {
+          if (!liveClock || !liveClockTz || !tzSelect) return;
+          buildTzOptions();
+          var tz = getSavedTz();
+          tzSelect.value = tz;
+          liveClockTz.textContent = tz === "local" ? "Local" : tz;
+
+          function tick() {
+            var now = new Date();
+            var currentTz = tzSelect.value || "local";
+            liveClock.textContent = formatTimeForTz(now, currentTz);
+            liveClockTz.textContent = currentTz === "local" ? "Local" : currentTz;
+          }
+
+          tick();
+          setInterval(tick, 1000);
+
+          tzSelect.addEventListener("change", function () {
+            var v = tzSelect.value || "local";
+            setSavedTz(v);
+            liveClockTz.textContent = v === "local" ? "Local" : v;
+            liveClock.textContent = formatTimeForTz(new Date(), v);
+          });
+        }
+        startClock();
+
+        // ========= Calendar (localStorage) =========
+        var CAL_KEY = "pdfrealm.legal.calendar.v1";
+        function pad2(n) { return String(n).padStart(2, "0"); }
+        function ymd(d) { return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
+        function parseLocalDateTime(dateStr, timeStr) {
+          if (!dateStr) return null;
+          var parts = dateStr.split("-");
+          var yy = Number(parts[0]), mm = Number(parts[1]) - 1, dd = Number(parts[2]);
+          var hh = 9, mi = 0;
+          if (timeStr) { var t = timeStr.split(":"); hh = Number(t[0] || 0); mi = Number(t[1] || 0); }
+          return new Date(yy, mm, dd, hh, mi, 0, 0);
+        }
+        function uid() { return "evt_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16); }
+
+        function loadEvents() {
+          try {
+            var raw = localStorage.getItem(CAL_KEY);
+            if (!raw) return [];
+            var arr = JSON.parse(raw);
+            return Array.isArray(arr) ? arr : [];
+          } catch (e) { return []; }
+        }
+        function saveEvents(events) { localStorage.setItem(CAL_KEY, JSON.stringify(events || [])); }
+        function eventOccursOn(evt, dateStr) { return evt && evt.date === dateStr; }
+
+        var calModal = document.getElementById("calendarModal");
+        var calBackdrop = document.getElementById("calendarBackdrop");
+        var calCloseBtn = document.getElementById("calCloseBtn");
+        var calGrid = document.getElementById("calGrid");
+        var calMonthLabel = document.getElementById("calMonthLabel");
+        var calPrevBtn = document.getElementById("calPrevBtn");
+        var calNextBtn = document.getElementById("calNextBtn");
+        var calTodayBtn = document.getElementById("calTodayBtn");
+        var calNewBtn = document.getElementById("calNewBtn");
+
+        var calSideTitle = document.getElementById("calSideTitle");
+        var calSideSub = document.getElementById("calSideSub");
+        var calEventList = document.getElementById("calEventList");
+
+        var calEventTitle = document.getElementById("calEventTitle");
+        var calEventType = document.getElementById("calEventType");
+        var calEventDate = document.getElementById("calEventDate");
+        var calEventTime = document.getElementById("calEventTime");
+        var calEventNotes = document.getElementById("calEventNotes");
+
+        var calRemindMinutes = document.getElementById("calRemindMinutes");
+        var calRemindEmail = document.getElementById("calRemindEmail");
+        var calRemindPhone = document.getElementById("calRemindPhone");
+
+        var calSaveBtn = document.getElementById("calSaveBtn");
+        var calClearBtn = document.getElementById("calClearBtn");
+        var calStatus = document.getElementById("calStatus");
+
+        var legalCalendarBtn = document.getElementById("legalCalendarBtn");
+
+        var state = {
+          viewYear: new Date().getFullYear(),
+          viewMonth: new Date().getMonth(),
+          selectedDate: ymd(new Date()),
+          editingId: null
+        };
+
+        function ensureNotifyPermission() {
+          if (!("Notification" in window)) return;
+          if (Notification.permission === "default") {
+            try { Notification.requestPermission(); } catch (e) {}
+          }
+        }
+
+        function openCalendar() {
+          if (!calModal) return;
+          calModal.classList.add("open");
+          calModal.setAttribute("aria-hidden", "false");
+          document.body.style.overflow = "hidden";
+          selectDate(state.selectedDate, { silent: true });
+          renderCalendar();
+          renderSidePanel();
+        }
+        function closeCalendar() {
+          if (!calModal) return;
+          calModal.classList.remove("open");
+          calModal.setAttribute("aria-hidden", "true");
+          document.body.style.overflow = "";
+          if (calStatus) calStatus.textContent = "";
+        }
+
+        if (legalCalendarBtn) legalCalendarBtn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          ensureNotifyPermission();
+          openCalendar();
+        });
+        if (calBackdrop) calBackdrop.addEventListener("click", function () { closeCalendar(); });
+        if (calCloseBtn) calCloseBtn.addEventListener("click", function () { closeCalendar(); });
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && calModal && calModal.classList.contains("open")) closeCalendar();
+        });
+
+        if (calPrevBtn) calPrevBtn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          state.viewMonth -= 1;
+          if (state.viewMonth < 0) { state.viewMonth = 11; state.viewYear -= 1; }
+          renderCalendar();
+        });
+        if (calNextBtn) calNextBtn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          state.viewMonth += 1;
+          if (state.viewMonth > 11) { state.viewMonth = 0; state.viewYear += 1; }
+          renderCalendar();
+        });
+        if (calTodayBtn) calTodayBtn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          var d = new Date();
+          state.viewYear = d.getFullYear();
+          state.viewMonth = d.getMonth();
+          state.selectedDate = ymd(d);
+          selectDate(state.selectedDate);
+          renderCalendar();
+        });
+        if (calNewBtn) calNewBtn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          state.editingId = null;
+          calEventTitle.value = "";
+          calEventType.value = "appointment";
+          calEventDate.value = state.selectedDate || ymd(new Date());
+          calEventTime.value = "";
+          calEventNotes.value = "";
+          calRemindMinutes.value = "";
+          calRemindEmail.value = "";
+          calRemindPhone.value = "";
+          if (calStatus) calStatus.textContent = "New event ready. Fill details and click Save.";
+          renderSidePanel();
+        });
+
+        function monthName(y2, m2) {
+          var d2 = new Date(y2, m2, 1);
+          return d2.toLocaleString(undefined, { month: "long", year: "numeric" });
+        }
+        function getMonthGridStart(y2, m2) {
+          var first = new Date(y2, m2, 1);
+          var dayOfWeek = first.getDay();
+          var start = new Date(y2, m2, 1 - dayOfWeek);
+          start.setHours(0,0,0,0);
+          return start;
+        }
+
+        function renderCalendar() {
+          if (!calGrid) return;
+          if (calMonthLabel) calMonthLabel.textContent = monthName(state.viewYear, state.viewMonth);
+
+          var start = getMonthGridStart(state.viewYear, state.viewMonth);
+          var events = loadEvents();
+          calGrid.innerHTML = "";
+
+          for (var i = 0; i < 42; i++) {
+            var cellDate = new Date(start.getTime());
+            cellDate.setDate(start.getDate() + i);
+            var cellStr = ymd(cellDate);
+
+            var isCurrentMonth = (cellDate.getMonth() === state.viewMonth);
+            var isSelected = (cellStr === state.selectedDate);
+            var dayEvents = events.filter(function (ev) { return eventOccursOn(ev, cellStr); });
+
+            var cell = document.createElement("div");
+            cell.className = "cal-day";
+            if (!isCurrentMonth) cell.classList.add("cal-day-muted");
+            if (isSelected) {
+              cell.style.background = "rgba(106,168,255,0.10)";
+              cell.style.boxShadow = "inset 0 0 0 1px rgba(106,168,255,0.25)";
+            }
+            cell.setAttribute("data-date", cellStr);
+
+            var head = document.createElement("div");
+            head.className = "cal-day-head";
+
+            var num = document.createElement("div");
+            num.className = "cal-day-num";
+            num.textContent = String(cellDate.getDate());
+
+            var badges = document.createElement("div");
+            badges.className = "cal-badges";
+            if (dayEvents.length > 0) {
+              var dot = document.createElement("div");
+              dot.className = "cal-dot";
+              badges.appendChild(dot);
+            }
+
+            head.appendChild(num);
+            head.appendChild(badges);
+
+            var items = document.createElement("div");
+            items.className = "cal-items";
+            dayEvents.slice(0, 2).forEach(function (ev) {
+              var it = document.createElement("div");
+              it.className = "cal-item";
+              var t = ev.time ? ("<small>" + ev.time + "</small> ") : "";
+              it.innerHTML = t + (ev.title || "(Untitled)");
+              items.appendChild(it);
+            });
+            if (dayEvents.length > 2) {
+              var more = document.createElement("div");
+              more.className = "cal-item";
+              more.style.borderColor = "rgba(255,255,255,0.16)";
+              more.style.background = "rgba(255,255,255,0.03)";
+              more.textContent = "+" + (dayEvents.length - 2) + " more";
+              items.appendChild(more);
+            }
+
+            cell.appendChild(head);
+            cell.appendChild(items);
+            calGrid.appendChild(cell);
+          }
+
+          calGrid.onclick = function (e) {
+            var day = e.target.closest(".cal-day");
+            if (!day) return;
+            var dstr = day.getAttribute("data-date");
+            if (!dstr) return;
+
+            var parts = dstr.split("-");
+            var ny = Number(parts[0]);
+            var nm = Number(parts[1]) - 1;
+            if (nm !== state.viewMonth || ny !== state.viewYear) {
+              state.viewYear = ny;
+              state.viewMonth = nm;
+            }
+
+            selectDate(dstr);
+            renderCalendar();
+          };
+        }
+
+        function selectDate(dateStr, opts) {
+          state.selectedDate = dateStr;
+          if (calSideTitle) calSideTitle.textContent = "Selected: " + dateStr;
+          if (calSideSub) calSideSub.textContent = "Add appointments, deadlines, or notes for this day.";
+          if (!opts || !opts.silent) {
+            if (!state.editingId && calEventDate) calEventDate.value = dateStr;
+          }
+          renderSidePanel();
+        }
+
+        function renderSidePanel() {
+          var events = loadEvents();
+          var dayEvents = events
+            .filter(function (ev) { return eventOccursOn(ev, state.selectedDate); })
+            .sort(function (a, b) {
+              if (a.time && b.time) return a.time.localeCompare(b.time);
+              if (a.time && !b.time) return -1;
+              if (!a.time && b.time) return 1;
+              return (a.createdAt || 0) - (b.createdAt || 0);
+            });
+
+          if (!calEventList) return;
+          calEventList.innerHTML = "";
+
+          if (dayEvents.length === 0) {
+            var empty = document.createElement("div");
+            empty.style.color = "var(--muted)";
+            empty.style.fontSize = "0.95rem";
+            empty.style.marginTop = "10px";
+            empty.textContent = "No events yet. Create one using the form above.";
+            calEventList.appendChild(empty);
+            return;
+          }
+
+          dayEvents.forEach(function (ev) {
+            var row = document.createElement("div");
+            row.className = "cal-event-row";
+
+            var title = document.createElement("div");
+            title.className = "t";
+            title.textContent =
+              (ev.time ? ev.time + " • " : "") +
+              (ev.title || "(Untitled)") +
+              (ev.type ? " (" + ev.type + ")" : "");
+
+            var meta = document.createElement("div");
+            meta.className = "m";
+            meta.textContent = ev.notes ? ev.notes : "—";
+
+            var rem = document.createElement("div");
+            rem.className = "m";
+            var rm = [];
+            if (ev.remindMinutes) rm.push("Reminder: " + ev.remindMinutes + " min before");
+            if (ev.remindEmail) rm.push("Email: " + ev.remindEmail);
+            if (ev.remindPhone) rm.push("SMS: " + ev.remindPhone);
+            rem.textContent = rm.length ? rm.join(" • ") : "Reminder: none";
+
+            var actions = document.createElement("div");
+            actions.className = "a";
+
+            var editBtn = document.createElement("button");
+            editBtn.className = "btn btn-secondary";
+            editBtn.type = "button";
+            editBtn.textContent = "Edit";
+            editBtn.onclick = function () {
+              state.editingId = ev.id;
+              calEventTitle.value = ev.title || "";
+              calEventType.value = ev.type || "appointment";
+              calEventDate.value = ev.date || state.selectedDate;
+              calEventTime.value = ev.time || "";
+              calEventNotes.value = ev.notes || "";
+              calRemindMinutes.value = ev.remindMinutes || "";
+              calRemindEmail.value = ev.remindEmail || "";
+              calRemindPhone.value = ev.remindPhone || "";
+              if (calStatus) calStatus.textContent = "Editing event. Make changes and click Save.";
+            };
+
+            var delBtn = document.createElement("button");
+            delBtn.className = "btn btn-secondary";
+            delBtn.type = "button";
+            delBtn.textContent = "Delete";
+            delBtn.onclick = function () {
+              var all = loadEvents();
+              var next = all.filter(function (x) { return x.id !== ev.id; });
+              saveEvents(next);
+              if (state.editingId === ev.id) state.editingId = null;
+              if (calStatus) calStatus.textContent = "Event deleted.";
+              renderCalendar();
+              renderSidePanel();
+            };
+
+            actions.appendChild(editBtn);
+            actions.appendChild(delBtn);
+
+            row.appendChild(title);
+            row.appendChild(meta);
+            row.appendChild(rem);
+            row.appendChild(actions);
+
+            calEventList.appendChild(row);
+          });
+        }
+
+        function clearFormToSelected() {
+          state.editingId = null;
+          calEventTitle.value = "";
+          calEventType.value = "appointment";
+          calEventDate.value = state.selectedDate || ymd(new Date());
+          calEventTime.value = "";
+          calEventNotes.value = "";
+          calRemindMinutes.value = "";
+          calRemindEmail.value = "";
+          calRemindPhone.value = "";
+        }
+
+        if (calClearBtn) calClearBtn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          clearFormToSelected();
+          if (calStatus) calStatus.textContent = "Cleared.";
+        });
+
+        if (calSaveBtn) calSaveBtn.addEventListener("click", function (e) {
+          e.stopPropagation();
+
+          var title = (calEventTitle.value || "").trim();
+          var type = calEventType.value || "appointment";
+          var date = calEventDate.value || state.selectedDate;
+          var time = calEventTime.value || "";
+          var notes = (calEventNotes.value || "").trim();
+          var remindMinutes = calRemindMinutes.value || "";
+          var remindEmail = (calRemindEmail.value || "").trim();
+          var remindPhone = (calRemindPhone.value || "").trim();
+
+          if (!date) { if (calStatus) calStatus.textContent = "Please select a date."; return; }
+
+          var all = loadEvents();
+          var ev = {
+            id: state.editingId || uid(),
+            title: title || "(Untitled)",
+            type: type,
+            date: date,
+            time: time,
+            notes: notes,
+            remindMinutes: remindMinutes,
+            remindEmail: remindEmail,
+            remindPhone: remindPhone,
+            createdAt: Date.now(),
+            lastRemindedAt: null
+          };
+
+          if (state.editingId) {
+            all = all.map(function (x) { return x.id === state.editingId ? ev : x; });
+            if (calStatus) calStatus.textContent = "Saved changes.";
+          } else {
+            all.push(ev);
+            if (calStatus) calStatus.textContent = "Event saved.";
+          }
+
+          saveEvents(all);
+
+          state.selectedDate = date;
+          var parts = date.split("-");
+          state.viewYear = Number(parts[0]);
+          state.viewMonth = Number(parts[1]) - 1;
+          state.editingId = null;
+
+          renderCalendar();
+          renderSidePanel();
+        });
+
+        // Reminder loop (in-browser while page open)
+        function shouldTriggerReminder(ev, now) {
+          if (!ev.remindMinutes) return false;
+          var mins = Number(ev.remindMinutes);
+          if (!isFinite(mins) || mins <= 0) return false;
+
+          var dt = parseLocalDateTime(ev.date, ev.time || "");
+          if (!dt) return false;
+
+          var triggerAt = new Date(dt.getTime() - mins * 60 * 1000);
+          var windowMs = 60 * 1000;
+          var diff = now.getTime() - triggerAt.getTime();
+          if (diff < 0 || diff > windowMs) return false;
+
+          if (ev.lastRemindedAt && (now.getTime() - ev.lastRemindedAt) < 5 * 60 * 1000) return false;
+          return true;
+        }
+
+        function tryBrowserNotify(title, body) {
+          if (!("Notification" in window)) return;
+          if (Notification.permission === "granted") {
+            try { new Notification(title, { body: body }); } catch (e) {}
+          }
+        }
+
+        function reminderTick() {
+          var now = new Date();
+          var all = loadEvents();
+          var changed = false;
+
+          for (var i = 0; i < all.length; i++) {
+            var ev = all[i];
+            if (shouldTriggerReminder(ev, now)) {
+              var msg =
+                (ev.title || "Event") + " (" + ev.type + ") at " + (ev.time || "09:00") + " on " + ev.date +
+                (ev.notes ? (" — " + ev.notes) : "");
+
+              tryBrowserNotify("PDFRealm Reminder", msg);
+              alert("PDFRealm Reminder:\n\n" + msg);
+
+              ev.lastRemindedAt = now.getTime();
+              all[i] = ev;
+              changed = true;
+            }
+          }
+          if (changed) saveEvents(all);
+        }
+        setInterval(reminderTick, 30000);
+
+        (function initCalendarDefaults() {
+          var d = new Date();
+          state.viewYear = d.getFullYear();
+          state.viewMonth = d.getMonth();
+          state.selectedDate = ymd(d);
+          clearFormToSelected();
+        })();
+      })();
+    </script>
+  </body>
+</html>

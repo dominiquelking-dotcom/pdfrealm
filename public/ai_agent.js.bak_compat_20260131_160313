@@ -1,0 +1,458 @@
+(() => {
+  "use strict";
+
+  // PDFRealm AI Operator (public QuickTools)
+  // - Optional document attachment (uploads to /api/ai/upload)
+  // - Run = plan then execute (no separate Plan tab)
+
+  const state = {
+    open: false,
+    running: false,
+    lastPlan: null,
+    uploadId: null,
+    uploadName: null,
+    uploadMime: null,
+    uploadBytes: null,
+  };
+
+  function qs(sel, root = document) { return root.querySelector(sel); }
+
+  function el(tag, attrs = {}, children = []) {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (k === "class") n.className = v;
+      else if (k === "style") n.setAttribute("style", v);
+      else if (k.startsWith("on") && typeof v === "function") n.addEventListener(k.slice(2), v);
+      else if (v === false || v === null || typeof v === "undefined") {
+        // skip
+      } else n.setAttribute(k, String(v));
+    }
+    for (const c of (children || [])) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    return n;
+  }
+
+  function resolveModalEl(modalOrId) {
+    if (!modalOrId) return null;
+    if (typeof modalOrId === "string") return document.getElementById(modalOrId);
+    return modalOrId;
+  }
+
+  function resolveModalId(modalOrId) {
+    if (!modalOrId) return null;
+    if (typeof modalOrId === "string") return modalOrId;
+    return modalOrId.id || null;
+  }
+
+  function openModalCompat(modalOrId) {
+    const id = resolveModalId(modalOrId);
+    const modal = resolveModalEl(modalOrId);
+    if (!modal) return;
+    if (id && typeof window.openModal === "function") {
+      try { window.openModal(id); state.open = true; return; } catch (_) {}
+    }
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+    modal.style.display = modal.style.display || "flex";
+    state.open = true;
+  }
+
+  function closeModalCompat(modalOrId) {
+    const id = resolveModalId(modalOrId);
+    const modal = resolveModalEl(modalOrId);
+    if (!modal) return;
+    if (id && typeof window.closeModal === "function") {
+      try { window.closeModal(id); state.open = false; return; } catch (_) {}
+    }
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+    modal.style.display = "none";
+    state.open = false;
+  }
+
+  function setStatus(txt) {
+    const n = qs("#aiOpStatus");
+    if (n) n.textContent = txt || "";
+  }
+
+  function logLine(msg, kind = "info") {
+    const box = qs("#aiOpLog");
+    if (!box) return;
+    const line = el("div", {
+      class: "aiop-line aiop-" + kind,
+      style: "padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.06); white-space:pre-wrap; word-break:break-word;"
+    }, [String(msg ?? "")]);
+    box.prepend(line);
+  }
+
+  function setAttachUI() {
+    const pill = qs("#aiOpAttachPill");
+    const sub = qs("#aiOpAttachSub");
+    const rm = qs("#aiOpAttachRemove");
+
+    if (!pill || !sub || !rm) return;
+
+    if (state.uploadId) {
+      pill.textContent = "Attached: " + (state.uploadName || state.uploadId);
+      pill.style.display = "inline-flex";
+      sub.textContent = `${state.uploadMime || "file"}${state.uploadBytes ? ` • ${(state.uploadBytes / 1024).toFixed(1)} KB` : ""}`;
+      rm.style.display = "inline-flex";
+    } else {
+      pill.textContent = "No document attached";
+      pill.style.display = "inline-flex";
+      sub.textContent = "Upload a PDF or text file to give the operator context.";
+      rm.style.display = "none";
+    }
+  }
+
+  async function readTextSafe(r) {
+    try { return await r.text(); } catch (_) { return ""; }
+  }
+
+  async function postJSON(url, payload) {
+    const r = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload || {})
+    });
+
+    const ct = (r.headers.get("content-type") || "").toLowerCase();
+    let data = null;
+    if (ct.includes("application/json")) {
+      try { data = await r.json(); } catch (_) { data = null; }
+    }
+    if (data === null) {
+      const t = await readTextSafe(r);
+      data = t ? { text: t } : {};
+    }
+    return { ok: r.ok, status: r.status, data };
+  }
+
+  function normalizePlan(resp) {
+    if (!resp) return null;
+    if (typeof resp === "string") return resp;
+    if (resp.plan) return typeof resp.plan === "string" ? resp.plan : JSON.stringify(resp.plan, null, 2);
+    if (resp.steps) return Array.isArray(resp.steps) ? resp.steps.map((s, i) => `${i + 1}. ${s}`).join("\n") : JSON.stringify(resp.steps, null, 2);
+    if (resp.text) return String(resp.text);
+    if (resp.message) return String(resp.message);
+    return null;
+  }
+
+  function normalizeResult(resp) {
+    if (!resp) return null;
+    if (typeof resp === "string") return resp;
+    for (const k of ["result", "output", "text", "message"]) {
+      if (resp[k]) {
+        if (typeof resp[k] === "string") return resp[k];
+        return JSON.stringify(resp[k], null, 2);
+      }
+    }
+    return JSON.stringify(resp, null, 2);
+  }
+
+  async function pollJob(url) {
+    const start = Date.now();
+    while (Date.now() - start < 45000) {
+      const r = await fetch(url, { method: "GET" });
+      const ct = (r.headers.get("content-type") || "").toLowerCase();
+      let data = null;
+      if (ct.includes("application/json")) {
+        try { data = await r.json(); } catch (_) { data = null; }
+      }
+      if (!data) {
+        const t = await readTextSafe(r);
+        return t || ("Job status HTTP " + r.status);
+      }
+
+      const status = String(data.status || data.state || "").toUpperCase();
+      if (["DONE", "COMPLETED", "SUCCESS", "SUCCEEDED"].includes(status)) {
+        return normalizeResult(data.result || data.output || data) || "(completed)";
+      }
+      if (["ERROR", "FAILED", "FAILURE"].includes(status)) {
+        return "Job failed: " + (data.error || data.message || JSON.stringify(data, null, 2));
+      }
+      await new Promise(res => setTimeout(res, 900));
+    }
+    return "Job poll timed out.";
+  }
+
+  async function uploadDoc(file) {
+    if (!file) return;
+    setStatus("Uploading…");
+    logLine("Uploading: " + (file.name || "document"), "info");
+
+    const fd = new FormData();
+    fd.append("file", file, file.name || "document");
+
+    const r = await fetch("/api/ai/upload", { method: "POST", body: fd });
+    const ct = (r.headers.get("content-type") || "").toLowerCase();
+    let data = null;
+    if (ct.includes("application/json")) {
+      try { data = await r.json(); } catch (_) { data = null; }
+    }
+    if (!data) {
+      const t = await readTextSafe(r);
+      throw new Error(t || ("Upload failed (HTTP " + r.status + ")"));
+    }
+    if (!r.ok || !data.ok) {
+      throw new Error(data.error || data.message || ("Upload failed (HTTP " + r.status + ")"));
+    }
+
+    state.uploadId = data.uploadId || data.id || null;
+    state.uploadName = data.filename || file.name || null;
+    state.uploadMime = data.mime || file.type || null;
+    state.uploadBytes = data.bytes || file.size || null;
+    setAttachUI();
+
+    if (data.extracted && data.textPreview) {
+      logLine("Attached + extracted text preview:\n" + String(data.textPreview).slice(0, 500), "plan");
+    } else {
+      logLine("Attached: " + (state.uploadName || state.uploadId), "info");
+    }
+
+    setStatus("Ready");
+  }
+
+  function clearAttachment() {
+    state.uploadId = null;
+    state.uploadName = null;
+    state.uploadMime = null;
+    state.uploadBytes = null;
+    setAttachUI();
+    logLine("Attachment cleared.", "info");
+  }
+
+  function buildPayload(prompt, planText) {
+    const payload = {
+      input: prompt,
+      prompt,
+      task: prompt,
+      command: prompt,
+    };
+    if (planText) {
+      payload.plan = planText;
+      payload.steps = planText;
+    }
+    if (state.uploadId) {
+      payload.uploadId = state.uploadId;
+      payload.filename = state.uploadName || undefined;
+      payload.mime = state.uploadMime || undefined;
+    }
+    return payload;
+  }
+
+  async function planThenExecute(userText) {
+    const prompt = String(userText || "").trim();
+    if (!prompt) {
+      alert("Type a command first.");
+      return;
+    }
+
+    const runBtn = qs("#aiOpRun");
+    state.running = true;
+    if (runBtn) runBtn.disabled = true;
+
+    try {
+      setStatus("Planning…");
+      logLine("Planning…", "info");
+
+      const planResp = await postJSON("/api/ai/plan", buildPayload(prompt, null));
+      if (!planResp.ok) {
+        const err = planResp.data?.error || planResp.data?.message || planResp.data?.text || ("Plan failed (HTTP " + planResp.status + ")");
+        logLine(err, "error");
+        setStatus("Plan failed");
+        return;
+      }
+
+      const planText = normalizePlan(planResp.data) || "(No plan returned)";
+      state.lastPlan = planText;
+      logLine("PLAN:\n" + planText, "plan");
+
+      setStatus("Running…");
+      logLine("Running…", "info");
+
+      const executeEndpoints = [
+        "/api/ai/execute",
+        "/api/ai/run",
+        "/api/ai/act",
+        "/api/ai/command"
+      ];
+
+      let execOut = null;
+      let lastErr = null;
+
+      for (const ep of executeEndpoints) {
+        const execResp = await postJSON(ep, buildPayload(prompt, planText));
+        if (execResp.status === 404) {
+          lastErr = `Endpoint not found: ${ep}`;
+          continue;
+        }
+        if (!execResp.ok) {
+          lastErr = execResp.data?.error || execResp.data?.message || execResp.data?.text || ("Run failed (HTTP " + execResp.status + ")");
+          break;
+        }
+
+        const d = execResp.data || {};
+        if (d.status_url || d.statusUrl) {
+          execOut = await pollJob(d.status_url || d.statusUrl);
+        } else if (d.job_id || d.jobId || d.id) {
+          const jobId = d.job_id || d.jobId || d.id;
+          execOut = await pollJob(`/api/ai/jobs/${encodeURIComponent(jobId)}`);
+        } else {
+          execOut = normalizeResult(d);
+        }
+
+        if (execOut) break;
+      }
+
+      if (!execOut) {
+        logLine(lastErr || "Run failed.", "error");
+        setStatus("Run failed");
+        return;
+      }
+
+      logLine("RESULT:\n" + execOut, "result");
+      setStatus("Done");
+    } catch (e) {
+      logLine(String(e?.message || e || "Unknown error"), "error");
+      setStatus("Error");
+    } finally {
+      state.running = false;
+      if (runBtn) runBtn.disabled = false;
+    }
+  }
+
+  function ensureUI() {
+    if (qs("#aiOperatorModal")) return;
+
+    const fileInput = el("input", {
+      id: "aiOpFileInput",
+      type: "file",
+      accept: ".pdf,.doc,.docx,.txt,.md,.csv,.json,.png,.jpg,.jpeg,.tif,.tiff,.bmp,.gif,.webp",
+      style: "display:none"
+    });
+
+    const modal = el("div", { id: "aiOperatorModal", class: "modal", "aria-hidden": "true", role: "dialog", "aria-modal": "true" }, [
+      el("div", { class: "modal-card" }, [
+        el("div", { class: "modal-head" }, [
+          el("div", { class: "mh" }, ["AI Operator"]),
+          el("button", { id: "aiOpClose", class: "btn btn-secondary", type: "button" }, ["Close"])
+        ]),
+        el("div", { class: "modal-body" }, [
+          el("div", { style: "color:var(--muted); font-size:0.95rem; margin-bottom:10px;" }, [
+            "Attach a document (optional), type what you want to do, then press Run. It will plan and execute."
+          ]),
+
+          // Attachment card
+          el("div", { class: "card", style: "margin-bottom:12px;" }, [
+            el("div", { style: "display:flex; align-items:center; justify-content:space-between; gap:10px;" }, [
+              el("div", {}, [
+                el("div", { style: "font-weight:700; margin-bottom:4px;" }, ["Document"]),
+                el("div", { id: "aiOpAttachPill", style: "display:inline-flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:999px; padding:6px 10px; background:rgba(255,255,255,0.04); color:var(--text); font-size:0.9rem;" }, ["No document attached"]),
+                el("div", { id: "aiOpAttachSub", style: "color:var(--muted); font-size:0.88rem; margin-top:6px;" }, ["Upload a PDF or text file to give the operator context."])
+              ]),
+              el("div", { style: "display:flex; align-items:center; gap:8px;" }, [
+                el("button", { id: "aiOpAttachBtn", class: "btn btn-secondary", type: "button" }, ["Upload"]),
+                el("button", { id: "aiOpAttachRemove", class: "btn btn-secondary", type: "button", style: "display:none" }, ["Remove"])
+              ])
+            ]),
+            fileInput
+          ]),
+
+          el("textarea", {
+            id: "aiOpInput",
+            rows: "6",
+            placeholder: "Example: Summarize this PDF into bullet points and list any deadlines.\nExample: Extract pages 2-4 and 9 then merge into a new PDF.",
+            style: "width:100%; resize:vertical;"
+          }),
+          el("div", { class: "modal-row", style: "margin-top:12px; gap:10px; display:flex; align-items:center;" }, [
+            el("button", { id: "aiOpRun", class: "btn btn-primary", type: "button" }, ["Run"]),
+            el("div", { id: "aiOpStatus", style: "color:var(--muted); font-size:0.9rem;" }, [""])
+          ]),
+          el("div", { class: "card", style: "margin-top:12px;" }, [
+            el("div", { style: "font-weight:600; margin-bottom:8px;" }, ["Output"]),
+            el("div", { id: "aiOpLog", style: "max-height:300px; overflow:auto; padding-right:6px;" }, [])
+          ])
+        ])
+      ])
+    ]);
+
+    document.body.appendChild(modal);
+
+    // Wire up
+    qs("#aiOpClose").addEventListener("click", () => closeModalCompat("aiOperatorModal"));
+    modal.addEventListener("click", (e) => { if (e.target === modal) closeModalCompat("aiOperatorModal"); });
+
+    qs("#aiOpRun").addEventListener("click", () => planThenExecute(qs("#aiOpInput").value));
+
+    // ENTER to run (Ctrl/Cmd+Enter)
+    qs("#aiOpInput").addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        qs("#aiOpRun").click();
+      }
+    });
+
+    // Attachment handlers
+    qs("#aiOpAttachBtn").addEventListener("click", () => qs("#aiOpFileInput").click());
+    qs("#aiOpAttachRemove").addEventListener("click", () => clearAttachment());
+
+    qs("#aiOpFileInput").addEventListener("change", async () => {
+      const f = qs("#aiOpFileInput").files && qs("#aiOpFileInput").files[0];
+      qs("#aiOpFileInput").value = "";
+      if (!f) return;
+      try {
+        await uploadDoc(f);
+      } catch (e) {
+        logLine(String(e?.message || e || "Upload failed"), "error");
+        setStatus("Upload failed");
+      }
+    });
+
+    setAttachUI();
+
+    // Best-effort cleanup for any old plan tab remnants
+    for (const n of document.querySelectorAll("[data-aiop-tab='plan'], #aiopPlanTab, #aiPlanTab, .aiop-tab-plan")) {
+      try { n.remove(); } catch (_) { n.style.display = "none"; }
+    }
+  }
+
+  function bindNav() {
+    const nav = qs("#aiOperatorNav") || qs("[data-ai-nav='1']");
+    if (nav) {
+      nav.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        ensureUI();
+        openModalCompat("aiOperatorModal");
+      }, true);
+      return;
+    }
+
+    document.addEventListener("click", (e) => {
+      const a = e.target && e.target.closest ? e.target.closest("a[href*='ai=1'], a[href*='aiOperator']") : null;
+      if (!a) return;
+      e.preventDefault();
+      e.stopPropagation();
+      ensureUI();
+      openModalCompat("aiOperatorModal");
+    }, true);
+  }
+
+  function init() {
+    bindNav();
+
+    try {
+      const u = new URL(location.href);
+      if (u.searchParams.get("ai") === "1") {
+        ensureUI();
+        openModalCompat("aiOperatorModal");
+      }
+    } catch (_) {}
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();

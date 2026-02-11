@@ -1,0 +1,1615 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PDFRealm – C-Suite Dashboard</title>
+
+    <link rel="icon" href="data:;base64,=" />
+    <link rel="stylesheet" href="/styles.css" />
+
+    <style>
+      body { margin: 0; overflow-y: auto; }
+      main.wrap { max-width: 100%; margin: 0; padding: 0; }
+
+      /* ===== HEADER (MATCH pricing.html EXACTLY) ===== */
+      .brand-left { display: flex; align-items: center; gap: 14px; }
+      .brand-text { font-weight: 800; letter-spacing: 0.2px; }
+      .brand-divider { width: 1px; align-self: stretch; background: var(--line); margin: 0 10px; opacity: 0.9; }
+      .left-secure-nav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+      .nav-chip {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        opacity: 0.95;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .nav-chip:hover { background: rgba(255, 255, 255, 0.06); }
+
+      .nav-chip-pill {
+        font-size: 0.78rem;
+        color: var(--muted);
+        border-radius: 999px;
+        padding: 3px 8px;
+        border: 1px solid var(--line);
+        background: rgba(0, 0, 0, 0.3);
+      }
+
+      .right-nav-cluster { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+      .top-nav { display: flex; align-items: center; gap: 10px; }
+
+      .nav-link {
+        border-radius: 999px;
+        padding: 8px 14px;
+        border: 1px solid transparent;
+        background: transparent;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--muted);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+      }
+      .nav-link:hover { background: rgba(255, 255, 255, 0.04); color: var(--text); }
+      .nav-link-active { border-color: var(--line); background: rgba(255, 255, 255, 0.04); color: var(--text); }
+
+      .workspace-menu { position: relative; }
+      .workspace-toggle { cursor: pointer; }
+      .workspace-caret { font-size: 0.8rem; opacity: 0.8; }
+
+      .workspace-dropdown {
+        position: absolute;
+        right: 0;
+        top: 100%;
+        margin-top: 8px;
+        background: rgba(15, 22, 36, 0.96);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+        padding: 8px;
+        display: none;
+        flex-direction: column;
+        min-width: 280px;
+        z-index: 80;
+      }
+      .workspace-item {
+        padding: 8px 10px;
+        border-radius: 10px;
+        font-size: 0.92rem;
+        color: var(--muted);
+        text-align: left;
+        border: none;
+        background: transparent;
+        width: 100%;
+        cursor: pointer;
+        text-decoration: none;
+        display: block;
+        white-space: nowrap;
+      }
+      .workspace-item:hover { background: rgba(255, 255, 255, 0.04); color: var(--text); }
+      .workspace-menu.workspace-open .workspace-dropdown { display: flex; }
+
+      @media (max-width: 980px) {
+        .brand-left { flex-wrap: wrap; }
+        .right-nav-cluster { gap: 10px; }
+        .workspace-dropdown { right: auto; left: 0; }
+      }
+
+      /* ===== Digital Clock (C-suite tabs row, far right) ===== */
+      .cs-right-rail {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .clock-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255,255,255,0.04);
+        padding: 6px 10px;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+        white-space: nowrap;
+      }
+      .clock-time {
+        font-weight: 900;
+        letter-spacing: 0.5px;
+        font-variant-numeric: tabular-nums;
+        font-size: 0.95rem;
+      }
+      .clock-tz {
+        color: var(--muted);
+        font-size: 0.82rem;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.10);
+        background: rgba(0,0,0,0.25);
+      }
+      .tz-select {
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.14);
+        background: rgba(12,19,32,.9);
+        color: var(--text);
+        font-size: 0.85rem;
+        outline: none;
+        max-width: 210px;
+      }
+      .tz-select option { color: #000; }
+
+      @media (max-width: 980px) {
+        .cs-right-rail { width: 100%; justify-content: flex-start; }
+        .tz-select { max-width: 100%; }
+      }
+
+      /* ===== C-SUITE ===== */
+      .cs-main { display: flex; flex-direction: column; height: 100%; }
+
+      .cs-header { padding: 16px 18px; border-bottom: 1px solid var(--line); }
+      .cs-header h1 { margin: 0; font-size: 1.3rem; letter-spacing: 0.2px; }
+      .cs-header p { margin: 8px 0 0; color: var(--muted); font-size: 0.98rem; max-width: 980px; }
+
+      .cs-nav{
+        padding: 10px 18px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        background: rgba(255,255,255,.02);
+        flex-wrap: wrap;
+      }
+      .cs-tab { font-size: .95rem; }
+      .cs-tab-active{
+        background: linear-gradient(135deg, rgba(106,168,255,.28), rgba(93,230,194,.12));
+        border-color: rgba(106,168,255,.55);
+        box-shadow: inset 0 0 0 1px rgba(106,168,255,.25);
+      }
+
+      .tools-dropdown { position: relative; }
+      .tools-menu{
+        position: absolute; top: calc(100% + 6px); left: 0; min-width: 260px;
+        background: rgba(12,19,32,.98); border-radius: 14px; border: 1px solid var(--line);
+        box-shadow: var(--shadow); padding: 8px; display: none; z-index: 40;
+      }
+      .tools-menu.open { display: block; }
+      .tools-item{
+        width: 100%; text-align: left; padding: 8px 10px; border-radius: 10px;
+        border: 0; background: transparent; color: var(--text); font-size: .93rem; cursor: pointer;
+      }
+      .tools-item:hover { background: rgba(255,255,255,.06); }
+
+      .cs-content{ padding: 16px 18px 18px; flex: 1; overflow-y: auto; }
+      .cs-view{ display: none; }
+      .cs-view-active{ display: block; }
+
+      .grid-2{ display:grid; grid-template-columns: minmax(0,1.6fr) minmax(0,1fr); gap:14px; }
+      .table-like{ width: 100%; border-collapse: collapse; font-size: .95rem; }
+      .table-like th, .table-like td{ border-bottom: 1px solid var(--line); padding: 8px 6px; text-align: left; }
+      .table-like th{ color: var(--muted); font-weight: 700; font-size: .9rem; }
+
+      .pill-status{
+        display: inline-block; padding: 4px 10px; border-radius: 999px;
+        border: 1px solid var(--line); font-size: .84rem; color: var(--muted);
+      }
+
+      .kpi-row{ display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:10px; }
+      .kpi{
+        border:1px solid var(--line); border-radius:14px; background: rgba(255,255,255,0.03);
+        padding:12px;
+      }
+      .kpi .k{ color: var(--muted); font-size: 0.85rem; }
+      .kpi .v{ font-size: 1.25rem; font-weight: 900; margin-top: 4px; }
+      .hint{ color: var(--muted); font-size: 0.92rem; margin-top: 6px; }
+
+      @media (max-width: 980px) {
+        .grid-2 { grid-template-columns: 1fr; }
+        .kpi-row { grid-template-columns: 1fr; }
+      }
+
+      /* ===== CALENDAR MODAL (Google Calendar style shell) ===== */
+      .cal-modal { display:none; position:fixed; inset:0; z-index:120; }
+      .cal-modal.open { display:block; }
+      .cal-backdrop { position:absolute; inset:0; background: rgba(0,0,0,0.55); }
+      .cal-shell {
+        position:relative;
+        width: min(1100px, calc(100vw - 24px));
+        height: min(720px, calc(100vh - 24px));
+        margin: 12px auto;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: rgba(12,19,32,0.98);
+        box-shadow: var(--shadow);
+        display:flex;
+        flex-direction: column;
+        overflow:hidden;
+      }
+
+      .cal-topbar {
+        display:flex;
+        align-items:center;
+        justify-content: space-between;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255,255,255,0.02);
+        gap: 10px;
+      }
+      .cal-left { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+      .cal-title { font-weight: 900; letter-spacing: 0.2px; }
+      .cal-sub { color: var(--muted); font-size: 0.92rem; }
+
+      .cal-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+
+      .cal-body {
+        display:grid;
+        grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+        gap: 0;
+        height: 100%;
+      }
+
+      .cal-grid-wrap {
+        border-right: 1px solid var(--line);
+        display:flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+
+      .cal-weekdays {
+        display:grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        border-bottom: 1px solid var(--line);
+        background: rgba(255,255,255,0.02);
+      }
+      .cal-weekday {
+        padding: 10px 10px;
+        font-size: 0.86rem;
+        color: var(--muted);
+        border-right: 1px solid rgba(255,255,255,0.06);
+      }
+      .cal-weekday:last-child { border-right: none; }
+
+      .cal-grid {
+        display:grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        grid-auto-rows: 92px;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .cal-day {
+        border-right: 1px solid rgba(255,255,255,0.06);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        padding: 8px 8px;
+        cursor:pointer;
+        background: transparent;
+        min-width: 0;
+      }
+      .cal-day:hover { background: rgba(255,255,255,0.03); }
+      .cal-day:nth-child(7n) { border-right:none; }
+
+      .cal-day-head { display:flex; align-items:center; justify-content: space-between; gap:8px; }
+      .cal-day-num { font-weight: 900; font-size: 0.92rem; }
+      .cal-day-muted { color: rgba(255,255,255,0.35); }
+      .cal-badges { display:flex; gap:6px; align-items:center; }
+
+      .cal-dot {
+        width: 8px; height: 8px; border-radius: 999px;
+        background: rgba(106,168,255,0.9);
+        box-shadow: 0 0 0 2px rgba(106,168,255,0.15);
+      }
+
+      .cal-items { margin-top: 8px; display:flex; flex-direction:column; gap:6px; }
+      .cal-item {
+        border: 1px solid rgba(106,168,255,0.35);
+        background: rgba(106,168,255,0.10);
+        color: var(--text);
+        border-radius: 10px;
+        padding: 6px 8px;
+        font-size: 0.86rem;
+        overflow:hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .cal-item small { color: rgba(255,255,255,0.70); }
+
+      .cal-side {
+        padding: 12px 14px;
+        overflow-y: auto;
+        min-width: 0;
+      }
+
+      .cal-side h3 { margin: 0; font-size: 1.05rem; }
+      .cal-side p { margin: 8px 0 0; color: var(--muted); font-size: 0.92rem; }
+
+      .cal-form { margin-top: 12px; }
+      .cal-form label { display:block; margin-top: 10px; }
+      .cal-form input, .cal-form textarea, .cal-form select { width: 100%; }
+
+      .cal-mini {
+        margin-top: 14px;
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
+      }
+
+      .cal-event-list { margin-top: 10px; }
+      .cal-event-row {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255,255,255,0.03);
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      .cal-event-row .t { font-weight: 900; }
+      .cal-event-row .m { color: var(--muted); font-size: 0.92rem; margin-top: 4px; }
+      .cal-event-row .a { margin-top: 10px; display:flex; gap: 8px; flex-wrap: wrap; }
+
+      @media (max-width: 980px) {
+        .cal-body { grid-template-columns: 1fr; }
+        .cal-grid-wrap { border-right: none; border-bottom: 1px solid var(--line); }
+        .cal-grid { grid-auto-rows: 88px; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- HEADER -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <!-- LEFT -->
+        <div class="brand-left">
+          <div class="brand">
+            <div class="logo"></div>
+            <div class="brand-text">PDFRealm</div>
+          </div>
+
+          <div class="brand-divider"></div>
+
+          <nav class="left-secure-nav" aria-label="Secure">
+            <a href="/vault.html" class="nav-chip">
+              Secure Vault
+              <span class="nav-chip-pill">AES-256</span>
+            </a>
+            <a href="/vault.html#send" class="nav-chip">
+              Secure Send
+              <span class="nav-chip-pill">Expiring links</span>
+            </a>
+          </nav>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="right-nav-cluster">
+          <nav class="top-nav" aria-label="Primary">
+            <a href="/" class="nav-link">Tools</a>
+
+            <div class="workspace-menu" id="industryMenuWrap">
+              <button class="nav-link workspace-toggle nav-link-active" type="button" id="industryToggle">
+                Industry Packs <span class="workspace-caret">▾</span>
+              </button>
+              <div class="workspace-dropdown" id="industryDropdown" role="menu" aria-label="Industry Packs">
+                <a class="workspace-item" role="menuitem" href="/broker.html">Broker TMS Dashboard</a>
+                <a class="workspace-item" role="menuitem" href="/carrier.html">Carrier Dashboard</a>
+                <div style="height:1px; background: rgba(255,255,255,0.10); margin: 8px 10px;"></div>
+                <a class="workspace-item" role="menuitem" href="/legal.html">Legal Workspace</a>
+                <a class="workspace-item" role="menuitem" href="/real-estate.html">Real Estate Dashboard</a>
+                <a class="workspace-item" role="menuitem" href="/accounting.html">Accounting Dashboard</a>
+                <a class="workspace-item" role="menuitem" href="/hr.html">HR Dashboard</a>
+                <a class="workspace-item" role="menuitem" href="/marketing.html">Marketing Dashboard</a>
+                <a class="workspace-item" role="menuitem" href="/csuite.html"><b>C-Suite Dashboard</b></a>
+              </div>
+            </div>
+
+            <a href="/pricing.html" class="nav-link">Pricing</a>
+          </nav>
+
+          <div class="top-actions">
+            <button id="accountLoginBtn" class="btn" type="button" aria-haspopup="dialog" aria-controls="accountModal">
+              <span id="accountDot" class="dot"></span> <span id="accountBtnLabel">Account</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section class="panel cs-main">
+        <div class="cs-header">
+          <h1>C-Suite Dashboard (All-Inclusive)</h1>
+          <p>
+            Premium command center that consolidates Marketing, HR, Accounting, Real Estate, and Legal into a single
+            executive workspace, with governance and reporting.
+          </p>
+        </div>
+
+        <div class="cs-nav">
+          <button class="btn cs-tab cs-tab-active" type="button" data-cs-tab="exec">Executive Overview</button>
+          <button class="btn cs-tab" type="button" data-cs-tab="marketing">Marketing</button>
+          <button class="btn cs-tab" type="button" data-cs-tab="hr">HR</button>
+          <button class="btn cs-tab" type="button" data-cs-tab="accounting">Accounting</button>
+          <button class="btn cs-tab" type="button" data-cs-tab="realestate">Real Estate</button>
+          <button class="btn cs-tab" type="button" data-cs-tab="legal">Legal</button>
+
+          <div class="tools-dropdown">
+            <button class="btn cs-tab" type="button" id="csToolsToggle">PDF Tools ▾</button>
+            <div class="tools-menu" id="csToolsMenu">
+              <button class="tools-item" data-tool-target="studio">PDF Studio</button>
+              <button class="tools-item" data-tool-target="quick">Quick Sign</button>
+              <button class="tools-item" data-tool-target="redact">Redact</button>
+              <button class="tools-item" data-tool-target="bates">Bates</button>
+              <button class="tools-item" data-tool-target="templates">Templates</button>
+              <button class="tools-item" data-tool-target="docs">Invoice / Receipt / Paystub</button>
+              <button class="tools-item" data-tool-target="convert">Convert</button>
+              <button class="tools-item" data-tool-target="compress">Compress</button>
+              <button class="tools-item" data-tool-target="watermark">Watermark</button>
+              <button class="tools-item" data-tool-target="metadata">Metadata</button>
+              <button class="tools-item" data-tool-target="flatten">Flatten</button>
+            </div>
+          </div>
+
+          <button class="btn cs-tab" type="button" id="csCalendarBtn">Calendar</button>
+
+          <button class="btn cs-tab" type="button" data-cs-tab="admin">Admin / Governance</button>
+
+          <!-- RIGHT SIDE (same row as tabs) -->
+          <div class="cs-right-rail">
+            <div class="clock-wrap" title="Real-time clock (select timezone)">
+              <div class="clock-time" id="liveClock">--:--:--</div>
+              <div class="clock-tz" id="liveClockTz">Local</div>
+              <select class="tz-select" id="tzSelect" aria-label="Timezone"></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="cs-content">
+          <!-- Executive Overview -->
+          <div class="cs-view cs-view-active" data-cs-view="exec">
+            <div class="grid-2">
+              <div class="card">
+                <h3 class="h3">Executive KPIs</h3>
+                <div class="kpi-row" style="margin-top:10px;">
+                  <div class="kpi"><div class="k">MRR</div><div class="v">$9,420</div></div>
+                  <div class="kpi"><div class="k">Pipeline</div><div class="v">$38,000</div></div>
+                  <div class="kpi"><div class="k">Open AR</div><div class="v">$4,980</div></div>
+                  <div class="kpi"><div class="k">Headcount</div><div class="v">7</div></div>
+                </div>
+                <p class="hint">Later: tie these to Accounting ledger, CRM, and Marketing attribution.</p>
+
+                <h3 class="h3" style="margin-top:16px;">Executive Feed</h3>
+                <table class="table-like" style="margin-top:6px;">
+                  <thead>
+                    <tr><th>When</th><th>Area</th><th>Event</th><th>Status</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Today</td><td>Legal</td><td>Contract uploaded for signature</td><td><span class="pill-status">Review</span></td></tr>
+                    <tr><td>Yesterday</td><td>Marketing</td><td>Meta campaign CPL improved 12%</td><td><span class="pill-status">Noted</span></td></tr>
+                    <tr><td>This week</td><td>HR</td><td>New hire packet ready</td><td><span class="pill-status">Ready</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="card">
+                <h3 class="h3">One-Click Executive Report</h3>
+                <p class="hint">Assemble an executive PDF using templates, then deliver via Secure Send.</p>
+
+                <label for="exTitle">Report title</label>
+                <input id="exTitle" type="text" placeholder="Weekly Executive Summary" />
+
+                <label for="exPeriod">Period</label>
+                <input id="exPeriod" type="text" placeholder="Last 7 days" />
+
+                <label for="exNotes">Notes</label>
+                <textarea id="exNotes" rows="3"></textarea>
+
+                <div class="tool-actions">
+                  <button class="btn btn-primary" type="button" onclick="window.open('/?tool=templates','_blank','noopener')">Open Templates</button>
+                  <button class="btn btn-secondary" type="button" onclick="window.open('/?tool=studio','_blank','noopener')">Open PDF Studio</button>
+                </div>
+
+                <h3 class="h3" style="margin-top:16px;">Calendar</h3>
+                <p class="hint">Use Calendar to schedule exec reviews, deadlines, board calls, renewals, and reminders.</p>
+                <div class="tool-actions">
+                  <button class="btn btn-primary" type="button" id="openCalendarFromExec">Open Calendar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Marketing -->
+          <div class="cs-view" data-cs-view="marketing">
+            <div class="grid-2">
+              <div class="card">
+                <h3 class="h3">Marketing (All-inclusive)</h3>
+                <table class="table-like" style="margin-top:6px;">
+                  <thead>
+                    <tr><th>Campaign</th><th>Channel</th><th>Spend</th><th>Status</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Freight Leads – Search</td><td>Google Ads</td><td>$120/day</td><td><span class="pill-status">Active</span></td></tr>
+                    <tr><td>Brand Retargeting</td><td>Meta</td><td>$60/day</td><td><span class="pill-status">Active</span></td></tr>
+                  </tbody>
+                </table>
+
+                <h3 class="h3" style="margin-top:16px;">Integrations</h3>
+                <table class="table-like" style="margin-top:6px;">
+                  <thead><tr><th>Provider</th><th>Use</th><th>Status</th></tr></thead>
+                  <tbody>
+                    <tr><td>Google Ads</td><td>Spend + conversions</td><td><span class="pill-status">Not connected</span></td></tr>
+                    <tr><td>YouTube</td><td>Channel analytics</td><td><span class="pill-status">Not connected</span></td></tr>
+                    <tr><td>Meta</td><td>Ads + leads</td><td><span class="pill-status">Not connected</span></td></tr>
+                    <tr><td>GA4</td><td>Traffic + events</td><td><span class="pill-status">Not connected</span></td></tr>
+                    <tr><td>Search Console</td><td>SEO queries</td><td><span class="pill-status">Not connected</span></td></tr>
+                    <tr><td>Canva</td><td>Creative</td><td><span class="pill-status">Not connected</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="card">
+                <h3 class="h3">Campaign Builder</h3>
+                <label for="csMktName">Name</label>
+                <input id="csMktName" type="text" />
+                <label for="csMktChannel">Channel</label>
+                <select id="csMktChannel">
+                  <option>Google Ads</option><option>Meta</option><option>YouTube</option><option>LinkedIn</option><option>TikTok</option><option>Email</option>
+                </select>
+                <label for="csMktBudget">Budget</label>
+                <input id="csMktBudget" type="text" placeholder="$ / day" />
+                <label for="csMktGoal">Goal</label>
+                <select id="csMktGoal">
+                  <option>Lead Gen</option><option>Traffic</option><option>Awareness</option><option>Retargeting</option><option>Conversions</option>
+                </select>
+                <label for="csMktNotes">Notes</label>
+                <textarea id="csMktNotes" rows="3"></textarea>
+                <div class="tool-actions">
+                  <button class="btn btn-primary" type="button">Save (stub)</button>
+                  <button class="btn btn-secondary" type="button" onclick="window.open('https://www.canva.com/','_blank','noopener')">Open Canva</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- HR -->
+          <div class="cs-view" data-cs-view="hr">
+            <div class="grid-2">
+              <div class="card">
+                <h3 class="h3">HR / People Ops</h3>
+                <table class="table-like" style="margin-top:6px;">
+                  <thead><tr><th>Name</th><th>Role</th><th>Status</th><th>Start</th></tr></thead>
+                  <tbody>
+                    <tr><td>Jane Dispatcher</td><td>Dispatcher</td><td><span class="pill-status">Active</span></td><td>2024-06-01</td></tr>
+                  </tbody>
+                </table>
+
+                <h3 class="h3" style="margin-top:16px;">Policies</h3>
+                <table class="table-like" style="margin-top:6px;">
+                  <thead><tr><th>Policy</th><th>Version</th><th>Effective</th><th>Storage</th></tr></thead>
+                  <tbody>
+                    <tr><td>Driver Handbook</td><td>v1.2</td><td>2025-10-01</td><td>Secure Vault (future)</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="card">
+                <h3 class="h3">Onboarding Packet</h3>
+                <label for="csHrEmp">Employee</label>
+                <input id="csHrEmp" type="text" />
+                <label for="csHrRole">Role</label>
+                <input id="csHrRole" type="text" />
+                <div class="tool-actions">
+                  <button class="btn btn-primary" type="button" onclick="window.open('/?tool=templates','_blank','noopener')">Open Templates</button>
+                  <button class="btn btn-secondary" type="button" onclick="window.open('/?tool=quick','_blank','noopener')">Open Quick Sign</button>
+                </div>
+                <p class="hint">Later: merge templates → sign → store in Secure Vault.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Accounting -->
+          <div class="cs-view" data-cs-view="accounting">
+            <div class="grid-2">
+              <div class="card">
+                <h3 class="h3">Accounting & Finance</h3>
+                <table class="table-like" style="margin-top:6px;">
+                  <thead><tr><th>Client</th><th>Type</th><th>Open balance</th><th>Status</th></tr></thead>
+                  <tbody>
+                    <tr><td>Example Carrier LLC</td><td>Carrier</td><td>$1,250.00</td><td><span class="pill-status">Active</span></td></tr>
+                  </tbody>
+                </table>
+
+                <h3 class="h3" style="margin-top:16px;">Invoices</h3>
+                <table class="table-like" style="margin-top:6px;">
+                  <thead><tr><th>#</th><th>Client</th><th>Amount</th><th>Status</th></tr></thead>
+                  <tbody>
+                    <tr><td>INV-1001</td><td>Example Carrier LLC</td><td>$1,250.00</td><td><span class="pill-status">Open</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="card">
+                <h3 class="h3">Generate Documents</h3>
+                <p class="hint">Open the generator tools in a new tab.</p>
+                <div class="tool-actions">
+                  <button class="btn btn-primary" type="button" onclick="window.open('/?tool=docs','_blank','noopener')">Open Docs Generator</button>
+                  <button class="btn btn-secondary" type="button" onclick="window.open('/?tool=studio','_blank','noopener')">Open PDF Studio</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Real Estate -->
+          <div class="cs-view" data-cs-view="realestate">
+            <div class="grid-2">
+              <div class="card">
+                <h3 class="h3">Real Estate Transactions</h3>
+                <table class="table-like" style="margin-top:6px;">
+                  <thead><tr><th>Property</th><th>Client</th><th>Stage</th><th>Close</th></tr></thead>
+                  <tbody>
+                    <tr><td>123 Main St</td><td>John Buyer</td><td><span class="pill-status">Under contract</span></td><td>2026-02-15</td></tr>
+                  </tbody>
+                </table>
+
+                <h3 class="h3" style="margin-top:16px;">Docs</h3>
+                <table class="table-like" style="margin-top:6px;">
+                  <thead><tr><th>Deal</th><th>Type</th><th>Status</th><th>Storage</th></tr></thead>
+                  <tbody>
+                    <tr><td>123 Main St</td><td>Purchase Agreement</td><td><span class="pill-status">Signed</span></td><td>Secure Vault (future)</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="card">
+                <h3 class="h3">Upload / Prepare Deal Packet</h3>
+                <label for="csReDeal">Deal</label>
+                <input id="csReDeal" type="text" placeholder="123 Main St" />
+                <label for="csReKind">Document type</label>
+                <select id="csReKind">
+                  <option>Listing Agreement</option><option>Offer</option><option>Purchase Agreement</option><option>Disclosure</option><option>Other</option>
+                </select>
+                <label for="csReFile">Upload PDF</label>
+                <input id="csReFile" type="file" />
+                <div class="tool-actions">
+                  <button class="btn btn-primary" type="button">Upload (stub)</button>
+                  <button class="btn btn-secondary" type="button" onclick="window.open('/?tool=quick','_blank','noopener')">Open Quick Sign</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Legal -->
+          <div class="cs-view" data-cs-view="legal">
+            <div class="grid-2">
+              <div class="card">
+                <h3 class="h3">Legal & Contracts</h3>
+                <table class="table-like" style="margin-top:6px;">
+                  <thead><tr><th>Matter</th><th>Client</th><th>Status</th><th>Next date</th></tr></thead>
+                  <tbody>
+                    <tr><td>MTR-001 – Trucking Contract Dispute</td><td>Logistics Co A</td><td><span class="pill-status">Open</span></td><td>2026-01-15</td></tr>
+                  </tbody>
+                </table>
+
+                <h3 class="h3" style="margin-top:16px;">Contract Repository</h3>
+                <table class="table-like" style="margin-top:6px;">
+                  <thead><tr><th>Title</th><th>Counterparty</th><th>Type</th><th>Status</th></tr></thead>
+                  <tbody>
+                    <tr><td>Master Carrier Agreement</td><td>Carrier XYZ</td><td>MSA</td><td><span class="pill-status">Executed</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="card">
+                <h3 class="h3">Prepare Legal Packet</h3>
+                <label for="csLTitle">Title</label>
+                <input id="csLTitle" type="text" placeholder="NDA / MSA / Addendum..." />
+                <label for="csLMatter">Matter</label>
+                <input id="csLMatter" type="text" placeholder="MTR-001" />
+                <label for="csLFile">Upload PDF</label>
+                <input id="csLFile" type="file" />
+                <div class="tool-actions">
+                  <button class="btn btn-primary" type="button">Upload (stub)</button>
+                  <button class="btn btn-secondary" type="button" onclick="window.open('/?tool=redact','_blank','noopener')">Open Redact</button>
+                </div>
+                <p class="hint">Later: route into Secure Vault → redact/bates → sign → audit.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Admin / Governance -->
+          <div class="cs-view" data-cs-view="admin">
+            <div class="grid-2">
+              <div class="card">
+                <h3 class="h3">Governance</h3>
+                <table class="table-like" style="margin-top:6px;">
+                  <thead><tr><th>Control</th><th>Description</th><th>Status</th></tr></thead>
+                  <tbody>
+                    <tr><td>RBAC</td><td>Role-based access across workspaces</td><td><span class="pill-status">Planned</span></td></tr>
+                    <tr><td>Audit Logs</td><td>Immutable activity trail for tools + documents</td><td><span class="pill-status">Planned</span></td></tr>
+                    <tr><td>Secure Vault</td><td>Encrypted storage + containers</td><td><span class="pill-status">In progress</span></td></tr>
+                    <tr><td>API Keys</td><td>Programmatic access for enterprise</td><td><span class="pill-status">Planned</span></td></tr>
+                  </tbody>
+                </table>
+
+                <h3 class="h3" style="margin-top:16px;">Workspace Directory</h3>
+                <table class="table-like" style="margin-top:6px;">
+                  <thead><tr><th>Workspace</th><th>Owner</th><th>Seats</th><th>Tier</th></tr></thead>
+                  <tbody>
+                    <tr><td>C-Suite</td><td>Admin</td><td>10</td><td><span class="pill-status">Premium</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="card">
+                <h3 class="h3">Admin Actions</h3>
+                <label for="admUser">User</label>
+                <input id="admUser" type="text" placeholder="user@example.com" />
+                <label for="admRole">Role</label>
+                <select id="admRole">
+                  <option>Owner</option>
+                  <option>Admin</option>
+                  <option>Manager</option>
+                  <option>Member</option>
+                  <option>Read-only</option>
+                </select>
+                <label for="admNotes">Notes</label>
+                <textarea id="admNotes" rows="3"></textarea>
+                <div class="tool-actions">
+                  <button class="btn btn-primary" type="button">Invite / Update (stub)</button>
+                  <button class="btn btn-secondary" type="button">Export Audit (stub)</button>
+                </div>
+                <p class="hint">Later: integrate billing, seat management, and compliance exports.</p>
+              </div>
+            </div>
+          </div>
+        </div><!-- /cs-content -->
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div>© <span id="year"></span> PDFRealm. All rights reserved.</div>
+    </footer>
+
+    <!-- ===== CALENDAR MODAL ===== -->
+    <div id="calendarModal" class="cal-modal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="cal-backdrop" id="calendarBackdrop"></div>
+
+      <div class="cal-shell">
+        <div class="cal-topbar">
+          <div class="cal-left">
+            <div class="cal-title">Calendar</div>
+            <div class="cal-sub" id="calMonthLabel">—</div>
+          </div>
+          <div class="cal-actions">
+            <button class="btn btn-secondary" type="button" id="calPrevBtn">◀</button>
+            <button class="btn btn-secondary" type="button" id="calTodayBtn">Today</button>
+            <button class="btn btn-secondary" type="button" id="calNextBtn">▶</button>
+            <button class="btn btn-primary" type="button" id="calNewBtn">New Event</button>
+            <button class="btn btn-secondary" type="button" id="calCloseBtn">Close</button>
+          </div>
+        </div>
+
+        <div class="cal-body">
+          <div class="cal-grid-wrap">
+            <div class="cal-weekdays">
+              <div class="cal-weekday">Sun</div>
+              <div class="cal-weekday">Mon</div>
+              <div class="cal-weekday">Tue</div>
+              <div class="cal-weekday">Wed</div>
+              <div class="cal-weekday">Thu</div>
+              <div class="cal-weekday">Fri</div>
+              <div class="cal-weekday">Sat</div>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+          </div>
+
+          <div class="cal-side">
+            <h3 id="calSideTitle">Selected day</h3>
+            <p id="calSideSub">Click a day to view events and add notes/appointments.</p>
+
+            <div class="cal-form">
+              <label for="calEventTitle">Title</label>
+              <input id="calEventTitle" type="text" placeholder="Board call / renewal / deadline..." />
+
+              <label for="calEventType">Type</label>
+              <select id="calEventType">
+                <option value="appointment">Appointment</option>
+                <option value="deadline">Deadline</option>
+                <option value="reminder">Reminder</option>
+                <option value="note">Note</option>
+              </select>
+
+              <label for="calEventDate">Date</label>
+              <input id="calEventDate" type="date" />
+
+              <label for="calEventTime">Time (optional)</label>
+              <input id="calEventTime" type="time" />
+
+              <label for="calEventNotes">Notes</label>
+              <textarea id="calEventNotes" rows="3" placeholder="Add details, link, agenda, call-in, etc."></textarea>
+
+              <div class="cal-mini">
+                <h3 style="margin:0; font-size:1.02rem;">Reminders</h3>
+                <p class="hint" style="margin-top:6px;">
+                  This frontend supports in-browser reminders while the page is open. Email/SMS sending will be wired
+                  to the backend later.
+                </p>
+
+                <label for="calRemindMinutes">Remind me (minutes before)</label>
+                <select id="calRemindMinutes">
+                  <option value="">None</option>
+                  <option value="5">5 minutes</option>
+                  <option value="10">10 minutes</option>
+                  <option value="15">15 minutes</option>
+                  <option value="30">30 minutes</option>
+                  <option value="60">60 minutes</option>
+                  <option value="1440">1 day</option>
+                </select>
+
+                <label for="calRemindEmail">Email (optional)</label>
+                <input id="calRemindEmail" type="email" placeholder="you@example.com" />
+
+                <label for="calRemindPhone">Text/SMS number (optional)</label>
+                <input id="calRemindPhone" type="text" placeholder="+15551234567" />
+
+                <div class="tool-actions" style="margin-top: 12px;">
+                  <button class="btn btn-primary" type="button" id="calSaveBtn">Save</button>
+                  <button class="btn btn-secondary" type="button" id="calClearBtn">Clear</button>
+                </div>
+
+                <div id="calStatus" style="margin-top:10px; color: var(--muted); font-size: 0.95rem;"></div>
+              </div>
+            </div>
+
+            <div class="cal-event-list">
+              <h3 style="margin-top:16px; font-size: 1.02rem;">Events on this day</h3>
+              <div id="calEventList"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Modal -->
+    <div id="accountModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div class="mh">Account</div>
+          <button id="accountModalClose" class="btn btn-secondary" type="button">Close</button>
+        </div>
+        <div class="modal-body">
+          <div class="card">
+            <label for="loginEmail">Email</label>
+            <input id="loginEmail" type="email" placeholder="you@example.com" />
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" type="password" placeholder="••••••••" />
+            <div class="modal-row">
+              <button id="loginSubmitBtn" class="btn btn-primary" type="button">Login</button>
+              <button id="logoutBtn" class="btn btn-secondary" type="button">Logout</button>
+              <button id="subscribeMonthlyBtn" class="btn btn-secondary" type="button">Subscribe (stub)</button>
+              <button id="subscribeYearlyBtn" class="btn btn-secondary" type="button">Subscribe (stub)</button>
+            </div>
+            <div id="loginStatus" style="margin-top:10px; color: var(--muted); font-size: 0.95rem;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        // Footer year
+        var yearEl = document.getElementById("year");
+        if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+        // ========= Account modal (shared conventions) =========
+        var accountModal = document.getElementById("accountModal");
+        var accountLoginBtn = document.getElementById("accountLoginBtn");
+        var accountModalClose = document.getElementById("accountModalClose");
+        var loginSubmitBtn = document.getElementById("loginSubmitBtn");
+        var logoutBtn = document.getElementById("logoutBtn");
+        var loginEmail = document.getElementById("loginEmail");
+        var loginPassword = document.getElementById("loginPassword");
+        var loginStatus = document.getElementById("loginStatus");
+        var accountDot = document.getElementById("accountDot");
+        var accountBtnLabel = document.getElementById("accountBtnLabel");
+        var subscribeMonthlyBtn = document.getElementById("subscribeMonthlyBtn");
+        var subscribeYearlyBtn = document.getElementById("subscribeYearlyBtn");
+
+        function openAccountModal() {
+          if (!accountModal) return;
+          accountModal.classList.add("open");
+          accountModal.setAttribute("aria-hidden", "false");
+        }
+        function closeAccountModal() {
+          if (!accountModal) return;
+          accountModal.classList.remove("open");
+          accountModal.setAttribute("aria-hidden", "true");
+        }
+
+        if (accountLoginBtn) accountLoginBtn.addEventListener("click", function () { openAccountModal(); });
+        if (accountModalClose) accountModalClose.addEventListener("click", function () { closeAccountModal(); });
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && accountModal && accountModal.classList.contains("open")) closeAccountModal();
+        });
+
+        async function api(path, opts) {
+          var res = await fetch(path, Object.assign({ credentials: "include" }, opts || {}));
+          var ct = res.headers.get("content-type") || "";
+          var data = null;
+          try { data = ct.includes("application/json") ? await res.json() : await res.text(); } catch (e) {}
+          return { ok: res.ok, status: res.status, data: data };
+        }
+
+        function setAccountState(isAuthed, label) {
+          if (accountDot) accountDot.style.opacity = isAuthed ? "1" : "0.35";
+          if (accountBtnLabel) accountBtnLabel.textContent = label || (isAuthed ? "Account" : "Account");
+        }
+
+        async function refreshMe() {
+          var out = await api("/api/me", { method: "GET" });
+          if (out.ok && out.data) {
+            var email = out.data.email || out.data.user?.email || "";
+            if (loginStatus) loginStatus.textContent = email ? ("Signed in as " + email) : "Signed in.";
+            setAccountState(true, "Account");
+            return;
+          }
+          if (loginStatus) loginStatus.textContent = "Not signed in.";
+          setAccountState(false, "Account");
+        }
+
+        if (loginSubmitBtn) loginSubmitBtn.addEventListener("click", async function () {
+          if (!loginEmail || !loginPassword) return;
+          var email = (loginEmail.value || "").trim();
+          var password = (loginPassword.value || "").trim();
+          if (!email || !password) {
+            if (loginStatus) loginStatus.textContent = "Enter email and password.";
+            return;
+          }
+          if (loginStatus) loginStatus.textContent = "Signing in…";
+
+          var out = await api("/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email, password: password })
+          });
+
+          if (out.ok) {
+            if (loginStatus) loginStatus.textContent = "Signed in.";
+            await refreshMe();
+            return;
+          }
+          if (loginStatus) loginStatus.textContent = "Login failed (" + out.status + ").";
+          setAccountState(false);
+        });
+
+        if (logoutBtn) logoutBtn.addEventListener("click", async function () {
+          if (loginStatus) loginStatus.textContent = "Signing out…";
+          await api("/api/logout", { method: "POST" });
+          await refreshMe();
+        });
+
+        if (subscribeMonthlyBtn) subscribeMonthlyBtn.addEventListener("click", function () {
+          window.location.href = "/pricing.html";
+        });
+        if (subscribeYearlyBtn) subscribeYearlyBtn.addEventListener("click", function () {
+          window.location.href = "/pricing.html";
+        });
+
+        refreshMe().catch(function(){});
+
+        // ========== Digital Clock w/ Timezone ==========
+        var CLOCK_TZ_KEY = "pdfrealm.csuite.clock.timezone.v1";
+        var liveClock = document.getElementById("liveClock");
+        var liveClockTz = document.getElementById("liveClockTz");
+        var tzSelect = document.getElementById("tzSelect");
+
+        var TZ_LIST = [
+          "local",
+          "UTC",
+          "America/New_York",
+          "America/Chicago",
+          "America/Denver",
+          "America/Los_Angeles",
+          "America/Phoenix",
+          "America/Anchorage",
+          "Pacific/Honolulu",
+          "America/Indianapolis",
+          "America/Kentucky/Louisville",
+          "Europe/London",
+          "Europe/Paris",
+          "Europe/Berlin",
+          "Asia/Dubai",
+          "Asia/Kolkata",
+          "Asia/Singapore",
+          "Asia/Tokyo",
+          "Australia/Sydney"
+        ];
+
+        function getSavedTz() {
+          try {
+            var v = localStorage.getItem(CLOCK_TZ_KEY);
+            if (v && TZ_LIST.indexOf(v) !== -1) return v;
+            return "local";
+          } catch (e) { return "local"; }
+        }
+        function setSavedTz(tz) { try { localStorage.setItem(CLOCK_TZ_KEY, tz); } catch (e) {} }
+        function buildTzOptions() {
+          if (!tzSelect) return;
+          tzSelect.innerHTML = "";
+          TZ_LIST.forEach(function (tz) {
+            var opt = document.createElement("option");
+            opt.value = tz;
+            opt.textContent = (tz === "local") ? "Local" : tz;
+            tzSelect.appendChild(opt);
+          });
+        }
+        function formatTimeForTz(dateObj, tz) {
+          var useLocal = (tz === "local");
+          try {
+            if (useLocal) {
+              return new Intl.DateTimeFormat(undefined, {
+                hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true
+              }).format(dateObj);
+            }
+            return new Intl.DateTimeFormat(undefined, {
+              timeZone: tz, hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true
+            }).format(dateObj);
+          } catch (e) {
+            var h = dateObj.getHours();
+            var m = dateObj.getMinutes();
+            var s = dateObj.getSeconds();
+            var ampm = h >= 12 ? "PM" : "AM";
+            h = h % 12; if (h === 0) h = 12;
+            function p2(n){ return String(n).padStart(2,"0"); }
+            return p2(h) + ":" + p2(m) + ":" + p2(s) + " " + ampm;
+          }
+        }
+        function startClock() {
+          if (!liveClock || !liveClockTz || !tzSelect) return;
+          buildTzOptions();
+          var tz = getSavedTz();
+          tzSelect.value = tz;
+          liveClockTz.textContent = (tz === "local") ? "Local" : tz;
+
+          function tick() {
+            var now = new Date();
+            var currentTz = tzSelect.value || "local";
+            liveClock.textContent = formatTimeForTz(now, currentTz);
+            liveClockTz.textContent = (currentTz === "local") ? "Local" : currentTz;
+          }
+          tick();
+          setInterval(tick, 1000);
+
+          tzSelect.addEventListener("change", function () {
+            var v = tzSelect.value || "local";
+            setSavedTz(v);
+            liveClockTz.textContent = (v === "local") ? "Local" : v;
+            liveClock.textContent = formatTimeForTz(new Date(), v);
+          });
+        }
+        startClock();
+
+        // ========== C-suite tabs ==========
+        function setTab(tab) {
+          document.querySelectorAll("[data-cs-tab]").forEach(function (b) {
+            b.classList.toggle("cs-tab-active", b.getAttribute("data-cs-tab") === tab);
+          });
+          document.querySelectorAll("[data-cs-view]").forEach(function (v) {
+            v.classList.toggle("cs-view-active", v.getAttribute("data-cs-view") === tab);
+          });
+        }
+        document.addEventListener("click", function (e) {
+          var tb = e.target.closest("[data-cs-tab]");
+          if (tb) setTab(tb.getAttribute("data-cs-tab"));
+        });
+
+        // Tools dropdown
+        var tToggle = document.getElementById("csToolsToggle");
+        var tMenu = document.getElementById("csToolsMenu");
+        if (tToggle && tMenu) {
+          tToggle.addEventListener("click", function (e) {
+            e.stopPropagation();
+            tMenu.classList.toggle("open");
+          });
+          document.addEventListener("click", function () { tMenu.classList.remove("open"); });
+          tMenu.addEventListener("click", function (e) {
+            var item = e.target.closest(".tools-item");
+            if (!item) return;
+            var tool = item.getAttribute("data-tool-target") || "";
+            var url = tool ? "/?tool=" + encodeURIComponent(tool) : "/";
+            window.open(url, "_blank", "noopener");
+            tMenu.classList.remove("open");
+          });
+        }
+
+        // Industry Packs dropdown (pricing.html style)
+        (function () {
+          var wrap = document.getElementById("industryMenuWrap");
+          var toggle = document.getElementById("industryToggle");
+          if (!wrap || !toggle) return;
+
+          toggle.addEventListener("click", function (e) {
+            e.stopPropagation();
+            wrap.classList.toggle("workspace-open");
+          });
+
+          document.addEventListener("click", function () {
+            wrap.classList.remove("workspace-open");
+          });
+        })();
+
+        // ========= Calendar (localStorage + in-browser reminders) =========
+        var CAL_KEY = "pdfrealm.csuite.calendar.v1";
+
+        function pad2(n) { return String(n).padStart(2, "0"); }
+        function ymd(d) { return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
+
+        function parseLocalDateTime(dateStr, timeStr) {
+          if (!dateStr) return null;
+          var parts = dateStr.split("-");
+          var y = Number(parts[0]), m = Number(parts[1]) - 1, day = Number(parts[2]);
+          var hh = 9, mm = 0;
+          if (timeStr) {
+            var t = timeStr.split(":");
+            hh = Number(t[0] || 0);
+            mm = Number(t[1] || 0);
+          }
+          return new Date(y, m, day, hh, mm, 0, 0);
+        }
+        function uid() { return "evt_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16); }
+
+        function loadEvents() {
+          try {
+            var raw = localStorage.getItem(CAL_KEY);
+            if (!raw) return [];
+            var arr = JSON.parse(raw);
+            if (!Array.isArray(arr)) return [];
+            return arr;
+          } catch (e) { return []; }
+        }
+        function saveEvents(events) { localStorage.setItem(CAL_KEY, JSON.stringify(events || [])); }
+        function eventOccursOn(evt, dateStr) { return evt && evt.date === dateStr; }
+
+        var calModal = document.getElementById("calendarModal");
+        var calBackdrop = document.getElementById("calendarBackdrop");
+        var calCloseBtn = document.getElementById("calCloseBtn");
+        var calGrid = document.getElementById("calGrid");
+        var calMonthLabel = document.getElementById("calMonthLabel");
+        var calPrevBtn = document.getElementById("calPrevBtn");
+        var calNextBtn = document.getElementById("calNextBtn");
+        var calTodayBtn = document.getElementById("calTodayBtn");
+        var calNewBtn = document.getElementById("calNewBtn");
+
+        var calSideTitle = document.getElementById("calSideTitle");
+        var calSideSub = document.getElementById("calSideSub");
+        var calEventList = document.getElementById("calEventList");
+
+        var calEventTitle = document.getElementById("calEventTitle");
+        var calEventType = document.getElementById("calEventType");
+        var calEventDate = document.getElementById("calEventDate");
+        var calEventTime = document.getElementById("calEventTime");
+        var calEventNotes = document.getElementById("calEventNotes");
+
+        var calRemindMinutes = document.getElementById("calRemindMinutes");
+        var calRemindEmail = document.getElementById("calRemindEmail");
+        var calRemindPhone = document.getElementById("calRemindPhone");
+
+        var calSaveBtn = document.getElementById("calSaveBtn");
+        var calClearBtn = document.getElementById("calClearBtn");
+        var calStatus = document.getElementById("calStatus");
+
+        var csCalendarBtn = document.getElementById("csCalendarBtn");
+        var openCalendarFromExec = document.getElementById("openCalendarFromExec");
+
+        var state = {
+          viewYear: new Date().getFullYear(),
+          viewMonth: new Date().getMonth(),
+          selectedDate: ymd(new Date()),
+          editingId: null
+        };
+
+        function ensureNotifyPermission() {
+          if (!("Notification" in window)) return;
+          if (Notification.permission === "default") {
+            try { Notification.requestPermission(); } catch (e) {}
+          }
+        }
+
+        function openCalendar() {
+          if (!calModal) return;
+          ensureNotifyPermission();
+          calModal.classList.add("open");
+          calModal.setAttribute("aria-hidden", "false");
+          document.body.style.overflow = "hidden";
+          selectDate(state.selectedDate, { silent: true });
+          renderCalendar();
+          renderSidePanel();
+        }
+        function closeCalendar() {
+          if (!calModal) return;
+          calModal.classList.remove("open");
+          calModal.setAttribute("aria-hidden", "true");
+          document.body.style.overflow = "";
+          if (calStatus) calStatus.textContent = "";
+        }
+
+        if (csCalendarBtn) csCalendarBtn.addEventListener("click", openCalendar);
+        if (openCalendarFromExec) openCalendarFromExec.addEventListener("click", openCalendar);
+        if (calBackdrop) calBackdrop.addEventListener("click", closeCalendar);
+        if (calCloseBtn) calCloseBtn.addEventListener("click", closeCalendar);
+
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && calModal && calModal.classList.contains("open")) closeCalendar();
+        });
+
+        if (calPrevBtn) calPrevBtn.addEventListener("click", function () {
+          state.viewMonth -= 1;
+          if (state.viewMonth < 0) { state.viewMonth = 11; state.viewYear -= 1; }
+          renderCalendar();
+        });
+
+        if (calNextBtn) calNextBtn.addEventListener("click", function () {
+          state.viewMonth += 1;
+          if (state.viewMonth > 11) { state.viewMonth = 0; state.viewYear += 1; }
+          renderCalendar();
+        });
+
+        if (calTodayBtn) calTodayBtn.addEventListener("click", function () {
+          var d = new Date();
+          state.viewYear = d.getFullYear();
+          state.viewMonth = d.getMonth();
+          state.selectedDate = ymd(d);
+          selectDate(state.selectedDate);
+          renderCalendar();
+        });
+
+        if (calNewBtn) calNewBtn.addEventListener("click", function () {
+          state.editingId = null;
+          calEventTitle.value = "";
+          calEventType.value = "appointment";
+          calEventDate.value = state.selectedDate || ymd(new Date());
+          calEventTime.value = "";
+          calEventNotes.value = "";
+          calRemindMinutes.value = "";
+          calRemindEmail.value = "";
+          calRemindPhone.value = "";
+          calStatus.textContent = "New event ready. Fill details and click Save.";
+          renderSidePanel();
+        });
+
+        function monthName(y, m) {
+          var d = new Date(y, m, 1);
+          return d.toLocaleString(undefined, { month: "long", year: "numeric" });
+        }
+        function getMonthGridStart(y, m) {
+          var first = new Date(y, m, 1);
+          var dayOfWeek = first.getDay();
+          var start = new Date(y, m, 1 - dayOfWeek);
+          start.setHours(0,0,0,0);
+          return start;
+        }
+
+        function renderCalendar() {
+          if (!calGrid) return;
+
+          calMonthLabel.textContent = monthName(state.viewYear, state.viewMonth);
+
+          var start = getMonthGridStart(state.viewYear, state.viewMonth);
+          var events = loadEvents();
+
+          calGrid.innerHTML = "";
+          for (var i = 0; i < 42; i++) {
+            var cellDate = new Date(start.getTime());
+            cellDate.setDate(start.getDate() + i);
+            var cellStr = ymd(cellDate);
+
+            var isCurrentMonth = (cellDate.getMonth() === state.viewMonth);
+            var isSelected = (cellStr === state.selectedDate);
+
+            var dayEvents = events.filter(function (e) { return eventOccursOn(e, cellStr); });
+
+            var cell = document.createElement("div");
+            cell.className = "cal-day";
+            if (!isCurrentMonth) cell.classList.add("cal-day-muted");
+            if (isSelected) {
+              cell.style.background = "rgba(106,168,255,0.10)";
+              cell.style.boxShadow = "inset 0 0 0 1px rgba(106,168,255,0.25)";
+            }
+
+            cell.setAttribute("data-date", cellStr);
+
+            var head = document.createElement("div");
+            head.className = "cal-day-head";
+
+            var num = document.createElement("div");
+            num.className = "cal-day-num";
+            num.textContent = String(cellDate.getDate());
+
+            var badges = document.createElement("div");
+            badges.className = "cal-badges";
+            if (dayEvents.length > 0) {
+              var dot = document.createElement("div");
+              dot.className = "cal-dot";
+              badges.appendChild(dot);
+            }
+
+            head.appendChild(num);
+            head.appendChild(badges);
+
+            var items = document.createElement("div");
+            items.className = "cal-items";
+            dayEvents.slice(0, 2).forEach(function (evt) {
+              var it = document.createElement("div");
+              it.className = "cal-item";
+              var t = evt.time ? ("<small>" + evt.time + "</small> ") : "";
+              it.innerHTML = t + (evt.title || "(Untitled)");
+              items.appendChild(it);
+            });
+            if (dayEvents.length > 2) {
+              var more = document.createElement("div");
+              more.className = "cal-item";
+              more.style.borderColor = "rgba(255,255,255,0.16)";
+              more.style.background = "rgba(255,255,255,0.03)";
+              more.textContent = "+" + (dayEvents.length - 2) + " more";
+              items.appendChild(more);
+            }
+
+            cell.appendChild(head);
+            cell.appendChild(items);
+            calGrid.appendChild(cell);
+          }
+
+          calGrid.onclick = function (e) {
+            var day = e.target.closest(".cal-day");
+            if (!day) return;
+            var dstr = day.getAttribute("data-date");
+            if (!dstr) return;
+
+            var parts = dstr.split("-");
+            var ny = Number(parts[0]);
+            var nm = Number(parts[1]) - 1;
+            if (nm !== state.viewMonth || ny !== state.viewYear) {
+              state.viewYear = ny;
+              state.viewMonth = nm;
+            }
+
+            selectDate(dstr);
+            renderCalendar();
+          };
+        }
+
+        function selectDate(dateStr, opts) {
+          state.selectedDate = dateStr;
+          calSideTitle.textContent = "Selected: " + dateStr;
+          calSideSub.textContent = "Add appointments, deadlines, or notes for this day.";
+          if (!opts || !opts.silent) {
+            if (!state.editingId) calEventDate.value = dateStr;
+          }
+          renderSidePanel();
+        }
+
+        function renderSidePanel() {
+          var events = loadEvents();
+          var dayEvents = events
+            .filter(function (e) { return eventOccursOn(e, state.selectedDate); })
+            .sort(function (a, b) {
+              if (a.time && b.time) return a.time.localeCompare(b.time);
+              if (a.time && !b.time) return -1;
+              if (!a.time && b.time) return 1;
+              return (a.createdAt || 0) - (b.createdAt || 0);
+            });
+
+          calEventList.innerHTML = "";
+          if (dayEvents.length === 0) {
+            var empty = document.createElement("div");
+            empty.style.color = "var(--muted)";
+            empty.style.fontSize = "0.95rem";
+            empty.style.marginTop = "10px";
+            empty.textContent = "No events yet. Create one using the form above.";
+            calEventList.appendChild(empty);
+            return;
+          }
+
+          dayEvents.forEach(function (evt) {
+            var row = document.createElement("div");
+            row.className = "cal-event-row";
+
+            var title = document.createElement("div");
+            title.className = "t";
+            title.textContent =
+              (evt.time ? evt.time + " • " : "") +
+              (evt.title || "(Untitled)") +
+              (evt.type ? " (" + evt.type + ")" : "");
+
+            var meta = document.createElement("div");
+            meta.className = "m";
+            meta.textContent = evt.notes ? evt.notes : "—";
+
+            var rem = document.createElement("div");
+            rem.className = "m";
+            var rm = [];
+            if (evt.remindMinutes) rm.push("Reminder: " + evt.remindMinutes + " min before");
+            if (evt.remindEmail) rm.push("Email: " + evt.remindEmail);
+            if (evt.remindPhone) rm.push("SMS: " + evt.remindPhone);
+            rem.textContent = rm.length ? rm.join(" • ") : "Reminder: none";
+
+            var actions = document.createElement("div");
+            actions.className = "a";
+
+            var editBtn = document.createElement("button");
+            editBtn.className = "btn btn-secondary";
+            editBtn.type = "button";
+            editBtn.textContent = "Edit";
+            editBtn.onclick = function () {
+              state.editingId = evt.id;
+              calEventTitle.value = evt.title || "";
+              calEventType.value = evt.type || "appointment";
+              calEventDate.value = evt.date || state.selectedDate;
+              calEventTime.value = evt.time || "";
+              calEventNotes.value = evt.notes || "";
+              calRemindMinutes.value = evt.remindMinutes || "";
+              calRemindEmail.value = evt.remindEmail || "";
+              calRemindPhone.value = evt.remindPhone || "";
+              calStatus.textContent = "Editing event. Make changes and click Save.";
+            };
+
+            var delBtn = document.createElement("button");
+            delBtn.className = "btn btn-secondary";
+            delBtn.type = "button";
+            delBtn.textContent = "Delete";
+            delBtn.onclick = function () {
+              var all = loadEvents();
+              var next = all.filter(function (x) { return x.id !== evt.id; });
+              saveEvents(next);
+              if (state.editingId === evt.id) state.editingId = null;
+              calStatus.textContent = "Event deleted.";
+              renderCalendar();
+              renderSidePanel();
+            };
+
+            actions.appendChild(editBtn);
+            actions.appendChild(delBtn);
+
+            row.appendChild(title);
+            row.appendChild(meta);
+            row.appendChild(rem);
+            row.appendChild(actions);
+
+            calEventList.appendChild(row);
+          });
+        }
+
+        function clearFormToSelected() {
+          state.editingId = null;
+          calEventTitle.value = "";
+          calEventType.value = "appointment";
+          calEventDate.value = state.selectedDate || ymd(new Date());
+          calEventTime.value = "";
+          calEventNotes.value = "";
+          calRemindMinutes.value = "";
+          calRemindEmail.value = "";
+          calRemindPhone.value = "";
+        }
+
+        if (calClearBtn) calClearBtn.addEventListener("click", function () {
+          clearFormToSelected();
+          calStatus.textContent = "Cleared.";
+        });
+
+        if (calSaveBtn) calSaveBtn.addEventListener("click", function () {
+          var title = (calEventTitle.value || "").trim();
+          var type = calEventType.value || "appointment";
+          var date = calEventDate.value || state.selectedDate;
+          var time = calEventTime.value || "";
+          var notes = (calEventNotes.value || "").trim();
+
+          var remindMinutes = calRemindMinutes.value || "";
+          var remindEmail = (calRemindEmail.value || "").trim();
+          var remindPhone = (calRemindPhone.value || "").trim();
+
+          if (!date) { calStatus.textContent = "Please select a date."; return; }
+
+          var all = loadEvents();
+          var evt = {
+            id: state.editingId || uid(),
+            title: title || "(Untitled)",
+            type: type,
+            date: date,
+            time: time,
+            notes: notes,
+            remindMinutes: remindMinutes,
+            remindEmail: remindEmail,
+            remindPhone: remindPhone,
+            createdAt: Date.now(),
+            lastRemindedAt: null
+          };
+
+          if (state.editingId) {
+            all = all.map(function (x) { return x.id === state.editingId ? evt : x; });
+            calStatus.textContent = "Saved changes.";
+          } else {
+            all.push(evt);
+            calStatus.textContent = "Event saved.";
+          }
+
+          saveEvents(all);
+
+          state.selectedDate = date;
+          var parts = date.split("-");
+          state.viewYear = Number(parts[0]);
+          state.viewMonth = Number(parts[1]) - 1;
+
+          state.editingId = null;
+          renderCalendar();
+          renderSidePanel();
+        });
+
+        function shouldTriggerReminder(evt, now) {
+          if (!evt.remindMinutes) return false;
+          var mins = Number(evt.remindMinutes);
+          if (!isFinite(mins) || mins <= 0) return false;
+
+          var dt = parseLocalDateTime(evt.date, evt.time || "");
+          if (!dt) return false;
+
+          var triggerAt = new Date(dt.getTime() - mins * 60 * 1000);
+          var windowMs = 60 * 1000;
+          var diff = now.getTime() - triggerAt.getTime();
+          if (diff < 0 || diff > windowMs) return false;
+
+          if (evt.lastRemindedAt && (now.getTime() - evt.lastRemindedAt) < 5 * 60 * 1000) return false;
+          return true;
+        }
+
+        function tryBrowserNotify(title, body) {
+          if (!("Notification" in window)) return;
+          if (Notification.permission === "granted") {
+            try { new Notification(title, { body: body }); } catch (e) {}
+          }
+        }
+
+        function reminderTick() {
+          var now = new Date();
+          var all = loadEvents();
+          var changed = false;
+
+          for (var i = 0; i < all.length; i++) {
+            var evt = all[i];
+            if (shouldTriggerReminder(evt, now)) {
+              var msg =
+                (evt.title || "Event") + " (" + evt.type + ") at " + (evt.time || "09:00") + " on " + evt.date +
+                (evt.notes ? (" — " + evt.notes) : "");
+
+              tryBrowserNotify("PDFRealm Reminder", msg);
+              alert("PDFRealm Reminder:\n\n" + msg);
+
+              evt.lastRemindedAt = now.getTime();
+              all[i] = evt;
+              changed = true;
+            }
+          }
+
+          if (changed) saveEvents(all);
+        }
+
+        setInterval(reminderTick, 30000);
+
+        (function initDefaults() {
+          var d = new Date();
+          state.viewYear = d.getFullYear();
+          state.viewMonth = d.getMonth();
+          state.selectedDate = ymd(d);
+          clearFormToSelected();
+        })();
+      })();
+    </script>
+  </body>
+</html>

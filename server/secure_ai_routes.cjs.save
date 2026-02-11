@@ -1,0 +1,245 @@
+
+  // Mark recording/capture started (owner-only)
+  router.post("/session/:id/start", async (req, res) => {
+    try {
+      const sessionId = String(req.params.id || "");
+      if (!isUuid(sessionId)) return res.status(400).json({ error: "Bad session id" });
+
+      const s = await pool.query("SELECT * FROM secure_ai_sessions WHERE id = $1", [sessionId]);
+      const sess = s.rows[0];
+      if (!sess) return res.status(404).json({ error: "Session not found" });
+
+      const user = getUserFromRequest ? getUserFromRequest(req) : null;
+      const actor = actorFromUser(user);
+      if (!actor) return res.status(401).json({ error: "Auth required" });
+
+      if (actor.actorKey !== sess.created_by) return res.status(403).json({ error: "Owner only" });
+
+      const c = await computeConsent(pool, sessionId);
+      if (!c.allConsented) return res.status(409).json({ error: "Waiting for consent" });
+
+      await pool.query(
+        "UPDATE secure_ai_sessions SET status='RECORDING', started_at = COALESCE(started_at, NOW()), updated_at=NOW() WHERE id=$1 AND status <> 'FAILED'",
+        [sessionId]
+      );
+
+      res.json({ ok: true });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || String(e) });
+    }
+  });
+
+  // Upload audio chunk (owner-only)
+  router.post("/session/:id/chunk", upload.single("chunk"), async (req, res) => {
+    try {
+      const sessionId = String(req.params.id || "");
+      if (!isUuid(sessionId)) return res.status(400).json({ error: "Bad session id" });
+
+      const s = await pool.query("SELECT * FROM secure_ai_sessions WHERE id = $1", [sessionId]);
+      const sess = s.rows[0];
+      if (!sess) return res.status(404).json({ error: "Session not found" });
+
+      const user = getUserFromRequest ? getUserFromRequest(req) : null;
+      const actor = actorFromUser(user);
+      if (!actor) return res.status(401).json({ error: "Auth required" });
+      if (actor.actorKey !== sess.created_by) return res.status(403).json({ error: "Owner only" });
+
+      const c = await computeConsent(pool, sessionId);
+      if (!c.allConsented) return res.status(409).json({ error: "Waiting for consent" });
+
+      const seq = Number(req.body?.seq || 0);
+      const mimeType = String(req.body?.mimeType || "audio/webm");
+      const file = req.file;
+      if (!file || !file.buffer) return res.status(400).json({ error: "Missing chunk" });
+
+      const dir = sessionDir(sessionId);
+      const chunksDir = path.join(dir, "chunks");
+      fs.mkdirSync(chunksDir, { recursive: true });
+
+      const ext = mimeType.includes("ogg") ? "ogg" : "webm";
+      const name = `chunk_${String(seq).padStart(6, "0")}.${ext}`;
+      fs.writeFileSync(path.join(chunksDir, name), file.buffer);
+
+      // Ensure status is RECORDING
+      await pool.query(
+        "UPDATE secure_ai_sessions SET status='RECORDING', started_at = COALESCE(started_at, NOW()), updated_at=NOW() WHERE id=$1 AND status IN ('CONSENT_PENDING','RECORDING')",
+        [sessionId]
+      );
+
+      res.json({ ok: true });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || String(e) });
+    }
+  });
+
+  // Upload decrypted chat transcript (owner-only)
+  router.post("/session/:id/chat-transcript", express.json({ limit: "5mb" }), async (req, res) => {
+    try {
+      const sessionId = String(req.params.id || "");
+      if (!isUuid(sessionId)) return res.status(400).json({ error: "Bad session id" });
+
+      const s = await pool.query("SELECT * FROM secure_ai_sessions WHERE id = $1", [sessionId]);
+      const sess = s.rows[0];
+      if (!sess) return res.status(404).json({ error: "Session not found" });
+
+      const user = getUserFromRequest ? getUserFromRequest(req) : null;
+      const actor = actorFromUser(user);
+      if (!actor) return res.status(401).json({ error: "Auth required" });
+      if (actor.actorKey !== sess.created_by) return res.status(403).json({ error: "Owner only" });
+
+      const dir = sessionDir(sessionId);
+      fs.mkdirSync(dir, { recursive: true });
+
+      fs.writeFileSync(path.join(dir, "chat_transcript.json"), JSON.stringify(req.body || {}, null, 2));
+      res.json({ ok: true });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || String(e) });
+    }
+  });
+
+  // Finalize and enqueue job (owner-only)
+  router.post("/session/:id/finalize", async (req, res) => {
+    try {
+      const sessionId = String(req.params.id || "");
+      if (!isUuid(sessionId)) return res.status(400).json({ error: "Bad session id" });
+
+      const s = await pool.query("SELECT * FROM secure_ai_sessions WHERE id = $1", [sessionId]);
+      const sess = s.rows[0];
+      if (!sess) return res.status(404).json({ error: "Session not found" });
+
+      const user = getUserFromRequest ? getUserFromRequest(req) : null;
+      const actor = actorFromUser(user);
+      if (!actor) return res.status(401).json({ error: "Auth required" });
+      if (actor.actorKey !== sess.created_by) return res.status(403).json({ error: "Owner only" });
+
+      // If someone declined, don't proceed
+      const c = await computeConsent(pool, sessionId);
+      if (c.anyDeclined) return res.status(409).json({ error: "A participant declined consent." });
+
+      // Close session
+      await pool.query(
+        "UPDATE secure_ai_sessions SET status='FINALIZING', ended_at=COALESCE(ended_at, NOW()), updated_at=NOW() WHERE id=$1 AND status <> 'FAILED'",
+        [sessionId]
+      );
+
+      const jobId = crypto.randomUUID();
+      await pool.query(
+        "INSERT INTO secure_ai_jobs (id, session_id, status, progress) VALUES ($1, $2, 'QUEUED', 'Queued')",
+        [jobId, sessionId]
+      );
+
+      res.json({ jobId });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || String(e) });
+    }
+  });
+
+  // Job status (participants)
+  router.get("/job/:id", async (req, res) => {
+    try {
+      const jobId = String(req.params.id || "");
+      if (!isUuid(jobId)) return res.status(400).json({ error: "Bad job id" });
+
+      const r = await pool.query(
+        "SELECT j.*, s.session_type, s.context_id, s.title, s.status AS session_status FROM secure_ai_jobs j JOIN secure_ai_sessions s ON s.id = j.session_id WHERE j.id = $1",
+        [jobId]
+      );
+      const row = r.rows[0];
+      if (!row) return res.status(404).json({ error: "Job not found" });
+
+      const sessionType = row.session_type;
+      const contextId = row.context_id;
+
+      // Actor
+      const user = getUserFromRequest ? getUserFromRequest(req) : null;
+      let actor = actorFromUser(user);
+      if (!actor) {
+        const cookies = parseCookies(req) || {};
+        const tokenName = sessionType === "video" ? "pdfrealm_video_guest" : sessionType === "voip" ? "pdfrealm_voice_guest" : "pdfrealm_chat_guest";
+        actor = actorFromGuestToken(sessionType, cookies[tokenName] || "");
+      }
+      const member = await checkMembership(pool, sessionType, contextId, actor);
+      if (!member) return res.status(403).json({ error: "Not allowed" });
+
+      res.json({
+        jobId: row.id,
+        sessionId: row.session_id,
+        status: row.status,
+        progress: row.progress,
+        error: row.error,
+        sessionStatus: row.session_status,
+        title: row.title
+      });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || String(e) });
+    }
+  });
+
+  // Download report (participants)
+  router.get("/session/:id/report", async (req, res) => {
+    try {
+      const sessionId = String(req.params.id || "");
+      if (!isUuid(sessionId)) return res.status(400).send("Bad session id");
+
+      const s = await pool.query("SELECT * FROM secure_ai_sessions WHERE id = $1", [sessionId]);
+      const sess = s.rows[0];
+      if (!sess) return res.status(404).send("Session not found");
+
+      const sessionType = sess.session_type;
+      const contextId = sess.context_id;
+
+      // Actor
+      const user = getUserFromRequest ? getUserFromRequest(req) : null;
+      let actor = actorFromUser(user);
+      if (!actor) {
+        const cookies = parseCookies(req) || {};
+        const tokenName = sessionType === "video" ? "pdfrealm_video_guest" : sessionType === "voip" ? "pdfrealm_voice_guest" : "pdfrealm_chat_guest";
+        actor = actorFromGuestToken(sessionType, cookies[tokenName] || "");
+      }
+      const member = await checkMembership(pool, sessionType, contextId, actor);
+      if (!member) return res.status(403).send("Not allowed");
+
+      const r = await pool.query("SELECT storage_key FROM secure_ai_reports WHERE session_id = $1", [sessionId]);
+      const row = r.rows[0];
+      if (!row) return res.status(404).send("Report not ready");
+
+      const downloadName = `secure_ai_report_${sessionId}.pdf`;
+      await streamVaultObjectToResponse({ storageKey: row.storage_key, res, mimeType: "application/pdf", downloadName });
+    } catch (e) {
+      console.error(e);
+      res.status(500).send(e.message || String(e));
+    }
+  });
+
+  // Delete session artifacts (owner-only)
+  router.delete("/session/:id", async (req, res) => {
+    try {
+      const sessionId = String(req.params.id || "");
+      if (!isUuid(sessionId)) return res.status(400).json({ error: "Bad session id" });
+
+      const s = await pool.query("SELECT * FROM secure_ai_sessions WHERE id = $1", [sessionId]);
+      const sess = s.rows[0];
+      if (!sess) return res.status(404).json({ error: "Session not found" });
+
+      const user = getUserFromRequest ? getUserFromRequest(req) : null;
+      const actor = actorFromUser(user);
+      if (!actor) return res.status(401).json({ error: "Auth required" });
+      if (actor.actorKey !== sess.created_by) return res.status(403).json({ error: "Owner only" });
+
+      await deleteSessionArtifacts(pool, sessionId);
+      res.json({ ok: true });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: e.message || String(e) });
+    }
+  });
+
+  app.use("/api/secure-ai", router);
+}
+
+module.exports = { mountSecureAi };

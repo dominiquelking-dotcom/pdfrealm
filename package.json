@@ -1,15 +1,51 @@
 {
   "name": "pdf-suite",
   "version": "1.0.0",
+  "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.975.0",
+    "@aws-sdk/client-sts": "^3.957.0",
+    "@aws-sdk/s3-request-presigner": "^3.958.0",
+    "@pdfsmaller/pdf-encrypt-lite": "^1.0.1",
+    "archiver": "^7.0.1",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
     "docx": "^9.5.1",
+    "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "express-session": "^1.18.2",
+    "fabric": "^7.1.0",
+    "fs-extra": "^11.3.2",
+    "helmet": "^8.1.0",
+    "image-to-pdf": "^3.0.2",
+    "jsonwebtoken": "^9.0.3",
+    "jszip": "^3.10.1",
+    "mammoth": "^1.11.0",
+    "morgan": "^1.10.1",
     "multer": "^2.0.2",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
+    "path": "^0.12.7",
     "pdf-lib": "^1.17.1",
-    "pdfkit": "^0.17.2"
+    "pdf-poppler": "^0.2.3",
+    "pdf2pic": "^3.2.0",
+    "pdfjs-dist": "^5.4.530",
+    "pdfkit": "^0.17.2",
+    "pg": "^8.16.3",
+    "pool": "^0.4.1",
+    "qpdf": "^0.1.0-prealpha.1",
+    "stripe": "^20.1.0",
+    "tesseract.js": "^6.0.1",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
   }
 }

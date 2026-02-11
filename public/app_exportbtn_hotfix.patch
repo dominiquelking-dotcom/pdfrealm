@@ -1,0 +1,21 @@
+--- app.js
++++ app.js
+@@ -4260,6 +4260,8 @@
+   previewTool = null,
+   previewEndpoint = null,
+   previewHintId = null,
++  exportBtnId = null,
++  exportHintId = null,
+   validate = null,
+ }) {
+   const fileInput = $(fileInputId);
+@@ -4269,6 +4271,9 @@
+ 
+   const previewBtn = previewBtnId ? $(previewBtnId) : null;
+   const previewHint = previewHintId ? $(previewHintId) : null;
++
++  const exportBtn = exportBtnId ? $(exportBtnId) : null;
++  const exportHint = exportHintId ? $(exportHintId) : null;
+ 
+   if (!fileInput || !actionBtn) return;
+ 

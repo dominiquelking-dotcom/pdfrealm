@@ -1,0 +1,327 @@
+/* PDFREALM_TOOLSET_NAV_PATCH_V3 (resource-based)
+   - Organizes suites using the REAL tier mapping: PDFREALM_TIER.getTierForTool() (or button.dataset.tier fallback)
+   - Secure Suite includes: Secure Send / Secure Chat / Secure Video / Secure VoIP (+ containers if present)
+   - Breakthrough stays separate (NOT in Secure Suite)
+   - Document Governance is docgov (if present)
+   - Capture-click wiring so tabs always work even if other handlers are broken
+*/
+(() => {
+  "use strict";
+
+  const TOOL_TAB_SEL     = ".tool-tabs .tool-tab[data-tool]";
+  const TOOL_VIEW_SEL    = ".tool-view[data-tool-view]";
+  const TOOLSET_ROOT_SEL = "#toolsetTabs";
+
+  const DESIRED_SECURE_IDS = [
+    "secure_send",
+    "secure_chat",
+    "secure_video",
+    "secure_voip",
+    "secure_containers",
+    "encrypted_containers",
+    "containers"
+  ];
+
+  const $  = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+  function esc(s){
+    try { return CSS.escape(String(s)); }
+    catch { return String(s).replace(/[^a-zA-Z0-9_-]/g, "\\$&"); }
+  }
+
+  function getToolTabs(){ return $$(TOOL_TAB_SEL); }
+  function getToolViews(){ return $$(TOOL_VIEW_SEL); }
+  function toolId(btn){ return btn?.getAttribute("data-tool") || ""; }
+
+  function cleanLabel(btn){
+    if (!btn) return "";
+    const clone = btn.cloneNode(true);
+    clone.querySelectorAll?.(".tag")?.forEach?.(n => n.remove());
+    return (clone.textContent || "").replace(/\s+/g, " ").trim();
+  }
+
+  function tierForTool(id, btn){
+    const toolId = String(id || "");
+    try {
+      if (window.PDFREALM_TIER && typeof window.PDFREALM_TIER.getTierForTool === "function"){
+        const t = window.PDFREALM_TIER.getTierForTool(toolId);
+        if (t === "standard" || t === "premium" || t === "secure") return t;
+      }
+    } catch {}
+    const dt = btn?.dataset?.tier;
+    if (dt === "standard" || dt === "premium" || dt === "secure") return dt;
+    if (toolId.startswith?.("secure_") || toolId.startsWith("secure_")) return "secure";
+    return "premium";
+  }
+
+  function suiteForTool(id, btn){
+    const toolId = String(id || "");
+    if (toolId === "breakthrough") return "breakthrough";
+    if (toolId === "docgov") return "governance";
+
+    const tier = tierForTool(toolId, btn);
+    return tier; // standard | premium | secure
+  }
+
+  function setTopActive(suite){
+    const root = $(TOOLSET_ROOT_SEL);
+    if (!root) return;
+    $$(".toolset-tab[data-toolset]", root).forEach(tab => {
+      const is = tab.getAttribute("data-toolset") === suite;
+      tab.querySelectorAll(".toolset-btn").forEach(btn => btn.classList.toggle("active", is));
+    });
+  }
+
+  function setActiveSidebar(id){
+    const toolId = String(id || "");
+    getToolTabs().forEach(btn => {
+      const is = (toolId(btn) === toolId);
+      btn.classList.toggle("tool-tab-active", is);
+      btn.setAttribute("aria-selected", is ? "true" : "false");
+    });
+  }
+
+  function showToolView(id){
+    const toolId = String(id || "");
+    let found = false;
+    getToolViews().forEach(v => {
+      const is = v.getAttribute("data-tool-view") === toolId;
+      v.classList.toggle("tool-view-active", is);
+      v.setAttribute("aria-hidden", is ? "false" : "true");
+      if (is) found = true;
+    });
+    return found;
+  }
+
+  function openTool(id){
+    if (!id) return;
+    setActiveSidebar(id);
+    showToolView(id);
+  }
+
+  function closeMenus(except=null){
+    const root = $(TOOLSET_ROOT_SEL);
+    if (!root) return;
+    $$(".toolset-tab", root).forEach(t => { if (except && t === except) return; t.classList.remove("open"); });
+  }
+
+  function pickSecureIds(meta){
+    const byId = new Map(meta.map(m => [m.id, m]));
+    const picked = [];
+    for (const want of DESIRED_SECURE_IDS){
+      if (byId.has(want)) picked.append ? picked.append(byId.get(want)) : picked.push(byId.get(want));
+    }
+    # pythonism guard: above line used append? not needed in JS string; keep JS version below
+  }
+
+  function applySuite(suite){
+    const root = $(TOOLSET_ROOT_SEL);
+    if (!root) return;
+
+    // persist
+    try { localStorage.setItem("pdfrealm_toolset", suite); } catch {}
+    setTopActive(suite);
+
+    const tabs = getToolTabs();
+    const meta = tabs.map(btn => {
+      const id = toolId(btn);
+      return { id, btn, label: cleanLabel(btn), suite: suiteForTool(id, btn), tier: tierForTool(id, btn) };
+    }).filter(m => m.id);
+
+    const byId = new Map(meta.map(m => [m.id, m]));
+
+    // secure suite: show ONLY the secure suite tools (send/chat/video/voip + containers if present)
+    if (suite === "secure"){
+      // ensure tier is secure in engine
+      try { window.PDFREALM_TIER?.setTier?.("secure"); } catch {}
+
+      const keep = [];
+      for (const want of DESIRED_SECURE_IDS){
+        if (byId.has(want)) keep.push(want);
+      }
+      // Always exclude breakthrough from secure
+      const keepSet = new Set(keep);
+
+      tabs.forEach(btn => {
+        const id = toolId(btn);
+        const show = keepSet.has(id);
+        btn.hidden = !show;
+        btn.style.display = show ? "" : "none";
+        btn.setAttribute("aria-hidden", show ? "false" : "true");
+      });
+
+      // pick first keep
+      const first = keep[0] || "";
+      if (first) openTool(first);
+      return;
+    }
+
+    // breakthrough: only breakthrough (uses secure tier context)
+    if (suite === "breakthrough"){
+      try { window.PDFREALM_TIER?.setTier?.("secure"); } catch {}
+      tabs.forEach(btn => {
+        const id = toolId(btn);
+        const show = (id === "breakthrough");
+        btn.hidden = !show;
+        btn.style.display = show ? "" : "none";
+        btn.setAttribute("aria-hidden", show ? "false" : "true");
+      });
+      openTool("breakthrough");
+      return;
+    }
+
+    // governance: docgov only (uses premium context)
+    if (suite === "governance"){
+      try { window.PDFREALM_TIER?.setTier?.("premium"); } catch {}
+      const exists = !!$(`${TOOL_TAB_SEL}[data-tool="${esc("docgov")}"]`);
+      tabs.forEach(btn => {
+        const id = toolId(btn);
+        const show = exists && (id === "docgov");
+        btn.hidden = !show;
+        btn.style.display = show ? "" : "none";
+        btn.setAttribute("aria-hidden", show ? "false" : "true");
+      });
+      if (exists) openTool("docgov");
+      return;
+    }
+
+    // standard/premium: use REAL tier filter (resource-based), and exclude breakthrough/docgov from these lists
+    if (suite === "standard" || suite === "premium"){
+      try { window.PDFREALM_TIER?.setTier?.(suite); } catch {}
+
+      tabs.forEach(btn => {
+        const id = toolId(btn);
+        const m = byId.get(id);
+        const show = m && (m.tier === suite) && id !== "breakthrough" && id !== "docgov";
+        btn.hidden = !show;
+        btn.style.display = show ? "" : "none";
+        btn.setAttribute("aria-hidden", show ? "false" : "true");
+      });
+
+      // open first visible
+      const first = tabs.find(b => b.style.display !== "none" && !b.hidden);
+      if (first) openTool(toolId(first));
+      return;
+    }
+  }
+
+  function buildMenus(){
+    const root = $(TOOLSET_ROOT_SEL);
+    if (!root) return;
+
+    const tabs = getToolTabs();
+    const meta = tabs.map(btn => {
+      const id = toolId(btn);
+      return { id, btn, label: cleanLabel(btn), suite: suiteForTool(id, btn), tier: tierForTool(id, btn) };
+    }).filter(m => m.id);
+
+    const bySuite = {
+      standard: meta.filter(m => m.tier === "standard" && m.id !== "breakthrough" && m.id !== "docgov"),
+      premium:  meta.filter(m => m.tier === "premium"  && m.id !== "breakthrough" && m.id !== "docgov"),
+      secure:   meta.filter(m => m.tier === "secure"   && m.id !== "breakthrough" && m.id !== "docgov"),
+      governance: meta.filter(m => m.id === "docgov"),
+      breakthrough: meta.filter(m => m.id === "breakthrough"),
+    };
+
+    // secure suite: force only the desired secure ids in the right order
+    const byId = new Map(meta.map(m => [m.id, m]));
+    const secureOrdered = [];
+    for (const want of DESIRED_SECURE_IDS){
+      if (byId.has(want)) secureOrdered.push(byId.get(want));
+    }
+    bySuite.secure = secureOrdered;
+
+    $$(".toolset-tab[data-toolset]", root).forEach(tab => {
+      const suite = tab.getAttribute("data-toolset") || "standard";
+      const menu = tab.querySelector(".toolset-menu");
+      if (!menu) return;
+
+      menu.innerHTML = "";
+      const items = bySuite[suite] || [];
+      if (!items.length){
+        const empty = document.createElement("div");
+        empty.style.padding = "10px 12px";
+        empty.style.opacity = "0.75";
+        empty.textContent = "No tools in this suite yet.";
+        menu.appendChild(empty);
+        return;
+      }
+
+      for (const it of items){
+        const a = document.createElement("a");
+        a.href = "#";
+        a.className = "toolset-item";
+        a.setAttribute("data-tool", it.id);
+        a.textContent = it.label;
+        menu.appendChild(a);
+      }
+    });
+  }
+
+  function bindCaptureClicks(){
+    document.addEventListener("click", (e) => {
+      const t = e.target;
+
+      // sidebar tool button -> open tool view
+      const tb = t.closest?.(TOOL_TAB_SEL);
+      if (tb){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const id = toolId(tb);
+        openTool(id);
+        setTopActive(suiteForTool(id, tb));
+        return;
+      }
+
+      // top suite button
+      const suiteBtn = t.closest?.(`${TOOLSET_ROOT_SEL} .toolset-btn`);
+      if (suiteBtn){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const tab = suiteBtn.closest(".toolset-tab[data-toolset]");
+        const suite = tab?.getAttribute("data-toolset") || "standard";
+        buildMenus();         // rebuild each click so it stays correct as tools load
+        applySuite(suite);
+
+        const willOpen = !tab.classList.contains("open");
+        closeMenus(tab);
+        tab.classList.toggle("open", willOpen);
+        return;
+      }
+
+      // dropdown item -> open tool
+      const item = t.closest?.(`${TOOLSET_ROOT_SEL} .toolset-menu .toolset-item[data-tool]`);
+      if (item){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const id = item.getAttribute("data-tool") || "";
+        const suite = (id === "breakthrough") ? "breakthrough" : (id === "docgov") ? "governance" : (tierForTool(id, $(`${TOOL_TAB_SEL}[data-tool="${esc(id)}"]`)) || "premium");
+        applySuite(suite);
+        openTool(id);
+        closeMenus();
+        return;
+      }
+
+      // outside click closes menus
+      if (!t.closest?.(TOOLSET_ROOT_SEL)) closeMenus();
+    }, true);
+  }
+
+  function init(){
+    buildMenus();
+
+    let suite = "standard";
+    try { suite = localStorage.getItem("pdfrealm_toolset") || "standard"; } catch {}
+    applySuite(suite);
+
+    // ensure something is active
+    const first = getToolTabs().find(b => b.style.display !== "none" && !b.hidden);
+    if (first) openTool(toolId(first));
+
+    bindCaptureClicks();
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
