@@ -38,3 +38,8 @@ venv*
 .venv*
 venv*
 .venv_pdf2docx/
+
+# Secrets (never commit)
+.env
+.env.*
+.env.save
