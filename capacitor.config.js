@@ -1,0 +1,27 @@
+/** @type {import("@capacitor/cli").CapacitorConfig} */
+const config = {
+  appId: "com.pdfrealm.app",
+  appName: "PDFRealm",
+  webDir: "out",
+  server: {
+    url: "https://pdfrealm.com",
+    cleartext: false,
+  },
+  android: {
+    allowMixedContent: false,
+    captureInput: true,
+    webContentsDebuggingEnabled: false,
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: "#1e40af",
+      showSpinner: false,
+    },
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"],
+    },
+  },
+};
+
+module.exports = config;

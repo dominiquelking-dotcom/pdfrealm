@@ -8,14 +8,16 @@ workflows:
     scripts:
       - name: Install dependencies
         script: npm ci
+      - name: Install TypeScript
+        script: npm install -D typescript
       - name: Create minimal web dir
         script: |
           mkdir -p out
-          cat > out/index.html << 'HTML'
+          cat > out/index.html << HTML
           <!DOCTYPE html><html><head><meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1">
           <title>PDFRealm</title></head>
-          <body><script>window.location.href='https://pdfrealm.com';</script></body></html>
+          <body><script>window.location.href="https://pdfrealm.com";</script></body></html>
           HTML
       - name: Install Capacitor CLI
         script: npm install -g @capacitor/cli

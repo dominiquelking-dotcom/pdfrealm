@@ -61,6 +61,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.3.2",
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.1.11",
+    "typescript": "^6.0.3"
   }
 }
