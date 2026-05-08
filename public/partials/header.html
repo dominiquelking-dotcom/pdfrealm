@@ -1,0 +1,71 @@
+<!-- CANONICAL HEADER - PDFRealm
+     Usage: copy this block into each page, then set the correct nav-chip-active class.
+     Active chip mapping:
+       index.html       → Tools chip active
+       vault.html       → Secure Vault chip active
+       office.html      → DocForge chip active
+       all others       → no chip active (Industry Pack pages)
+-->
+<header class="topbar">
+  <div class="topbar-inner">
+    <!-- LEFT: Brand + Secure tabs -->
+    <div class="brand-left">
+      <div class="brand">
+        <div class="logo"></div>
+        <div class="brand-text">PDFRealm</div>
+      </div>
+
+      <div class="brand-divider"></div>
+
+      <nav class="left-secure-nav" aria-label="Secure">
+        <a href="/vault.html" class="nav-chip">
+          Secure Vault
+          <span class="nav-chip-pill">AES-256</span>
+        </a>
+        <a href="/office.html" class="nav-chip">
+          DocForge
+          <span class="nav-chip-pill">PDFStudio + Office Suite</span>
+        </a>
+        <a href="/" class="nav-chip">Tools</a>
+      </nav>
+    </div>
+
+    <!-- RIGHT: Industry Packs + Pricing + Account -->
+    <div class="right-nav-cluster">
+      <nav class="top-nav" aria-label="Primary">
+        <div class="workspace-menu" id="industryMenuWrap">
+          <button class="nav-link workspace-toggle" type="button" id="industryToggle">
+            Industry Packs
+            <span class="workspace-caret">▾</span>
+          </button>
+          <div class="workspace-dropdown" id="industryDropdown" role="menu" aria-label="Industry Packs">
+            <a class="workspace-item" role="menuitem" href="/broker.html">Broker TMS Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/carrier.html">Carrier Dashboard</a>
+            <div style="height:1px; background: rgba(255,255,255,0.10); margin: 8px 10px;"></div>
+            <a class="workspace-item" role="menuitem" href="/legal.html">Legal Workspace</a>
+            <a class="workspace-item" role="menuitem" href="/real-estate.html">Real Estate Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/accounting.html">Accounting Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/hr.html">HR Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/marketing.html">Marketing Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/csuite.html">C-Suite Dashboard</a>
+          </div>
+        </div>
+
+        <a href="/pricing.html" class="nav-link">Pricing</a>
+      </nav>
+
+      <div class="top-actions">
+        <button
+          id="accountLoginBtn"
+          class="btn"
+          type="button"
+          aria-haspopup="dialog"
+          aria-controls="accountModal"
+        >
+          <span id="accountDot" class="dot"></span>
+          Account
+        </button>
+      </div>
+    </div>
+  </div>
+</header>

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Successful — PDFRealm</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #1a1a2e;
+      color: #e8e8f0;
+      font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .card {
+      background: #16213e;
+      border: 1px solid rgba(108,99,255,0.25);
+      border-radius: 20px;
+      padding: 3rem 2.5rem;
+      max-width: 540px;
+      width: 100%;
+      text-align: center;
+    }
+    .icon { font-size: 4rem; margin-bottom: 1.25rem; }
+    .logo {
+      font-size: 1.3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #6c63ff, #a89cff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1.5rem;
+    }
+    h1 { font-size: 1.9rem; font-weight: 800; margin-bottom: .75rem; }
+    .subtitle { color: #8888aa; font-size: 1rem; margin-bottom: 1.75rem; line-height: 1.6; }
+    .highlight {
+      background: rgba(108,99,255,0.12);
+      border: 1px solid rgba(108,99,255,0.3);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 2rem;
+      font-size: .95rem;
+      line-height: 1.6;
+      text-align: left;
+    }
+    .highlight strong { color: #a89cff; }
+    .countdown {
+      font-size: .85rem;
+      color: #8888aa;
+      margin-bottom: 1.5rem;
+    }
+    .btn {
+      display: inline-block;
+      width: 100%;
+      padding: .9rem 1.5rem;
+      background: linear-gradient(135deg, #6c63ff, #9489ff);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      margin-bottom: .75rem;
+      transition: opacity .15s;
+    }
+    .btn:hover { opacity: .88; }
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid rgba(108,99,255,0.3);
+      color: #e8e8f0;
+    }
+    .footer {
+      margin-top: 2rem;
+      font-size: .8rem;
+      color: #8888aa;
+    }
+    .footer a { color: #6c63ff; text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="card" id="main-card">
+  <div class="logo">PDFRealm</div>
+
+  <!-- Loading state -->
+  <div id="state-loading">
+    <div class="icon">⏳</div>
+    <h1>Processing…</h1>
+    <p class="subtitle">Confirming your payment with Stripe.</p>
+  </div>
+
+  <!-- PPE success -->
+  <div id="state-ppe" class="hidden">
+    <div class="icon">🔓</div>
+    <h1>You're in!</h1>
+    <p class="subtitle">Your 24-hour export pass is active. Export as many PDFs as you need.</p>
+    <div class="highlight">
+      <strong>24-hour access is now active.</strong><br>
+      Your session token has been set. You can use all PDF export tools until it expires.
+    </div>
+    <div class="countdown" id="ppe-expires">Expires in 24 hours.</div>
+    <a class="btn" href="/">Go to PDF Tools →</a>
+    <a class="btn btn-secondary" href="/pricing">View plans</a>
+  </div>
+
+  <!-- Subscription success -->
+  <div id="state-sub" class="hidden">
+    <div class="icon">🎉</div>
+    <h1 id="sub-title">Welcome to Pro!</h1>
+    <p class="subtitle" id="sub-subtitle">
+      Your subscription is now active. Enjoy unlimited exports and all Pro features.
+    </p>
+    <div class="highlight" id="sub-details">
+      <strong>Active plan: <span id="sub-plan-name">Pro</span></strong><br>
+      All features are unlocked. Export without limits, access your vault, and more.
+    </div>
+    <div class="cancel-info" style="font-size:.82rem;color:#8888aa;margin-bottom:1.5rem;">
+      You can cancel anytime from your account settings or directly via
+      <a href="/api/stripe/portal" style="color:#6c63ff;">Stripe's customer portal</a> — no questions asked.
+    </div>
+    <a class="btn" id="sub-cta-btn" href="/">Go to Dashboard →</a>
+    <a class="btn btn-secondary" href="/account">Manage subscription</a>
+  </div>
+
+  <!-- Error fallback -->
+  <div id="state-error" class="hidden">
+    <div class="icon">⚠️</div>
+    <h1>Something went wrong</h1>
+    <p class="subtitle" id="error-msg">We couldn't confirm your payment details. Please contact support.</p>
+    <a class="btn" href="/pricing">Back to Pricing</a>
+  </div>
+</div>
+
+<div class="footer">
+  Payments powered by Stripe &mdash;
+  <a href="/pricing">Pricing</a> &middot;
+  <a href="/">Home</a>
+</div>
+
+<script>
+  function hide(id) { const el = document.getElementById(id); if (el) el.classList.add('hidden'); }
+  function show(id) { const el = document.getElementById(id); if (el) el.classList.remove('hidden'); }
+
+  const PLAN_LABELS = {
+    ppe:               'Pay-Per-Export (24h)',
+    pro_monthly:       'Pro (Monthly)',
+    pro_annual:        'Pro (Annual)',
+    business_monthly:  'Business (Monthly)',
+    business_annual:   'Business (Annual)',
+    vault_addon:       'Vault Storage Add-on (+1TB)',
+  };
+
+  function tierFromPlan(plan) {
+    if (!plan) return 'subscription';
+    const p = plan.toLowerCase();
+    if (p.startsWith('pro'))      return 'Pro';
+    if (p.startsWith('business')) return 'Business';
+    if (p.startsWith('vault'))    return 'Vault Add-on';
+    return 'Pro';
+  }
+
+  async function init() {
+    hide('state-loading');
+
+    const params = new URLSearchParams(window.location.search);
+    const plan      = params.get('plan') || '';
+    const sessionId = params.get('session_id') || '';
+
+    if (!plan && !sessionId) {
+      show('state-error');
+      document.getElementById('error-msg').textContent =
+        'Missing payment information. Please try again from the pricing page.';
+      return;
+    }
+
+    if (plan === 'ppe') {
+      show('state-ppe');
+      // Set PPE session token from cookie if available (set by webhook)
+      const ppeCookie = document.cookie.split(';')
+        .map(c => c.trim())
+        .find(c => c.startsWith('pdfrealm_ppe_session='));
+      if (ppeCookie) {
+        const token = decodeURIComponent(ppeCookie.split('=')[1] || '');
+        if (token) {
+          // Store in x-ppe-session for the session
+          sessionStorage.setItem('pdfrealm_ppe_session', token);
+        }
+      }
+
+      // Count down to expiry (visual only)
+      const expiresMs = Date.now() + 24 * 60 * 60 * 1000;
+      function updateCountdown() {
+        const diff = expiresMs - Date.now();
+        if (diff <= 0) {
+          document.getElementById('ppe-expires').textContent = 'Session expired.';
+          return;
+        }
+        const h = Math.floor(diff / 3_600_000);
+        const m = Math.floor((diff % 3_600_000) / 60_000);
+        document.getElementById('ppe-expires').textContent =
+          `Access expires in ${h}h ${m}m`;
+        setTimeout(updateCountdown, 30_000);
+      }
+      updateCountdown();
+
+      // Auto-redirect to tools after 6s
+      setTimeout(() => { window.location.href = '/'; }, 6000);
+      return;
+    }
+
+    // Subscription plan
+    if (plan) {
+      const tier      = tierFromPlan(plan);
+      const planLabel = PLAN_LABELS[plan] || plan;
+
+      document.getElementById('sub-title').textContent    = `Welcome to ${tier}!`;
+      document.getElementById('sub-subtitle').textContent =
+        `Your ${planLabel} subscription is active. Thank you for subscribing to PDFRealm!`;
+      document.getElementById('sub-plan-name').textContent = planLabel;
+
+      if (plan.startsWith('business')) {
+        document.getElementById('sub-cta-btn').textContent = 'Go to Dashboard →';
+        document.getElementById('sub-cta-btn').href = '/';
+      }
+
+      show('state-sub');
+
+      // Auto-redirect after 8s
+      setTimeout(() => { window.location.href = '/'; }, 8000);
+      return;
+    }
+
+    // Fallback: try to fetch subscription status
+    try {
+      const r = await fetch('/api/stripe/subscription-status');
+      const d = await r.json();
+      if (d.ok && d.tier && d.tier !== 'none') {
+        const tier = d.tier.charAt(0).toUpperCase() + d.tier.slice(1);
+        document.getElementById('sub-title').textContent = `Welcome to ${tier}!`;
+        document.getElementById('sub-plan-name').textContent = d.plan || tier;
+        show('state-sub');
+        setTimeout(() => { window.location.href = '/'; }, 8000);
+      } else {
+        show('state-sub');
+        setTimeout(() => { window.location.href = '/'; }, 8000);
+      }
+    } catch {
+      show('state-error');
+    }
+  }
+
+  init();
+</script>
+
+</body>
+</html>

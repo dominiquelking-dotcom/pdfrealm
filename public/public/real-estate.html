@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PDFRealm – Real Estate</title>
+    <link rel="icon" href="data:;base64,=" />
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      body { margin: 0; overflow-y: auto; }
+      main.wrap { max-width: 100%; margin: 0; padding: 0; }
+
+      /* ── Header styles ── */
+      .brand-left { display: flex; align-items: center; gap: 14px; }
+      .brand-text { font-weight: 800; letter-spacing: 0.2px; }
+      .brand-divider { width: 1px; align-self: stretch; background: var(--line); margin: 0 10px; opacity: 0.9; }
+      .left-secure-nav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .nav-chip {
+        border: 1px solid var(--line); background: rgba(255,255,255,0.04);
+        color: var(--text); border-radius: 999px; padding: 8px 12px; font-size: 0.9rem;
+        display: inline-flex; align-items: center; gap: 6px; cursor: default;
+        opacity: 0.9; text-decoration: none; white-space: nowrap;
+      }
+      .nav-chip:hover { background: rgba(255,255,255,0.06); }
+      .nav-chip-pill {
+        font-size: 0.78rem; color: var(--muted); border-radius: 999px;
+        padding: 3px 8px; border: 1px solid var(--line); background: rgba(0,0,0,0.3);
+      }
+      .nav-chip-active { border-color: rgba(96,165,250,0.6); background: rgba(96,165,250,0.12); opacity: 1; }
+      .right-nav-cluster { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+      .top-nav { display: flex; align-items: center; gap: 10px; }
+      .nav-link {
+        border-radius: 999px; padding: 8px 14px; border: 1px solid transparent;
+        background: transparent; font-size: 0.95rem; font-weight: 600;
+        color: var(--muted); cursor: pointer; display: inline-flex; align-items: center;
+        gap: 6px; text-decoration: none;
+      }
+      .nav-link:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+      .workspace-menu { position: relative; }
+      .workspace-toggle { cursor: pointer; }
+      .workspace-caret { font-size: 0.8rem; opacity: 0.8; }
+      .workspace-dropdown {
+        position: absolute; right: 0; top: 100%; margin-top: 8px;
+        background: rgba(15,22,36,0.96); border: 1px solid var(--line);
+        border-radius: 14px; box-shadow: var(--shadow); padding: 8px;
+        display: none; flex-direction: column; min-width: 280px; z-index: 80;
+      }
+      .workspace-item {
+        padding: 8px 10px; border-radius: 10px; font-size: 0.92rem;
+        color: var(--muted); text-align: left; border: none; background: transparent;
+        width: 100%; cursor: pointer; text-decoration: none; display: block; white-space: nowrap;
+      }
+      .workspace-item:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+      .workspace-menu.workspace-open .workspace-dropdown { display: flex; }
+      @media (max-width: 980px) {
+        .brand-left { flex-wrap: wrap; }
+        .right-nav-cluster { gap: 10px; }
+        .workspace-dropdown { right: auto; left: 0; }
+      }
+      /* toolset-bar display-only */
+      .toolset-bar { border-bottom: 1px solid var(--line); padding: 0 12px; background: rgba(255,255,255,0.01); overflow-x: auto; }
+      .toolset-tabs { display: flex; align-items: center; gap: 4px; min-height: 40px; }
+      .toolset-tab { position: relative; }
+      .toolset-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 7px 12px; border-radius: 8px;
+        border: 1px solid transparent; background: transparent;
+        font-size: 0.88rem; color: var(--muted); cursor: pointer;
+        white-space: nowrap; text-decoration: none;
+      }
+      .toolset-btn:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+      .toolset-btn-breakthrough { color: rgba(106,168,255,0.9); }
+
+      /* ── Under Construction ── */
+      .uc-wrap {
+        display: flex; flex-direction: column; align-items: center;
+        justify-content: center; min-height: calc(100vh - 160px);
+        padding: 40px 20px; text-align: center; gap: 24px;
+      }
+      .uc-icon { font-size: 3.5rem; line-height: 1; }
+      .uc-title { font-size: 2rem; font-weight: 900; margin: 0; letter-spacing: 0.2px; }
+      .uc-subtitle { font-size: 1.1rem; color: var(--muted); margin: 0; max-width: 480px; }
+      .uc-progress-wrap {
+        width: 100%; max-width: 480px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid var(--line);
+        border-radius: 999px; overflow: hidden; height: 18px;
+      }
+      .uc-progress-bar {
+        height: 100%; width: 70%;
+        background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 50%, #34d399 100%);
+        border-radius: 999px;
+        box-shadow: 0 0 12px rgba(96,165,250,0.4);
+      }
+      .uc-progress-label { font-size: 0.85rem; color: var(--muted); margin-top: -8px; }
+      .uc-back-btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 10px 22px; border-radius: 999px;
+        border: 1px solid rgba(96,165,250,0.4);
+        background: rgba(96,165,250,0.08);
+        color: rgba(96,165,250,0.95); font-size: 0.97rem; font-weight: 700;
+        text-decoration: none; cursor: pointer;
+        transition: background 0.15s;
+      }
+      .uc-back-btn:hover { background: rgba(96,165,250,0.15); }
+
+    </style>
+  </head>
+
+  <body>
+    <header class="topbar">
+  <div class="topbar-inner">
+    <!-- LEFT: Brand + Nav Chips -->
+    <div class="brand-left">
+      <div class="brand">
+        <div style="height:42px;width:140px;background:url('/logo.png') center/contain no-repeat;flex-shrink:0;"></div>
+      </div>
+
+      <div class="brand-divider"></div>
+
+      <nav class="left-secure-nav" aria-label="Secure">
+        <a href="/vault.html" class="nav-chip" id="navChipVault">
+          Secure Vault
+          <span class="nav-chip-pill">AES-256</span>
+        </a>
+        <a href="/" class="nav-chip" id="navChipTools">Quick Tools</a>
+      </nav>
+    </div>
+
+    <!-- RIGHT: Industry Packs + Pricing + Calendar + Get App + Account -->
+    <div class="right-nav-cluster">
+      <nav class="top-nav" aria-label="Primary">
+        <div class="workspace-menu" id="industryMenuWrap">
+          <button class="nav-link workspace-toggle" type="button" id="industryToggle">
+            Industry Packs
+            <span class="workspace-caret">▾</span>
+          </button>
+          <div class="workspace-dropdown" id="industryDropdown" role="menu" aria-label="Industry Packs">
+            <a class="workspace-item" role="menuitem" href="/broker.html">Broker TMS Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/carrier.html">Carrier Dashboard</a>
+            <div style="height:1px; background: rgba(255,255,255,0.10); margin: 8px 10px;"></div>
+            <a class="workspace-item" role="menuitem" href="/legal.html">Legal Workspace</a>
+            <a class="workspace-item" role="menuitem" href="/real-estate.html">Real Estate Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/accounting.html">Accounting Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/hr.html">HR Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/marketing.html">Marketing Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/csuite.html">C-Suite Dashboard</a>
+          </div>
+        </div>
+
+        <a href="/pricing.html" class="nav-link">Pricing</a>
+        <button class="nav-link" type="button" id="appDownloadNavBtn" style="background:none;border:none;cursor:pointer;">📱 Get App</button>
+      </nav>
+
+      <!-- Calendar widget button -->
+      <button id="calendarToggleBtn" title="Calendar & Reminders" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text);padding:7px 10px;border-radius:8px;cursor:pointer;font-size:1rem;position:relative;">📅</button>
+
+      <div class="top-actions">
+        <button id="pwa-install-btn" style="display:none;" class="btn btn-secondary" type="button" title="Install PDFRealm as an app">
+          📱 Install App
+        </button>
+        <button
+          id="accountLoginBtn"
+          class="btn"
+          type="button"
+          aria-haspopup="dialog"
+          aria-controls="accountModal"
+        >
+          <span id="accountDot" class="dot"></span>
+          Account
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolset-bar">
+    <nav class="toolset-tabs" id="toolsetTabs" aria-label="Tool Suites">
+      <div class="toolset-tab" data-toolset="standard">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">Standard Tools</button>
+        <div class="toolset-menu" role="menu" aria-label="Standard Tools"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="premium">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">Premium Tools</button>
+        <div class="toolset-menu" role="menu" aria-label="Premium Tools"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="secure">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">Secure Suite</button>
+        <div class="toolset-menu" role="menu" aria-label="Secure Suite"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="governance">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false" disabled title="Coming Soon" style="opacity:0.45; cursor:not-allowed; pointer-events:none;">Document Governance</button>
+        <div class="toolset-menu" role="menu" aria-label="Document Governance"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="docforge">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">DocForge</button>
+        <div class="toolset-menu" role="menu" aria-label="DocForge"></div>
+      </div>
+      <div class="toolset-tab">
+        <a id="aiOperatorLink" class="toolset-btn toolset-btn-breakthrough" href="/?ai=1">AI Operator</a>
+      </div>
+      <div class="toolset-tab" data-toolset="signreqs">
+        <button class="toolset-btn" type="button" id="signReqsToolsetBtn">✍️ Sign Requests</button>
+      </div>
+      <div class="toolset-tab">
+        <a class="toolset-btn" href="/carrier.html" style="border-color:rgba(106,168,255,0.45);color:rgba(106,168,255,0.95);text-decoration:none;">🔒 Carrier Lockbox</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+    <main class="wrap">
+      <div class="uc-wrap">
+        <div class="uc-icon">🔨</div>
+        <h1 class="uc-title">Real Estate Dashboard</h1>
+        <p class="uc-subtitle">Under Construction</p>
+        <p class="uc-subtitle" style="font-size:0.97rem;">We're building something great. Check back soon.</p>
+        <div class="uc-progress-wrap" aria-label="Progress" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100">
+          <div class="uc-progress-bar"></div>
+        </div>
+        <div class="uc-progress-label">70% complete</div>
+        <a class="uc-back-btn" href="/">← Back to PDFRealm</a>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div>© <span id="year"></span> PDFRealm. All rights reserved.</div>
+    </footer>
+
+    <!-- Account Modal -->
+    <div id="accountModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div class="mh">Account</div>
+          <button id="accountModalClose" class="btn btn-secondary" type="button">Close</button>
+        </div>
+        <div class="modal-body">
+          <div class="card">
+            <label for="loginEmail">Email</label>
+            <input id="loginEmail" type="email" placeholder="you@example.com" />
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" type="password" placeholder="••••••••" />
+            <div class="modal-row">
+              <button id="loginSubmitBtn" class="btn btn-primary" type="button">Login</button>
+            </div>
+            <div id="loginStatus" style="margin-top:10px; color: var(--muted); font-size: 0.95rem;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        var y = document.getElementById("year");
+        if (y) y.textContent = new Date().getFullYear();
+
+        // Industry Packs dropdown
+        var wrap = document.getElementById("industryMenuWrap");
+        var toggle = document.getElementById("industryToggle");
+        if (wrap && toggle) {
+          toggle.addEventListener("click", function (e) {
+            e.stopPropagation();
+            wrap.classList.toggle("workspace-open");
+          });
+          document.addEventListener("click", function () {
+            wrap.classList.remove("workspace-open");
+          });
+        }
+
+        // Account modal
+        var accountBtn = document.getElementById("accountLoginBtn");
+        var accountModal = document.getElementById("accountModal");
+        var accountClose = document.getElementById("accountModalClose");
+        if (accountBtn && accountModal) {
+          accountBtn.addEventListener("click", function () {
+            accountModal.classList.add("open");
+            accountModal.setAttribute("aria-hidden", "false");
+          });
+        }
+        if (accountClose && accountModal) {
+          accountClose.addEventListener("click", function () {
+            accountModal.classList.remove("open");
+            accountModal.setAttribute("aria-hidden", "true");
+          });
+        }
+      })();
+    </script>
+    <script src="/calendar.js"></script>
+  </body>
+</html>

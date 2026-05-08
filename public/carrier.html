@@ -1,0 +1,872 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PDFRealm – Carrier Dashboard</title>
+
+    <link rel="icon" href="data:;base64,=" />
+    <link rel="stylesheet" href="/styles.css" />
+
+    <style>
+      body {
+        margin: 0;
+        overflow-y: auto;
+      }
+      main.wrap {
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      /* ===== HEADER (MATCH pricing.html EXACTLY) ===== */
+      .brand-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .brand-text {
+        font-weight: 800;
+        letter-spacing: 0.2px;
+      }
+
+      .brand-divider {
+        width: 1px;
+        align-self: stretch;
+        background: var(--line);
+        margin: 0 10px;
+        opacity: 0.9;
+      }
+
+      .left-secure-nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .nav-chip {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: default;
+        opacity: 0.9;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .nav-chip:hover { background: rgba(255, 255, 255, 0.06); }
+
+      .nav-chip-pill {
+        font-size: 0.78rem;
+        color: var(--muted);
+        border-radius: 999px;
+        padding: 3px 8px;
+        border: 1px solid var(--line);
+        background: rgba(0, 0, 0, 0.3);
+      }
+
+      .nav-chip-active {
+        border-color: rgba(96, 165, 250, 0.8);
+        box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.4);
+        opacity: 1;
+      }
+
+      .right-nav-cluster {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .top-nav {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .nav-link {
+        border-radius: 999px;
+        padding: 8px 14px;
+        border: 1px solid transparent;
+        background: transparent;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--muted);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+      }
+
+      .nav-link:hover { background: rgba(255, 255, 255, 0.04); color: var(--text); }
+
+      .nav-link-active {
+        border-color: var(--line);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+      }
+
+      .workspace-menu { position: relative; }
+      .workspace-toggle { cursor: pointer; }
+      .workspace-caret { font-size: 0.8rem; opacity: 0.8; }
+
+      .workspace-dropdown {
+        position: absolute;
+        right: 0;
+        top: 100%;
+        margin-top: 8px;
+        background: rgba(15, 22, 36, 0.96);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+        padding: 8px;
+        display: none;
+        flex-direction: column;
+        min-width: 280px;
+        z-index: 80;
+      }
+
+      .workspace-item {
+        padding: 8px 10px;
+        border-radius: 10px;
+        font-size: 0.92rem;
+        color: var(--muted);
+        text-align: left;
+        border: none;
+        background: transparent;
+        width: 100%;
+        cursor: pointer;
+        text-decoration: none;
+        display: block;
+        white-space: nowrap;
+      }
+
+      .workspace-item:hover { background: rgba(255, 255, 255, 0.04); color: var(--text); }
+
+      .workspace-menu.workspace-open .workspace-dropdown { display: flex; }
+
+      @media (max-width: 980px) {
+        .brand-left { flex-wrap: wrap; }
+        .right-nav-cluster { gap: 10px; }
+        .workspace-dropdown { right: auto; left: 0; }
+      }
+
+      /* ===== Carrier dashboard layout ===== */
+      .carrier-main {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      .carrier-header {
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+      .carrier-header h1 {
+        margin: 0;
+        font-size: 1.3rem;
+        letter-spacing: 0.2px;
+      }
+      .carrier-header p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 0.98rem;
+        max-width: 900px;
+      }
+
+      .carrier-nav {
+        padding: 10px 18px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.02);
+        flex-wrap: wrap;
+      }
+
+      .carrier-tab { font-size: 0.95rem; }
+
+      .carrier-tab-active {
+        background: linear-gradient(
+          135deg,
+          rgba(106, 168, 255, 0.28),
+          rgba(93, 230, 194, 0.12)
+        );
+        border-color: rgba(106, 168, 255, 0.55);
+        box-shadow: inset 0 0 0 1px rgba(106, 168, 255, 0.25);
+      }
+
+      .carrier-tools-dropdown { position: relative; }
+      .carrier-tools-btn { display: inline-flex; align-items: center; gap: 6px; }
+
+      .carrier-tools-menu {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        min-width: 220px;
+        background: rgba(12, 19, 32, 0.98);
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow);
+        padding: 8px;
+        display: none;
+        z-index: 40;
+      }
+      .carrier-tools-menu.open { display: block; }
+      .carrier-tools-item {
+        width: 100%;
+        text-align: left;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 0;
+        background: transparent;
+        color: var(--text);
+        font-size: 0.93rem;
+        cursor: pointer;
+      }
+      .carrier-tools-item:hover { background: rgba(255, 255, 255, 0.06); }
+
+      .carrier-content {
+        padding: 16px 18px 18px;
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+      }
+
+      .carrier-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+        gap: 14px;
+      }
+
+      .carrier-view { display: none; }
+      .carrier-view-active { display: block; }
+
+      .table-like {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+      }
+      .table-like th,
+      .table-like td {
+        border-bottom: 1px solid var(--line);
+        padding: 8px 6px;
+        text-align: left;
+      }
+      .table-like th {
+        color: var(--muted);
+        font-weight: 700;
+        font-size: 0.9rem;
+      }
+
+      .pill-status {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        font-size: 0.84rem;
+        color: var(--muted);
+      }
+
+      .driver-map-placeholder {
+        height: 260px;
+        border-radius: 14px;
+        border: 1px dashed var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+        font-size: 0.95rem;
+        text-align: center;
+        padding: 14px;
+      }
+
+      .driver-subnav {
+        display: flex;
+        gap: 8px;
+        margin: 6px 0 12px;
+        flex-wrap: wrap;
+      }
+      .driver-subtab { font-size: 0.9rem; }
+      .driver-subtab-active {
+        background: rgba(255, 255, 255, 0.09);
+        border-color: rgba(106, 168, 255, 0.55);
+      }
+
+      .driver-subview { display: none; }
+      .driver-subview-active { display: block; }
+
+      @media (max-width: 980px) {
+        .carrier-grid { grid-template-columns: 1fr; }
+      }
+
+      /* ===== Clock + Calendar button (far-right on carrier tabs row) ===== */
+      .carrier-right-rail {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      /* Keep calendar closest to the clock */
+      .clock-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255,255,255,0.04);
+        padding: 6px 10px;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+        white-space: nowrap;
+      }
+      .clock-time {
+        font-weight: 900;
+        letter-spacing: 0.5px;
+        font-variant-numeric: tabular-nums;
+        font-size: 0.95rem;
+      }
+      .clock-tz {
+        color: var(--muted);
+        font-size: 0.82rem;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.10);
+        background: rgba(0,0,0,0.25);
+      }
+      .tz-select {
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.14);
+        background: rgba(12,19,32,.9);
+        color: var(--text);
+        font-size: 0.85rem;
+        outline: none;
+        max-width: 210px;
+      }
+      .tz-select option { color: #000; }
+
+      @media (max-width: 980px) {
+        .carrier-right-rail { width: 100%; justify-content: flex-start; }
+        .tz-select { max-width: 100%; }
+      }
+
+      /* ===== CALENDAR MODAL (Google Calendar style shell) ===== */
+      .cal-modal { display:none; position:fixed; inset:0; z-index:120; }
+      .cal-modal.open { display:block; }
+      .cal-backdrop { position:absolute; inset:0; background: rgba(0,0,0,0.55); }
+      .cal-shell {
+        position:relative;
+        width: min(1100px, calc(100vw - 24px));
+        height: min(720px, calc(100vh - 24px));
+        margin: 12px auto;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: rgba(12,19,32,0.98);
+        box-shadow: var(--shadow);
+        display:flex;
+        flex-direction: column;
+        overflow:hidden;
+      }
+
+      .cal-topbar {
+        display:flex;
+        align-items:center;
+        justify-content: space-between;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255,255,255,0.02);
+        gap: 10px;
+      }
+      .cal-left { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+      .cal-title { font-weight: 900; letter-spacing: 0.2px; }
+      .cal-sub { color: var(--muted); font-size: 0.92rem; }
+
+      .cal-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+
+      .cal-body {
+        display:grid;
+        grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+        gap: 0;
+        height: 100%;
+      }
+
+      .cal-grid-wrap {
+        border-right: 1px solid var(--line);
+        display:flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+
+      .cal-weekdays {
+        display:grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        border-bottom: 1px solid var(--line);
+        background: rgba(255,255,255,0.02);
+      }
+      .cal-weekday {
+        padding: 10px 10px;
+        font-size: 0.86rem;
+        color: var(--muted);
+        border-right: 1px solid rgba(255,255,255,0.06);
+      }
+      .cal-weekday:last-child { border-right: none; }
+
+      .cal-grid {
+        display:grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        grid-auto-rows: 92px;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .cal-day {
+        border-right: 1px solid rgba(255,255,255,0.06);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        padding: 8px 8px;
+        cursor:pointer;
+        background: transparent;
+        min-width: 0;
+      }
+      .cal-day:hover { background: rgba(255,255,255,0.03); }
+      .cal-day:nth-child(7n) { border-right:none; }
+
+      .cal-day-head { display:flex; align-items:center; justify-content: space-between; gap:8px; }
+      .cal-day-num { font-weight: 900; font-size: 0.92rem; }
+      .cal-day-muted { color: rgba(255,255,255,0.35); }
+      .cal-badges { display:flex; gap:6px; align-items:center; }
+
+      .cal-dot {
+        width: 8px; height: 8px; border-radius: 999px;
+        background: rgba(106,168,255,0.9);
+        box-shadow: 0 0 0 2px rgba(106,168,255,0.15);
+      }
+
+      .cal-items { margin-top: 8px; display:flex; flex-direction:column; gap:6px; }
+      .cal-item {
+        border: 1px solid rgba(106,168,255,0.35);
+        background: rgba(106,168,255,0.10);
+        color: var(--text);
+        border-radius: 10px;
+        padding: 6px 8px;
+        font-size: 0.86rem;
+        overflow:hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .cal-item small { color: rgba(255,255,255,0.70); }
+
+      .cal-side {
+        padding: 12px 14px;
+        overflow-y: auto;
+        min-width: 0;
+      }
+
+      .cal-side h3 { margin: 0; font-size: 1.05rem; }
+      .cal-side p { margin: 8px 0 0; color: var(--muted); font-size: 0.92rem; }
+
+      .cal-form { margin-top: 12px; }
+      .cal-form label { display:block; margin-top: 10px; }
+      .cal-form input, .cal-form textarea, .cal-form select { width: 100%; }
+
+      .cal-mini {
+        margin-top: 14px;
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
+      }
+
+      .cal-event-list { margin-top: 10px; }
+      .cal-event-row {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255,255,255,0.03);
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      .cal-event-row .t { font-weight: 900; }
+      .cal-event-row .m { color: var(--muted); font-size: 0.92rem; margin-top: 4px; }
+      .cal-event-row .a { margin-top: 10px; display:flex; gap: 8px; flex-wrap: wrap; }
+
+      @media (max-width: 980px) {
+        .cal-body { grid-template-columns: 1fr; }
+        .cal-grid-wrap { border-right: none; border-bottom: 1px solid var(--line); }
+        .cal-grid { grid-auto-rows: 88px; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- HEADER (match pricing.html) -->
+    <header class="topbar">
+  <div class="topbar-inner">
+    <!-- LEFT: Brand + Nav Chips -->
+    <div class="brand-left">
+      <div class="brand">
+        <div style="height:42px;width:140px;background:url('/logo.png') center/contain no-repeat;flex-shrink:0;"></div>
+      </div>
+
+      <div class="brand-divider"></div>
+
+      <nav class="left-secure-nav" aria-label="Secure">
+        <a href="/vault.html" class="nav-chip" id="navChipVault">
+          Secure Vault
+          <span class="nav-chip-pill">AES-256</span>
+        </a>
+        <a href="/" class="nav-chip" id="navChipTools">Quick Tools</a>
+      </nav>
+    </div>
+
+    <!-- RIGHT: Industry Packs + Pricing + Calendar + Get App + Account -->
+    <div class="right-nav-cluster">
+      <nav class="top-nav" aria-label="Primary">
+        <div class="workspace-menu" id="industryMenuWrap">
+          <button class="nav-link workspace-toggle" type="button" id="industryToggle">
+            Industry Packs
+            <span class="workspace-caret">▾</span>
+          </button>
+          <div class="workspace-dropdown" id="industryDropdown" role="menu" aria-label="Industry Packs">
+            <a class="workspace-item" role="menuitem" href="/broker.html">Broker TMS Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/carrier.html">Carrier Dashboard</a>
+            <div style="height:1px; background: rgba(255,255,255,0.10); margin: 8px 10px;"></div>
+            <a class="workspace-item" role="menuitem" href="/legal.html">Legal Workspace</a>
+            <a class="workspace-item" role="menuitem" href="/real-estate.html">Real Estate Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/accounting.html">Accounting Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/hr.html">HR Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/marketing.html">Marketing Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/csuite.html">C-Suite Dashboard</a>
+          </div>
+        </div>
+
+        <a href="/pricing.html" class="nav-link">Pricing</a>
+        <button class="nav-link" type="button" id="appDownloadNavBtn" style="background:none;border:none;cursor:pointer;">📱 Get App</button>
+      </nav>
+
+      <!-- Calendar widget button -->
+      <button id="calendarToggleBtn" title="Calendar & Reminders" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text);padding:7px 10px;border-radius:8px;cursor:pointer;font-size:1rem;position:relative;">📅</button>
+
+      <div class="top-actions">
+        <button id="pwa-install-btn" style="display:none;" class="btn btn-secondary" type="button" title="Install PDFRealm as an app">
+          📱 Install App
+        </button>
+        <button
+          id="accountLoginBtn"
+          class="btn"
+          type="button"
+          aria-haspopup="dialog"
+          aria-controls="accountModal"
+        >
+          <span id="accountDot" class="dot"></span>
+          Account
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolset-bar">
+    <nav class="toolset-tabs" id="toolsetTabs" aria-label="Tool Suites">
+      <div class="toolset-tab" data-toolset="standard">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">Standard Tools</button>
+        <div class="toolset-menu" role="menu" aria-label="Standard Tools"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="premium">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">Premium Tools</button>
+        <div class="toolset-menu" role="menu" aria-label="Premium Tools"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="secure">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">Secure Suite</button>
+        <div class="toolset-menu" role="menu" aria-label="Secure Suite"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="governance">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false" disabled title="Coming Soon" style="opacity:0.45; cursor:not-allowed; pointer-events:none;">Document Governance</button>
+        <div class="toolset-menu" role="menu" aria-label="Document Governance"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="docforge">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">DocForge</button>
+        <div class="toolset-menu" role="menu" aria-label="DocForge"></div>
+      </div>
+      <div class="toolset-tab">
+        <a id="aiOperatorLink" class="toolset-btn toolset-btn-breakthrough" href="/?ai=1">AI Operator</a>
+      </div>
+      <div class="toolset-tab" data-toolset="signreqs">
+        <button class="toolset-btn" type="button" id="signReqsToolsetBtn">✍️ Sign Requests</button>
+      </div>
+    </nav>
+  </div>
+</header>
+    <main class="wrap">
+      <section class="panel carrier-main" style="display:flex;flex-direction:column;min-height:80vh;">
+
+        <!-- Section 1: Dispatch Summary / Rate Con Parser -->
+        <div style="padding:20px 24px;border-bottom:1px solid var(--line);">
+          <h2 style="margin:0 0 4px;font-size:1.2rem;font-weight:800;">📋 Dispatch Summary — Rate Con Parser</h2>
+          <p style="margin:0 0 16px;color:var(--muted);font-size:0.92rem;">Upload a rate confirmation PDF. We'll OCR it and extract the key load details for you.</p>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;">
+            <div>
+              <label style="display:block;font-size:0.88rem;color:var(--muted);margin-bottom:4px;">Rate Con PDF</label>
+              <input id="rc-upload" type="file" accept="application/pdf" />
+            </div>
+            <button class="btn btn-primary" type="button" onclick="parseRateConFile()">🔍 Parse Rate Con</button>
+            <div id="rc-parse-status" style="font-size:0.9rem;color:var(--muted);align-self:center;"></div>
+          </div>
+
+          <div id="rc-parsed-card" style="display:none;background:rgba(255,255,255,0.04);border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:8px;">
+            <div style="font-weight:800;font-size:1rem;margin-bottom:12px;color:var(--text);">📊 Parsed Load Details</div>
+            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 20px;">
+              <div><span style="color:var(--muted);font-size:0.85rem;display:block;">Load #</span><span id="pr-load" style="font-weight:700;">—</span></div>
+              <div><span style="color:var(--muted);font-size:0.85rem;display:block;">Rate</span><span id="pr-rate" style="font-weight:700;color:rgba(93,230,194,0.95);">—</span></div>
+              <div><span style="color:var(--muted);font-size:0.85rem;display:block;">Origin / Pickup</span><span id="pr-origin" style="font-weight:700;">—</span></div>
+              <div><span style="color:var(--muted);font-size:0.85rem;display:block;">Destination</span><span id="pr-dest" style="font-weight:700;">—</span></div>
+              <div><span style="color:var(--muted);font-size:0.85rem;display:block;">Broker</span><span id="pr-broker" style="font-weight:700;">—</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Document Vault -->
+        <div style="padding:20px 24px;border-bottom:1px solid var(--line);">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+            <div>
+              <h2 style="margin:0;font-size:1.2rem;font-weight:800;">🗂 Document Vault — Carrier Documents</h2>
+              <p style="margin:4px 0 0;color:var(--muted);font-size:0.92rem;">Store BOLs, rate cons, insurance docs, and more.</p>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
+              <label class="btn btn-primary" style="cursor:pointer;">
+                ⬆ Upload File
+                <input id="vault-upload" type="file" style="display:none;" onchange="uploadVaultFile(this)" />
+              </label>
+              <button class="btn btn-secondary" type="button" onclick="loadVaultFiles()">↻ Refresh</button>
+            </div>
+          </div>
+
+          <div id="vault-status" style="font-size:0.9rem;color:var(--muted);margin-bottom:8px;"></div>
+          <div id="vault-list" style="background:rgba(255,255,255,0.04);border:1px solid var(--line);border-radius:14px;padding:12px;min-height:60px;">
+            <div style="color:var(--muted);font-size:0.9rem;text-align:center;padding:16px;">Loading files…</div>
+          </div>
+        </div>
+
+        <!-- Section 3: Quick Tools -->
+        <div style="padding:20px 24px;border-bottom:1px solid var(--line);">
+          <h2 style="margin:0 0 4px;font-size:1.2rem;font-weight:800;">⚡ Quick Tools</h2>
+          <p style="margin:0 0 16px;color:var(--muted);font-size:0.92rem;">Jump to PDFRealm tools instantly.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-secondary" onclick="window.open('/?tool=flatten','_blank','noopener')">📄 Flatten Doc</button>
+            <button class="btn btn-secondary" onclick="window.open('/?tool=watermark','_blank','noopener')">💧 Watermark</button>
+            <button class="btn btn-secondary" onclick="window.open('/?tool=merge','_blank','noopener')">🔗 Merge PDFs</button>
+            <button class="btn btn-secondary" onclick="window.open('/?tool=quick','_blank','noopener')">✍️ Request Signature</button>
+            <a href="/" class="btn btn-secondary" style="text-decoration:none;">← Back to Tools</a>
+          </div>
+        </div>
+
+        <!-- Section 4: Broker 411 -->
+        <div style="padding:20px 24px;">
+          <div style="background:rgba(255,255,255,0.04);border:1px solid var(--line);border-radius:16px;padding:20px;max-width:520px;">
+            <h2 style="margin:0 0 8px;font-size:1.1rem;font-weight:800;">🔎 Check a Broker's Reputation</h2>
+            <p style="margin:0 0 16px;color:var(--muted);font-size:0.92rem;line-height:1.6;">
+              Before hauling a load, verify the broker's payment history and reputation with other carriers. Broker 411 aggregates real experiences from the trucking community.
+            </p>
+            <a href="https://carrierlockbox.com/broker-shipper-411" target="_blank" rel="noopener" class="btn btn-primary" style="text-decoration:none;">
+              Search Broker 411 →
+            </a>
+          </div>
+        </div>
+
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div>© <span id="year"></span> PDFRealm. All rights reserved.</div>
+    </footer>
+
+    <!-- Account Modal -->
+    <div id="accountModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div class="mh">Account</div>
+          <button id="accountModalClose" class="btn btn-secondary" type="button">Close</button>
+        </div>
+        <div class="modal-body">
+          <div class="card">
+            <label for="loginEmail">Email</label>
+            <input id="loginEmail" type="email" placeholder="you@example.com" />
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" type="password" placeholder="••••••••" />
+            <div class="modal-row">
+              <button id="loginSubmitBtn" class="btn btn-primary" type="button">Login</button>
+              <button id="subscribeMonthlyBtn" class="btn btn-secondary" type="button">Subscribe</button>
+            </div>
+            <div id="loginStatus" style="margin-top:10px; color: var(--muted); font-size: 0.95rem;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function() {
+        var y = document.getElementById('year');
+        if (y) y.textContent = new Date().getFullYear();
+
+        // Industry Packs dropdown
+        (function() {
+          var wrap = document.getElementById('industryMenuWrap');
+          var toggle = document.getElementById('industryToggle');
+          if (!wrap || !toggle) return;
+          toggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            wrap.classList.toggle('workspace-open');
+          });
+          document.addEventListener('click', function() {
+            wrap.classList.remove('workspace-open');
+          });
+        })();
+      })();
+
+      // Rate Con Parser
+      function parseRateCon(text) {
+        var get = function(patterns) {
+          for (var i = 0; i < patterns.length; i++) {
+            var m = text.match(patterns[i]);
+            if (m && m[1]) return m[1].trim();
+          }
+          return null;
+        };
+        return {
+          loadNumber: get([/load\s*#?\s*:?\s*([A-Z0-9-]+)/i, /confirmation\s*#?\s*:?\s*([A-Z0-9-]+)/i]),
+          rate: get([/\$\s*([\d,]+\.?\d*)/i, /rate\s*:?\s*\$?\s*([\d,]+\.?\d*)/i]),
+          origin: get([/pickup\s*:?\s*(.+?)(?:\n|delivery)/i, /origin\s*:?\s*(.+?)(?:\n)/i]),
+          destination: get([/delivery\s*:?\s*(.+?)(?:\n|commodity)/i, /consignee\s*:?\s*(.+?)(?:\n)/i]),
+          broker: get([/broker\s*:?\s*(.+?)(?:\n|phone)/i])
+        };
+      }
+
+      async function parseRateConFile() {
+        var input = document.getElementById('rc-upload');
+        var statusEl = document.getElementById('rc-parse-status');
+        var file = input.files && input.files[0];
+        if (!file) { alert('Please select a PDF file first.'); return; }
+
+        statusEl.textContent = 'Running OCR…';
+        document.getElementById('rc-parsed-card').style.display = 'none';
+
+        var fd = new FormData();
+        fd.append('file', file);
+
+        try {
+          var resp = await fetch('/api/ocr', { method: 'POST', credentials: 'include', body: fd });
+          if (!resp.ok) {
+            var e = await resp.json().catch(() => ({}));
+            statusEl.textContent = 'OCR error: ' + (e.error || resp.status);
+            return;
+          }
+          var data = await resp.json();
+          var text = data.text || data.result || data.ocr || '';
+          var parsed = parseRateCon(text);
+
+          document.getElementById('pr-load').textContent = parsed.loadNumber || '—';
+          document.getElementById('pr-rate').textContent = parsed.rate ? '$' + parsed.rate : '—';
+          document.getElementById('pr-origin').textContent = parsed.origin || '—';
+          document.getElementById('pr-dest').textContent = parsed.destination || '—';
+          document.getElementById('pr-broker').textContent = parsed.broker || '—';
+
+          document.getElementById('rc-parsed-card').style.display = 'block';
+          statusEl.textContent = '✅ Parsed!';
+        } catch (e) {
+          statusEl.textContent = 'Error: ' + e.message;
+        }
+      }
+
+      // Vault
+      async function loadVaultFiles() {
+        var listEl = document.getElementById('vault-list');
+        listEl.innerHTML = '<div style="color:var(--muted);font-size:0.9rem;text-align:center;padding:16px;">Loading…</div>';
+        try {
+          var resp = await fetch('/api/vault/list?folder=Carrier+Documents', { credentials: 'include' });
+          if (!resp.ok) {
+            var e = await resp.json().catch(() => ({}));
+            listEl.innerHTML = '<div style="color:var(--muted);font-size:0.9rem;padding:12px;">Could not load files. ' + (e.error || 'Login required.') + '</div>';
+            return;
+          }
+          var data = await resp.json();
+          var files = data.files || data.items || data || [];
+          if (!Array.isArray(files) || files.length === 0) {
+            listEl.innerHTML = '<div style="color:var(--muted);font-size:0.9rem;padding:12px;">No files yet. Upload your first document!</div>';
+            return;
+          }
+          listEl.innerHTML = '';
+          files.forEach(function(f) {
+            var name = f.name || f.key || f.filename || 'Document';
+            var row = document.createElement('div');
+            row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);flex-wrap:wrap;';
+            row.innerHTML = '<span style="flex:1;font-size:0.93rem;">📄 ' + name + '</span>' +
+              '<button class="btn btn-secondary" style="font-size:0.85rem;padding:5px 10px;" onclick="downloadVaultFile(\'' + encodeURIComponent(name) + '\')">⬇ Download</button>' +
+              '<button class="btn btn-secondary" style="font-size:0.85rem;padding:5px 10px;color:rgba(239,68,68,0.9);" onclick="deleteVaultFile(\'' + encodeURIComponent(name) + '\', this.closest(\'div\'))">✕ Delete</button>';
+            listEl.appendChild(row);
+          });
+        } catch (e) {
+          listEl.innerHTML = '<div style="color:var(--muted);font-size:0.9rem;padding:12px;">Error: ' + e.message + '</div>';
+        }
+      }
+
+      async function uploadVaultFile(input) {
+        var statusEl = document.getElementById('vault-status');
+        var file = input.files && input.files[0];
+        if (!file) return;
+        statusEl.textContent = 'Uploading ' + file.name + '…';
+        var fd = new FormData();
+        fd.append('file', file);
+        fd.append('folder', 'Carrier Documents');
+        try {
+          var resp = await fetch('/api/vault/upload', { method: 'POST', credentials: 'include', body: fd });
+          if (!resp.ok) {
+            var e = await resp.json().catch(() => ({}));
+            statusEl.textContent = 'Upload error: ' + (e.error || resp.status);
+            return;
+          }
+          statusEl.textContent = '✅ Uploaded!';
+          input.value = '';
+          loadVaultFiles();
+        } catch (e) {
+          statusEl.textContent = 'Error: ' + e.message;
+        }
+      }
+
+      function downloadVaultFile(encodedName) {
+        var name = decodeURIComponent(encodedName);
+        window.open('/api/vault/download?folder=Carrier+Documents&file=' + encodeURIComponent(name), '_blank');
+      }
+
+      async function deleteVaultFile(encodedName, row) {
+        var name = decodeURIComponent(encodedName);
+        if (!confirm('Delete ' + name + '?')) return;
+        try {
+          var resp = await fetch('/api/vault/delete', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ folder: 'Carrier Documents', file: name })
+          });
+          if (resp.ok) {
+            row.remove();
+            document.getElementById('vault-status').textContent = 'Deleted: ' + name;
+          } else {
+            var e = await resp.json().catch(() => ({}));
+            alert('Delete error: ' + (e.error || resp.status));
+          }
+        } catch (e) {
+          alert('Error: ' + e.message);
+        }
+      }
+
+      loadVaultFiles();
+    </script>
+  </body>
+</html>

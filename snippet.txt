@@ -1,0 +1,7 @@
+// In /api/capabilities -> tools object, set these to true so the buttons are clickable:
+jpg2png: true,
+png2jpg: true,
+docx2png: true,
+
+// (Optional, since you removed Images→PDF entirely)
+multiimg2pdf: false,

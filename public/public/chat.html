@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PDFRealm Secure Chat</title>
+  <style>
+    :root{
+      --bg:#090a0b;
+      --card:#101213;
+      --border:#1c2327;
+      --text:#f3f6f8;
+      --muted:#a9b6be;
+      --btn:#1a2a33;
+      --btn2:#0f1a20;
+      --accent:#2dd4bf;
+      --shadow: 0 20px 45px rgba(0,0,0,.45);
+      --radius: 16px;
+    }
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;color:var(--text);background:radial-gradient(900px 500px at 12% 10%, rgba(45,212,191,.12), transparent 65%), linear-gradient(180deg,#070809, #0a0c0d);}
+    .wrap{max-width:980px;margin:22px auto;padding:0 14px;}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.02));border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);}
+    .head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px;}
+    .title{font-weight:900;letter-spacing:.2px;}
+    .sub{color:var(--muted);font-size:.92rem;}
+    .body{padding:14px 16px;}
+    label{display:block;color:var(--muted);font-size:.9rem;margin:8px 0 6px;}
+    input,textarea{
+      width:100%;box-sizing:border-box;border-radius:12px;border:1px solid var(--border);
+      background:rgba(0,0,0,.25);color:var(--text);padding:10px 12px;outline:none;
+    }
+    textarea{min-height:44px;max-height:160px;resize:vertical;}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+    button{
+      border:1px solid var(--border);background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
+      color:var(--text);border-radius:12px;padding:10px 12px;cursor:pointer;font-weight:800;
+    }
+    button.primary{border-color:rgba(45,212,191,.45);box-shadow:0 0 0 1px rgba(45,212,191,.12) inset;}
+    button:disabled{opacity:.55;cursor:not-allowed;}
+    .status{margin-top:10px;color:var(--muted);font-size:.92rem;}
+    .chat{display:flex;flex-direction:column;height:64vh;}
+    .msgs{flex:1;overflow:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px;}
+    .bubble{border:1px solid var(--border);background:rgba(0,0,0,.25);border-radius:16px;padding:10px 12px;}
+    .meta{color:var(--muted);font-size:.85rem;margin-bottom:4px;}
+    .compose{border-top:1px solid var(--border);padding:12px 16px;display:flex;gap:10px;align-items:flex-end;}
+    .compose textarea{flex:1;}
+    .pill{display:inline-flex;gap:6px;align-items:center;border:1px solid rgba(45,212,191,.22);border-radius:999px;padding:4px 10px;color:var(--muted);font-size:.82rem;}
+    a.link{color:var(--accent);text-decoration:none;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="head">
+        <div>
+          <div class="title" id="roomTitle">Secure Chat</div>
+          <div class="sub" id="roomSub">Invite link room</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+          <div class="pill">E2EE (client-side)</div>
+          <div class="sub" id="online" style="text-align:right;">Online: —</div>
+        </div>
+      </div>
+
+      <div class="body" id="joinBox">
+        <div class="row">
+          <div>
+            <label for="displayName">Display name</label>
+            <input id="displayName" placeholder="Guest" />
+          </div>
+          <div>
+            <label for="roomPassword">Room password (only if required)</label>
+            <input id="roomPassword" type="password" placeholder="Password" />
+          </div>
+        </div>
+        <label for="roomKey">Room key (only if link includes #k=...)</label>
+        <input id="roomKey" placeholder="Auto-detected from invite link if present" />
+
+        <div class="actions">
+          <button id="joinBtn" class="primary">Join</button>
+        </div>
+        <div class="status" id="joinStatus"></div>
+      </div>
+
+      <div class="chat" id="chatBox" style="display:none;">
+        <div class="msgs" id="msgs"></div>
+        <div class="compose">
+          <input id="file" type="file" style="display:none" />
+          <button id="attachBtn">Attach</button>
+          <textarea id="msg" placeholder="Type a secure message…"></textarea>
+          <button id="sendBtn" class="primary">Send</button>
+        </div>
+        <div class="status" id="chatStatus" style="padding:0 16px 12px;"></div>
+      </div>
+    </div>
+
+    <div class="sub" style="margin-top:10px;">
+      Links are manually shareable. If this room is password protected, the link will not include the room key; you will need the password.
+    </div>
+  </div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+
+  const elRoomTitle = $("roomTitle");
+  const elRoomSub = $("roomSub");
+
+  const elJoinBox = $("joinBox");
+  const elChatBox = $("chatBox");
+  const elJoinBtn = $("joinBtn");
+  const elJoinStatus = $("joinStatus");
+  const elChatStatus = $("chatStatus");
+
+  const elDisplayName = $("displayName");
+  const elRoomPassword = $("roomPassword");
+  const elRoomKey = $("roomKey");
+
+  const elMsgs = $("msgs");
+  const elMsg = $("msg");
+  const elSend = $("sendBtn");
+
+  const elAttachBtn = $("attachBtn");
+  const elFile = $("file");
+
+  const token = (() => {
+    const m = location.pathname.match(/\/c\/([^\/?#]+)/);
+    return m ? m[1] : "";
+  })();
+
+  if (!token) {
+    elRoomTitle.textContent = "Invalid invite";
+    elJoinStatus.textContent = "Missing token.";
+    elJoinBtn.disabled = true;
+    return;
+  }
+
+  // ---- base64 helpers
+  const b64FromBytes = (bytes) => {
+    let bin = "";
+    for (let i=0; i<bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  };
+  const bytesFromB64 = (b64) => {
+    const bin = atob((b64||"").trim());
+    const out = new Uint8Array(bin.length);
+    for (let i=0; i<bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  };
+
+  async function aesKeyFromB64(keyB64){
+    const raw = bytesFromB64(keyB64);
+    return crypto.subtle.importKey("raw", raw, { name: "AES-GCM" }, false, ["encrypt","decrypt"]);
+  }
+  async function encryptText(keyB64, plaintext){
+    const key = await aesKeyFromB64(keyB64);
+    const nonce = crypto.getRandomValues(new Uint8Array(12));
+    const pt = new TextEncoder().encode(String(plaintext||""));
+    const ctBuf = await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce }, key, pt);
+    return { nonceB64: b64FromBytes(nonce), ciphertextB64: b64FromBytes(new Uint8Array(ctBuf)) };
+  }
+  async function decryptText(keyB64, nonceB64, ciphertextB64){
+    const key = await aesKeyFromB64(keyB64);
+    const nonce = bytesFromB64(nonceB64);
+    const ct = bytesFromB64(ciphertextB64);
+    const ptBuf = await crypto.subtle.decrypt({ name: "AES-GCM", iv: nonce }, key, ct);
+    return new TextDecoder().decode(ptBuf);
+  }
+  async function encryptBytes(keyB64, plainBytes){
+    const key = await aesKeyFromB64(keyB64);
+    const nonce = crypto.getRandomValues(new Uint8Array(12));
+    const ctBuf = await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce }, key, plainBytes);
+    return { nonceB64: b64FromBytes(nonce), ciphertextBytes: new Uint8Array(ctBuf) };
+  }
+  async function decryptBytes(keyB64, nonceB64, ciphertextBytes){
+    const key = await aesKeyFromB64(keyB64);
+    const nonce = bytesFromB64(nonceB64);
+    const ptBuf = await crypto.subtle.decrypt({ name: "AES-GCM", iv: nonce }, key, ciphertextBytes);
+    return new Uint8Array(ptBuf);
+  }
+
+  // password unwrap for room key
+  async function deriveWrapKey(password, saltBytes){
+    const enc = new TextEncoder().encode(password);
+    const baseKey = await crypto.subtle.importKey("raw", enc, { name: "PBKDF2" }, false, ["deriveKey"]);
+    return crypto.subtle.deriveKey(
+      { name: "PBKDF2", salt: saltBytes, iterations: 150000, hash: "SHA-256" },
+      baseKey,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["decrypt"]
+    );
+  }
+
+  async function unwrapRoomKeyWithPassword(wrap, password){
+    const salt = bytesFromB64(wrap.salt || "");
+    const nonce = bytesFromB64(wrap.nonce || "");
+    const ct = bytesFromB64(wrap.ciphertext || "");
+    const wrapKey = await deriveWrapKey(password, salt);
+    const roomRawBuf = await crypto.subtle.decrypt({ name: "AES-GCM", iv: nonce }, wrapKey, ct);
+    return b64FromBytes(new Uint8Array(roomRawBuf));
+  }
+
+  function detectRoomKeyFromHash(){
+    const m = (location.hash || "").match(/[#&]k=([^&]+)/);
+    return m ? decodeURIComponent(m[1]) : "";
+  }
+
+  // ---- API helpers (guest uses same-origin cookies)
+  async function api(path, opts = {}) {
+    const resp = await fetch(path, {
+      method: opts.method || "GET",
+      headers: opts.headers || (opts.body ? { "Content-Type": "application/json" } : undefined),
+      body: opts.body ? JSON.stringify(opts.body) : undefined,
+      credentials: "same-origin"
+    });
+    const txt = await resp.text();
+    let data = null;
+    try { data = txt ? JSON.parse(txt) : null; } catch { data = { raw: txt }; }
+    if (!resp.ok) {
+      throw new Error((data && (data.error || data.message)) ? (data.error || data.message) : ("HTTP " + resp.status));
+    }
+    return data;
+  }
+
+  // ---- state
+  let meta = null;
+  let threadId = null;
+
+const elOnline = $("online");
+let presenceTimer = null;
+
+async function touchPresence() {
+  if (!threadId) return;
+  try {
+    await fetch(`/api/chat/threads/${encodeURIComponent(threadId)}/presence`, { method: "POST", credentials: "same-origin" });
+  } catch (_) {}
+}
+
+async function refreshParticipants() {
+  if (!threadId || !elOnline) return;
+  try {
+    const r = await fetch(`/api/chat/threads/${encodeURIComponent(threadId)}/participants?window_sec=90`, { credentials: "same-origin" });
+    const j = await r.json().catch(() => ({}));
+    const list = (j && j.participants) ? j.participants : [];
+    const names = list.map(p => p.actor_name || p.actor_kind).filter(Boolean);
+    const shown = names.slice(0, 6).join(", ");
+    const more = names.length > 6 ? ` +${names.length - 6} more` : "";
+    elOnline.textContent = `Online: ${names.length ? (shown + more) : "—"}`;
+  } catch (_) {
+    elOnline.textContent = "Online: —";
+  }
+}
+
+function startPresence() {
+  if (presenceTimer) clearInterval(presenceTimer);
+  presenceTimer = setInterval(() => {
+    touchPresence();
+    refreshParticipants();
+  }, 10000);
+  touchPresence();
+  refreshParticipants();
+}
+
+  let roomKeyB64 = "";
+  let allowWrite = false;
+  let poll = null;
+
+  function setJoinStatus(msg){ elJoinStatus.textContent = msg || ""; }
+  function setChatStatus(msg){ elChatStatus.textContent = msg || ""; }
+
+  function renderMsg(metaLine, bodyHtml){
+    return `<div class="bubble"><div class="meta">${metaLine}</div><div class="body" style="white-space:pre-wrap;">${bodyHtml}</div></div>`;
+  }
+
+  async function loadMeta(){
+    meta = await api(`/api/chat-invite/${encodeURIComponent(token)}/meta`);
+    threadId = meta.thread_id;
+    allowWrite = !!meta.allow_write;
+    const title = (meta.thread && meta.thread.title) ? meta.thread.title : "Room";
+    elRoomTitle.textContent = title;
+    elRoomSub.textContent = allowWrite ? "Invite allows sending." : "Read-only invite.";
+    // try detect key from hash
+    const k = detectRoomKeyFromHash();
+    if (k) {
+      elRoomKey.value = k;
+    } else if (meta.requires_password) {
+      setJoinStatus("This room is password protected. Enter the password to unlock.");
+    } else {
+      setJoinStatus("This invite requires the room key (missing from link).");
+    }
+  }
+
+  async function join(){
+    setJoinStatus("");
+    const name = (elDisplayName.value || "Guest").trim();
+    // Determine room key
+    let key = (elRoomKey.value || "").trim();
+    if (!key) key = detectRoomKeyFromHash();
+
+    if (!key) {
+      if (meta && meta.requires_password) {
+        const pw = (elRoomPassword.value || "").trim();
+        if (!pw) throw new Error("Password required.");
+        const wrap = meta.key_wrap || {};
+        key = await unwrapRoomKeyWithPassword({ salt: wrap.salt, nonce: wrap.nonce, ciphertext: wrap.ciphertext }, pw);
+      } else {
+        throw new Error("Room key required (invite link missing #k=...).");
+      }
+    }
+    roomKeyB64 = key;
+
+    await api(`/api/chat-invite/${encodeURIComponent(token)}/join`, { method: "POST", body: { display_name: name } });
+
+    elJoinBox.style.display = "none";
+    elChatBox.style.display = "flex";
+    elSend.disabled = !allowWrite;
+    elAttachBtn.disabled = !allowWrite;
+
+    await refreshMessages();
+    startPolling();
+    setChatStatus("Connected.");
+  }
+
+  async function refreshMessages(){
+    if (!threadId) return;
+    const data = await api(`/api/chat/threads/${encodeURIComponent(threadId)}/messages?limit=200`);
+    const msgs = (data.messages || []).slice().reverse();
+    if (!msgs.length) {
+      elMsgs.innerHTML = renderMsg("System", "No messages yet.");
+      return;
+    }
+
+    const out = [];
+    for (const m of msgs) {
+      const sender = (m.sender_name || "User").replace(/</g,"&lt;");
+      const when = m.created_at ? String(m.created_at) : "";
+      const metaLine = sender + (when ? (" · " + when) : "");
+      const nonce = m.nonce || m.iv || "";
+      const ct = m.ciphertext || "";
+      let body = "[Unable to decrypt]";
+      try {
+        const pt = await decryptText(roomKeyB64, nonce, ct);
+        // attachment message is JSON
+        let att = null;
+        try { const obj = JSON.parse(pt); if (obj && obj.type === "attachment") att = obj; } catch {}
+        if (att) {
+          const fname = String(att.filename || "attachment").replace(/</g,"&lt;");
+          body = `<b>${fname}</b> <a class="link" href="#" data-attachment-id="${att.attachment_id}">Download</a>`;
+        } else {
+          body = pt.replace(/</g,"&lt;");
+        }
+      } catch {}
+      out.push(renderMsg(metaLine, body));
+    }
+    elMsgs.innerHTML = out.join("");
+    elMsgs.scrollTop = elMsgs.scrollHeight;
+
+    Array.from(elMsgs.querySelectorAll("[data-attachment-id]")).forEach(a => {
+      if (a.dataset.bound === "1") return;
+      a.dataset.bound = "1";
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        const id = a.getAttribute("data-attachment-id");
+        downloadAttachment(id).catch(err => setChatStatus(err.message || String(err)));
+      });
+    });
+  }
+
+  async function send(){
+    const txt = (elMsg.value || "").trim();
+    if (!txt) return;
+    const enc = await encryptText(roomKeyB64, txt);
+    await api(`/api/chat/threads/${encodeURIComponent(threadId)}/messages`, { method: "POST", body: { nonce: enc.nonceB64, ciphertext: enc.ciphertextB64 } });
+    elMsg.value = "";
+    await refreshMessages();
+  }
+
+  async function uploadAttachment(file){
+    const buf = await file.arrayBuffer();
+    const enc = await encryptBytes(roomKeyB64, new Uint8Array(buf));
+    const blob = new Blob([enc.ciphertextBytes], { type: "application/octet-stream" });
+
+    const fd = new FormData();
+    fd.append("file", blob, file.name);
+    fd.append("filename", file.name);
+    fd.append("mime", file.type || "application/octet-stream");
+    fd.append("size", String(file.size || 0));
+    fd.append("nonce", enc.nonceB64);
+
+    const resp = await fetch(`/api/chat/threads/${encodeURIComponent(threadId)}/attachments`, { method: "POST", body: fd, credentials: "same-origin" });
+    const txt = await resp.text();
+    let data = null;
+    try { data = txt ? JSON.parse(txt) : null; } catch { data = { raw: txt }; }
+    if (!resp.ok) throw new Error((data && data.error) ? data.error : ("HTTP " + resp.status));
+
+    // send attachment message
+    const msgObj = { type:"attachment", attachment_id: data.attachment_id, filename: file.name, mime: file.type || "application/octet-stream", size: file.size || 0, nonce: enc.nonceB64 };
+    const mEnc = await encryptText(roomKeyB64, JSON.stringify(msgObj));
+    await api(`/api/chat/threads/${encodeURIComponent(threadId)}/messages`, { method: "POST", body: { nonce: mEnc.nonceB64, ciphertext: mEnc.ciphertextB64 } });
+
+    await refreshMessages();
+  }
+
+  async function downloadAttachment(attachmentId){
+    // Find nonce/filename from messages
+    const data = await api(`/api/chat/threads/${encodeURIComponent(threadId)}/messages?limit=200`);
+    const msgs = (data.messages || []).slice().reverse();
+    let found = null;
+    for (const m of msgs) {
+      try {
+        const pt = await decryptText(roomKeyB64, m.nonce || m.iv || "", m.ciphertext || "");
+        const obj = JSON.parse(pt);
+        if (obj && obj.type === "attachment" && String(obj.attachment_id) === String(attachmentId)) { found = obj; break; }
+      } catch {}
+    }
+    if (!found) throw new Error("Attachment metadata not found.");
+
+    const resp = await fetch(`/api/chat/threads/${encodeURIComponent(threadId)}/attachments/${encodeURIComponent(attachmentId)}`, { credentials: "same-origin" });
+    if (!resp.ok) throw new Error("Download failed.");
+    const ctBytes = new Uint8Array(await resp.arrayBuffer());
+    const ptBytes = await decryptBytes(roomKeyB64, found.nonce, ctBytes);
+    const outBlob = new Blob([ptBytes], { type: found.mime || "application/octet-stream" });
+
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(outBlob);
+    a.download = found.filename || "attachment";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+  }
+
+  function startPolling(){
+    if (poll) clearInterval(poll);
+    poll = setInterval(() => refreshMessages().catch(()=>{}), 2500);
+  }
+
+  // bindings
+  elJoinBtn.addEventListener("click", () => join().catch(err => setJoinStatus(err.message || String(err))));
+  elSend.addEventListener("click", () => send().catch(err => setChatStatus(err.message || String(err))));
+  elMsg.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send().catch(err => setChatStatus(err.message || String(err))); }
+  });
+
+  elAttachBtn.addEventListener("click", () => { elFile.value = ""; elFile.click(); });
+  elFile.addEventListener("change", () => {
+    const f = elFile.files && elFile.files[0];
+    if (!f) return;
+    uploadAttachment(f).catch(err => setChatStatus(err.message || String(err)));
+  });
+
+  loadMeta().catch(err => { elJoinStatus.textContent = err.message || String(err); elJoinBtn.disabled = true; });
+})();
+</script>
+
+</body>
+</html>

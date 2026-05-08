@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pdfrealm
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redactor:
+    build:
+      context: ./redactor
+    ports:
+      - "9100:9100"
+
+  app:
+    build: .
+    ports:
+      - "9011:9000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redactor:
+        condition: service_started
+    environment:
+      - PORT=9000
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/pdfrealm
+      - JOB_STORE_DIR=/jobs
+      - JOB_CONCURRENCY=1
+      - JOB_RETENTION_MIN=60
+    volumes:
+      - jobsdata:/jobs
+
+volumes:
+  dbdata:
+  jobsdata:

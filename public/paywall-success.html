@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Access Unlocked – PDFRealm</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      * { box-sizing: border-box; }
+      body { font-family: system-ui, Arial, sans-serif; background: #f5f5f5; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 24px; }
+      .card { background: #fff; border: 1px solid #e0e0e0; border-radius: 16px; padding: 40px 32px; max-width: 480px; width: 100%; text-align: center; box-shadow: 0 4px 24px rgba(0,0,0,0.07); }
+      .icon { font-size: 56px; margin-bottom: 16px; }
+      h1 { margin: 0 0 8px; font-size: 1.6rem; color: #111; }
+      .sub { color: #555; margin: 0 0 24px; font-size: 1rem; line-height: 1.5; }
+      .badge { display: inline-block; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; border-radius: 999px; padding: 4px 14px; font-size: 0.85rem; font-weight: 600; margin-bottom: 24px; }
+      .status { color: #888; font-size: 0.9rem; margin-bottom: 20px; min-height: 20px; }
+      .status.error { color: #dc2626; }
+      button { padding: 12px 28px; border-radius: 10px; border: none; background: #111; color: #fff; cursor: pointer; font-size: 1rem; font-weight: 600; width: 100%; transition: background 0.15s; }
+      button:hover { background: #333; }
+      button:disabled { opacity: 0.5; cursor: default; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="icon">🔓</div>
+      <h1>You're in!</h1>
+      <p class="sub">Your 24-hour all-tools access pass is now active.<br>Go back and use any tool — no limits.</p>
+      <div class="badge">✓ 24h All-Tools Pass Active</div>
+      <p class="status" id="status">Activating your pass…</p>
+      <button id="backBtn" disabled>Go to PDFRealm →</button>
+    </div>
+
+    <script>
+      (async function () {
+        const statusEl = document.getElementById("status");
+        const backBtn  = document.getElementById("backBtn");
+        const params   = new URLSearchParams(location.search);
+        const session_id = params.get("session_id");
+
+        if (!session_id) {
+          statusEl.textContent = "Missing session ID. Contact support.";
+          statusEl.className = "status error";
+          return;
+        }
+
+        try {
+          const res  = await fetch("/api/pay-per-export/activate?session_id=" + encodeURIComponent(session_id));
+          const data = await res.json().catch(() => ({}));
+
+          if (!res.ok || !data.ok) throw new Error(data.error || "Activation failed.");
+
+          // Store token for app to pick up
+          try { localStorage.setItem("pdfrealm_ppe_token", data.token); } catch {}
+          try { localStorage.setItem("pdfrealm_ppe_expires", data.expiresAt); } catch {}
+
+          const exp = data.expiresAt ? new Date(data.expiresAt).toLocaleString() : "24 hours";
+          statusEl.textContent = "Active until " + exp;
+          statusEl.style.color = "#16a34a";
+          backBtn.disabled = false;
+        } catch (e) {
+          statusEl.textContent = "Error: " + e.message;
+          statusEl.className = "status error";
+          backBtn.disabled = false; // still let them go back
+        }
+
+        backBtn.addEventListener("click", () => { window.location.href = "/"; });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,107 @@
+<!-- CANONICAL HEADER - PDFRealm
+     Usage: copy this block into each page, then set the correct nav-chip-active class.
+     Active chip mapping:
+       index.html       → Tools chip active (navChipTools → nav-chip-active)
+       vault.html       → Secure Vault chip active (navChipVault → nav-chip-active)
+       office.html      → DocForge chip active
+       all others       → no chip active (Industry Pack pages)
+-->
+<header class="topbar">
+  <div class="topbar-inner">
+    <!-- LEFT: Brand + Nav Chips -->
+    <div class="brand-left">
+      <div class="brand">
+        <div style="height:42px;width:140px;background:url('/logo.png') center/contain no-repeat;flex-shrink:0;"></div>
+      </div>
+
+      <div class="brand-divider"></div>
+
+      <nav class="left-secure-nav" aria-label="Secure">
+        <a href="/vault.html" class="nav-chip" id="navChipVault">
+          Secure Vault
+          <span class="nav-chip-pill">AES-256</span>
+        </a>
+        <a href="/" class="nav-chip" id="navChipTools">Quick Tools</a>
+      </nav>
+    </div>
+
+    <!-- RIGHT: Industry Packs + Pricing + Calendar + Get App + Account -->
+    <div class="right-nav-cluster">
+      <nav class="top-nav" aria-label="Primary">
+        <div class="workspace-menu" id="industryMenuWrap">
+          <button class="nav-link workspace-toggle" type="button" id="industryToggle">
+            Industry Packs
+            <span class="workspace-caret">▾</span>
+          </button>
+          <div class="workspace-dropdown" id="industryDropdown" role="menu" aria-label="Industry Packs">
+            <a class="workspace-item" role="menuitem" href="/broker.html">Broker TMS Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/carrier.html">Carrier Dashboard</a>
+            <div style="height:1px; background: rgba(255,255,255,0.10); margin: 8px 10px;"></div>
+            <a class="workspace-item" role="menuitem" href="/legal.html">Legal Workspace</a>
+            <a class="workspace-item" role="menuitem" href="/real-estate.html">Real Estate Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/accounting.html">Accounting Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/hr.html">HR Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/marketing.html">Marketing Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/csuite.html">C-Suite Dashboard</a>
+          </div>
+        </div>
+
+        <a href="/pricing.html" class="nav-link">Pricing</a>
+        <button class="nav-link" type="button" id="appDownloadNavBtn" style="background:none;border:none;cursor:pointer;">📱 Get App</button>
+      </nav>
+
+      <!-- Calendar widget button -->
+      <button id="calendarToggleBtn" title="Calendar & Reminders" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text);padding:7px 10px;border-radius:8px;cursor:pointer;font-size:1rem;position:relative;">📅</button>
+
+      <div class="top-actions">
+        <button id="pwa-install-btn" style="display:none;" class="btn btn-secondary" type="button" title="Install PDFRealm as an app">
+          📱 Install App
+        </button>
+        <button
+          id="accountLoginBtn"
+          class="btn"
+          type="button"
+          aria-haspopup="dialog"
+          aria-controls="accountModal"
+        >
+          <span id="accountDot" class="dot"></span>
+          Account
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolset-bar">
+    <nav class="toolset-tabs" id="toolsetTabs" aria-label="Tool Suites">
+      <div class="toolset-tab" data-toolset="standard">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">Standard Tools</button>
+        <div class="toolset-menu" role="menu" aria-label="Standard Tools"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="premium">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">Premium Tools</button>
+        <div class="toolset-menu" role="menu" aria-label="Premium Tools"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="secure">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">Secure Suite</button>
+        <div class="toolset-menu" role="menu" aria-label="Secure Suite"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="governance">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false" disabled title="Coming Soon" style="opacity:0.45; cursor:not-allowed; pointer-events:none;">Document Governance</button>
+        <div class="toolset-menu" role="menu" aria-label="Document Governance"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="docforge">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">DocForge</button>
+        <div class="toolset-menu" role="menu" aria-label="DocForge"></div>
+      </div>
+      <div class="toolset-tab">
+        <a id="aiOperatorLink" class="toolset-btn toolset-btn-breakthrough" href="/?ai=1">AI Operator</a>
+      </div>
+      <div class="toolset-tab" data-toolset="signreqs">
+        <button class="toolset-btn" type="button" id="signReqsToolsetBtn">✍️ Sign Requests</button>
+      </div>
+      <div class="toolset-tab">
+        <a class="toolset-btn" href="/carrier.html" style="border-color:rgba(106,168,255,0.45);color:rgba(106,168,255,0.95);text-decoration:none;">🔒 Carrier Lockbox</a>
+      </div>
+    </nav>
+  </div>
+</header>

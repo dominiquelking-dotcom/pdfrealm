@@ -1,0 +1,78 @@
+./server.js:339:// Hash Evidence Machine (PG) — Phase 1: Evidence Core
+./server.js:8381:  // Serve a simple in-app test page so you can validate Evidence Core without curl.
+./public/index.html.bak.1771097497:3711:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771041795:3710:            <b>Phase 1 — Evidence Core</b>
+./server_patched_example.js:277:// Hash Evidence Machine (PG) — Phase 1: Evidence Core
+./server_patched_example.js:10121:  // Serve a simple in-app test page so you can validate Evidence Core without curl.
+./public/index.html.bak.1771101351:3711:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771120844:3709:            <b>Phase 1 — Evidence Core</b>
+./public/styles.css.bak.1771284372:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./public/styles.css.bak.1771284372:1013:body[data-toolset="governance"] #evidenceCore,
+./public/styles.css.bak.1771284372:1014:body[data-toolset="governance"] #evidenceCoreCard,
+./public/backups_toolset/index.html.bak_20260208_103021.bak.1771042863:3605:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771129978:3709:            <b>Phase 1 — Evidence Core</b>
+./public/app.js.bak.1771279038:18102:      // Look only inside sidebar, and only for Evidence Core markers
+./public/app.js.bak.1771279038:18103:      var needles = ['Evidence Core (Live)', 'Ingest (Hash', 'Export Evidence Bundle'];
+./public/app.js.bak.1771279038:18118:      var card = hit.closest('[data-evidence-core], #evidenceCore, #evidenceCoreCard, .evidence-core, .evidence-card, .card, .panel, section, div') || hit.parentElement;
+./public/backups_toolset/index.html.bak_20260208_103021:3601:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771044655:3710:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771130888:3723:            <b>Phase 1 — Evidence Core</b>
+./public/evidence_ui.js:4:  // Evidence Core UI injector for Breakthrough → Hash Evidence Machine.
+./public/evidence_ui.js:49:    return !!host.querySelector("#evidenceCorePanel");
+./public/evidence_ui.js:194:      id: "evidenceCorePanel",
+./public/evidence_ui.js:205:          el("div", { style: "font-weight:800; font-size:16px;" }, ["🧾 Evidence Core (Live) — Phase 1"]),
+./public/index.html.bak.1771205694:3724:            <b>Phase 1 — Evidence Core</b>
+./public/app.js.bak.1771277819:18089:    // Find by unique text that only the Evidence Core card has
+./public/app.js.bak.1771277819:18090:    var needles = ["Evidence Core (Live)", "Ingest (Hash + Log)", "Export Evidence Bundle"];
+./public/app.js.bak.1771277819:18098:          var el = all[i].closest("[data-evidence-core], #evidenceCore, #evidenceCoreCard, .evidence-core, .evidence-core-card, .evidence-card, .card, .panel, section, div") || all[i];
+./public/index.html.bak.1771259772:3721:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771118524:3711:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771284372:3731:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771204929:3725:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771211681:3724:            <b>Phase 1 — Evidence Core</b>
+./public/app.js.bak.1771272875:18093:    // Find the Evidence Core card by its unique button text
+./public/app.js.bak.1771272875:18103:    var root = ingest.closest('[data-evidence-core], #evidenceCore, #evidenceCoreCard, .card, .panel, section, div');
+./public/app.js.bak.1771272875:18106:    if (root && !root.__hiddenEvidenceCore){
+./public/app.js.bak.1771272875:18107:      root.__hiddenEvidenceCore = true;
+./public/styles.css:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./public/styles.css:1013:body[data-toolset="governance"] #evidenceCore,
+./public/styles.css:1014:body[data-toolset="governance"] #evidenceCoreCard,
+./public/index.html.bak.1771041893:3710:            <b>Phase 1 — Evidence Core</b>
+./public/styles.css.bak.1771267413:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./public/styles.css.bak.1771267413:1013:body[data-toolset="governance"] #evidenceCore,
+./public/styles.css.bak.1771267413:1014:body[data-toolset="governance"] #evidenceCoreCard,
+./public/backups_toolset_tabs/index.html.bak_20260208_110009.bak.1771042863:3716:            <b>Phase 1 — Evidence Core</b>
+./public/backups_toolset_tabs/index.html.bak_20260208_110009.bak.1771042863.bak.1771042863:3720:            <b>Phase 1 — Evidence Core</b>
+./public/app.js.bak.1771278137:18093:    // Find the unique Evidence Core button inside the sidebar only
+./public/app.js.bak.1771278137:18103:    var card = ingest.closest('[data-evidence-core], #evidenceCore, #evidenceCoreCard, .evidence-core, .evidence-card, .card, .panel, section, div') || ingest.parentElement;
+./public/app.js.bak.1771280635:18102:      // Look only inside sidebar, and only for Evidence Core markers
+./public/app.js.bak.1771280635:18103:      var needles = ['Evidence Core (Live)', 'Ingest (Hash', 'Export Evidence Bundle'];
+./public/app.js.bak.1771280635:18118:      var card = hit.closest('[data-evidence-core], #evidenceCore, #evidenceCoreCard, .evidence-core, .evidence-card, .card, .panel, section, div') || hit.parentElement;
+./public/app.js.bak.1771280635:18171:      // Look only inside sidebar, and only for Evidence Core markers
+./public/app.js.bak.1771280635:18172:      var needles = ['Evidence Core (Live)', 'Ingest (Hash', 'Export Evidence Bundle'];
+./public/app.js.bak.1771280635:18187:      var card = hit.closest('[data-evidence-core], #evidenceCore, #evidenceCoreCard, .evidence-core, .evidence-card, .card, .panel, section, div') || hit.parentElement;
+./public/index.html.bak.20260213_231414:3710:            <b>Phase 1 — Evidence Core</b>
+./public/styles.css.bak.1771283489:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./public/styles.css.bak.1771283489:1013:body[data-toolset="governance"] #evidenceCore,
+./public/styles.css.bak.1771283489:1014:body[data-toolset="governance"] #evidenceCoreCard,
+./public/index.html.bak.1771130638:3723:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771130340:3718:            <b>Phase 1 — Evidence Core</b>
+./public/index.html:3731:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771101401:3711:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771205279:3724:            <b>Phase 1 — Evidence Core</b>
+./public/app.js.bak.1771269073:18100:    var needle = 'Evidence Core (Live)';
+./public/app.js.bak.1771269073:18108:      var root = el.closest('[data-evidence-core], #evidenceCore, #evidenceCoreCard, .evidence-core, .evidence-core-card, .evidence-card, .card, section, div');
+./public/index.html.bak.bak.1771042863.bak.1771042863:3704:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771119059:3709:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771128906:3709:            <b>Phase 1 — Evidence Core</b>
+./public/styles.css.bak.1771282208:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./public/styles.css.bak.1771282208:1013:body[data-toolset="governance"] #evidenceCore,
+./public/styles.css.bak.1771282208:1014:body[data-toolset="governance"] #evidenceCoreCard,
+./public/styles.css.bak.1771280635:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./public/styles.css.bak.1771280635:1013:body[data-toolset="governance"] #evidenceCore,
+./public/styles.css.bak.1771280635:1014:body[data-toolset="governance"] #evidenceCoreCard,
+./public/index.html.bak.1771130025:3718:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771254827:3713:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771118461:3711:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771133650:3724:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771129822:3709:            <b>Phase 1 — Evidence Core</b>

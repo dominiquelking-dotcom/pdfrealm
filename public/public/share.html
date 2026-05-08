@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>PDFRealm Secure Send</title>
+  <meta name="referrer" content="no-referrer"/>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#0f1b33;
+      --line:rgba(148,163,184,.18);
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --good:#22c55e;
+      --bad:#ef4444;
+      --btn:#1f2a44;
+      --btn2:#233252;
+    }
+    body{margin:0;background:radial-gradient(1200px 600px at 30% -10%, rgba(59,130,246,.25), transparent 60%),
+                  radial-gradient(900px 500px at 85% 0%, rgba(34,197,94,.18), transparent 55%),
+                  var(--bg);
+         color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;}
+    .wrap{max-width:980px;margin:26px auto;padding:0 14px;}
+    .card{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:18px;padding:16px 16px 14px;}
+    h1{font-size:18px;margin:0 0 10px;}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+    .muted{color:var(--muted);font-size:13px;line-height:1.35}
+    .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;color:var(--muted)}
+    input{background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--text);outline:none;min-width:220px}
+    input:focus{border-color:rgba(255,255,255,.30)}
+    button{background:var(--btn);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:10px 12px;cursor:pointer}
+    button:hover{background:var(--btn2)}
+    button:disabled{opacity:.55;cursor:not-allowed}
+    .err{color:var(--bad);font-size:13px;margin-top:8px}
+    .ok{color:var(--good);font-size:13px;margin-top:8px}
+    .files{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
+    .file{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 10px;border:1px solid var(--line);border-radius:14px;background:rgba(0,0,0,.12);margin:8px 0}
+    .fname{font-weight:600;font-size:13px;word-break:break-all}
+    .fmeta{color:var(--muted);font-size:12px;margin-top:4px}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    .actions a{display:inline-block;text-decoration:none}
+    .actions a button{padding:8px 10px;border-radius:10px}
+    iframe{width:100%;height:62vh;border:1px solid var(--line);border-radius:16px;background:#000;margin-top:10px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <h1>Secure Send</h1>
+          <div class="muted" id="subtitle">Loading…</div>
+        </div>
+        <div class="row" style="justify-content:flex-end">
+          <div class="pill" id="permPill">—</div>
+          <div class="pill" id="expPill">—</div>
+        </div>
+      </div>
+
+      <div id="unlockBlock" style="margin-top:12px;display:none">
+        <div class="row">
+          <input id="passcode" type="password" placeholder="Enter passcode" autocomplete="one-time-code" inputmode="numeric"/>
+          <button id="unlockBtn" type="button">Unlock</button>
+          <button id="promptBtn" type="button" style="display:none">Enter via prompt</button>
+        </div>
+        <div class="muted" style="margin-top:6px">Tip: press Enter after typing the passcode.</div>
+      </div>
+
+      <div id="msg" class="err" style="display:none"></div>
+
+      <div class="files" id="filesBlock" style="display:none">
+        <div class="row" style="justify-content:space-between">
+          <div class="muted" id="filesTitle">Files</div>
+          <button id="refreshBtn" type="button">Refresh</button>
+        </div>
+
+        <div id="files"></div>
+
+        <div id="viewerWrap" style="display:none">
+          <div class="muted" style="margin-top:10px">Preview</div>
+          <iframe id="viewer"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const token = (location.pathname.split("/s/")[1] || "").split("/")[0] || "";
+  const metaUrl = `/api/secure-share/${encodeURIComponent(token)}/meta`;
+  const unlockUrl = `/api/secure-share/${encodeURIComponent(token)}/unlock`;
+  const filesUrl = `/api/secure-share/${encodeURIComponent(token)}/files`;
+  const dlBase  = `/api/secure-share/${encodeURIComponent(token)}/download/`;
+
+  let accessToken = null;
+  let meta = null;
+
+  const $ = (id)=>document.getElementById(id);
+  const msg = $("msg");
+
+  function showMsg(text, ok){
+    msg.style.display = "block";
+    msg.className = ok ? "ok" : "err";
+    msg.textContent = text;
+  }
+  function clearMsg(){ msg.style.display="none"; msg.textContent=""; }
+
+  async function api(url, opts){
+    const o = Object.assign({headers:{}}, opts||{});
+    o.headers["Accept"]="application/json";
+    if (o.body && !o.headers["Content-Type"]) o.headers["Content-Type"]="application/json";
+    if (accessToken) o.headers["Authorization"] = "Bearer " + accessToken;
+    if (!("credentials" in o)) o.credentials = "include";
+    const r = await fetch(url, o);
+    const ct = r.headers.get("content-type")||"";
+    const data = ct.includes("application/json") ? await r.json() : { ok:false, error: await r.text() };
+    if (!r.ok || data.ok === false) {
+      const err = data && (data.error || data.message) ? (data.error || data.message) : `HTTP ${r.status}`;
+      throw new Error(err);
+    }
+    return data;
+  }
+
+  function fmtSize(n){
+    if (n==null || isNaN(n)) return "";
+    const u=["B","KB","MB","GB"];
+    let v=Number(n), i=0;
+    while(v>1024 && i<u.length-1){ v/=1024; i++; }
+    return (i===0? v : v.toFixed(1))+" "+u[i];
+  }
+
+  function updatePills(){
+    const p = meta?.allow_download || meta?.allow_print ? "View" : "View only";
+    $("permPill").textContent = meta?.allow_download && meta?.allow_print ? "View + Download + Print"
+                           : meta?.allow_download ? "View + Download"
+                           : meta?.allow_print ? "View + Print"
+                           : "View only";
+    $("expPill").textContent = meta?.expires_at ? ("Expires: " + new Date(meta.expires_at).toLocaleString()) : "No expiry";
+  }
+
+  function canDownload(){
+    return !!(meta && meta.allow_download);
+  }
+  function canPrint(){
+    return !!(meta && meta.allow_print);
+  }
+
+  function openInline(objectId){
+    const url = dlBase + encodeURIComponent(objectId) + "?inline=1";
+    $("viewer").src = url;
+    $("viewerWrap").style.display="block";
+    window.scrollTo({top: document.body.scrollHeight, behavior:"smooth"});
+  }
+
+  async function renderFiles(){
+    clearMsg();
+    $("files").innerHTML = "";
+    const data = await api(filesUrl);
+    const files = data.files || [];
+    if (!files.length) {
+      $("files").innerHTML = '<div class="muted" style="padding:10px 2px;">No files available.</div>';
+      return;
+    }
+    files.forEach(f=>{
+      const div = document.createElement("div");
+      div.className="file";
+      const left = document.createElement("div");
+      left.style.flex="1";
+      left.innerHTML = `<div class="fname">${escapeHtml(f.name||"file")}</div>
+                        <div class="fmeta">${escapeHtml(f.contentType||"")} ${f.size!=null ? ("• "+fmtSize(f.size)) : ""}</div>`;
+      const actions = document.createElement("div");
+      actions.className="actions";
+
+      const openBtn = document.createElement("a");
+      openBtn.href="#";
+      openBtn.onclick=(e)=>{ e.preventDefault(); openInline(f.objectId); };
+      openBtn.innerHTML = '<button type="button">Open</button>';
+      actions.appendChild(openBtn);
+
+      if (canDownload()){
+        const dl = document.createElement("a");
+        dl.href = dlBase + encodeURIComponent(f.objectId);
+        dl.target="_blank";
+        dl.rel="noopener";
+        dl.innerHTML = '<button type="button">Download</button>';
+        actions.appendChild(dl);
+      }
+
+      if (canPrint()){
+        const pr = document.createElement("a");
+        pr.href="#";
+        pr.onclick=(e)=>{
+          e.preventDefault();
+          const url = dlBase + encodeURIComponent(f.objectId) + "?inline=1";
+          const w = window.open(url, "_blank", "noopener");
+          if (!w) return;
+          const t = setInterval(()=>{
+            try{
+              if (w.document && w.document.readyState === "complete") {
+                clearInterval(t);
+                w.focus();
+                w.print();
+              }
+            } catch {}
+          }, 400);
+        };
+        pr.innerHTML = '<button type="button">Print</button>';
+        actions.appendChild(pr);
+      }
+
+      div.appendChild(left);
+      div.appendChild(actions);
+      $("files").appendChild(div);
+    });
+  }
+
+  function escapeHtml(s){
+    return String(s||"").replace(/[&<>"]/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+  }
+
+  async function loadMeta(){
+    const data = await api(metaUrl);
+    meta = data;
+    updatePills();
+    $("subtitle").textContent = meta.require_passcode ? "Passcode required to view." : "Unlocked link.";
+    if (meta.require_passcode){
+      $("unlockBlock").style.display="block";
+      $("promptBtn").style.display="inline-block";
+      setTimeout(()=>{ try{ $("passcode").focus(); }catch{} }, 50);
+    } else {
+      $("unlockBlock").style.display="none";
+      $("filesBlock").style.display="block";
+      await renderFiles();
+    }
+  }
+
+  async function unlock(pass){
+    clearMsg();
+    const data = await api(unlockUrl, { method:"POST", body: JSON.stringify({ passcode: pass }) });
+    accessToken = data.access_token;
+    $("unlockBlock").style.display="none";
+    $("filesBlock").style.display="block";
+    await renderFiles();
+    showMsg("Unlocked.", true);
+  }
+
+  $("unlockBtn").addEventListener("click", async ()=>{
+    try{
+      const pass = $("passcode").value.trim();
+      if (!pass) return showMsg("Passcode required.", false);
+      await unlock(pass);
+    }catch(e){
+      showMsg(e.message || "Unlock failed.", false);
+    }
+  });
+
+  $("passcode").addEventListener("keydown", async (e)=>{
+    if (e.key === "Enter"){
+      e.preventDefault();
+      $("unlockBtn").click();
+    }
+  });
+
+  $("promptBtn").addEventListener("click", async ()=>{
+    try{
+      const pass = prompt("Enter passcode:");
+      if (!pass) return;
+      await unlock(String(pass).trim());
+    }catch(e){
+      showMsg(e.message || "Unlock failed.", false);
+    }
+  });
+
+  $("refreshBtn").addEventListener("click", async ()=>{
+    try{ await renderFiles(); } catch(e){ showMsg(e.message || "Failed", false); }
+  });
+
+  // allow quick testing: ?code=12345
+  const qs = new URLSearchParams(location.search);
+  const code = qs.get("code");
+  loadMeta().then(()=>{
+    if (code){
+      $("passcode").value = code;
+      $("unlockBtn").click();
+    }
+  }).catch(e=>{
+    showMsg(e.message || "Failed to load share.", false);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+./evidence_core_hits.host.txt:1:./server.js:339:// Hash Evidence Machine (PG) — Phase 1: Evidence Core
+./evidence_core_hits.host.txt:2:./server.js:8381:  // Serve a simple in-app test page so you can validate Evidence Core without curl.
+./evidence_core_hits.host.txt:3:./public/index.html.bak.1771097497:3711:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:4:./public/index.html.bak.1771041795:3710:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:5:./server_patched_example.js:277:// Hash Evidence Machine (PG) — Phase 1: Evidence Core
+./evidence_core_hits.host.txt:6:./server_patched_example.js:10121:  // Serve a simple in-app test page so you can validate Evidence Core without curl.
+./evidence_core_hits.host.txt:7:./public/index.html.bak.1771101351:3711:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:8:./public/index.html.bak.1771120844:3709:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:9:./public/styles.css.bak.1771284372:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./evidence_core_hits.host.txt:12:./public/backups_toolset/index.html.bak_20260208_103021.bak.1771042863:3605:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:13:./public/index.html.bak.1771129978:3709:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:14:./public/app.js.bak.1771279038:18102:      // Look only inside sidebar, and only for Evidence Core markers
+./evidence_core_hits.host.txt:15:./public/app.js.bak.1771279038:18103:      var needles = ['Evidence Core (Live)', 'Ingest (Hash', 'Export Evidence Bundle'];
+./evidence_core_hits.host.txt:17:./public/backups_toolset/index.html.bak_20260208_103021:3601:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:18:./public/index.html.bak.1771044655:3710:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:19:./public/index.html.bak.1771130888:3723:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:20:./public/evidence_ui.js:4:  // Evidence Core UI injector for Breakthrough → Hash Evidence Machine.
+./evidence_core_hits.host.txt:23:./public/evidence_ui.js:205:          el("div", { style: "font-weight:800; font-size:16px;" }, ["🧾 Evidence Core (Live) — Phase 1"]),
+./evidence_core_hits.host.txt:24:./public/index.html.bak.1771205694:3724:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:25:./public/app.js.bak.1771277819:18089:    // Find by unique text that only the Evidence Core card has
+./evidence_core_hits.host.txt:26:./public/app.js.bak.1771277819:18090:    var needles = ["Evidence Core (Live)", "Ingest (Hash + Log)", "Export Evidence Bundle"];
+./evidence_core_hits.host.txt:28:./public/index.html.bak.1771259772:3721:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:29:./public/index.html.bak.1771118524:3711:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:30:./public/index.html.bak.1771284372:3731:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:31:./public/index.html.bak.1771204929:3725:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:32:./public/index.html.bak.1771211681:3724:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:33:./public/app.js.bak.1771272875:18093:    // Find the Evidence Core card by its unique button text
+./evidence_core_hits.host.txt:37:./public/styles.css:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./evidence_core_hits.host.txt:40:./public/index.html.bak.1771041893:3710:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:41:./public/styles.css.bak.1771267413:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./evidence_core_hits.host.txt:44:./public/backups_toolset_tabs/index.html.bak_20260208_110009.bak.1771042863:3716:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:45:./public/backups_toolset_tabs/index.html.bak_20260208_110009.bak.1771042863.bak.1771042863:3720:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:46:./public/app.js.bak.1771278137:18093:    // Find the unique Evidence Core button inside the sidebar only
+./evidence_core_hits.host.txt:48:./public/app.js.bak.1771280635:18102:      // Look only inside sidebar, and only for Evidence Core markers
+./evidence_core_hits.host.txt:49:./public/app.js.bak.1771280635:18103:      var needles = ['Evidence Core (Live)', 'Ingest (Hash', 'Export Evidence Bundle'];
+./evidence_core_hits.host.txt:51:./public/app.js.bak.1771280635:18171:      // Look only inside sidebar, and only for Evidence Core markers
+./evidence_core_hits.host.txt:52:./public/app.js.bak.1771280635:18172:      var needles = ['Evidence Core (Live)', 'Ingest (Hash', 'Export Evidence Bundle'];
+./evidence_core_hits.host.txt:54:./public/index.html.bak.20260213_231414:3710:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:55:./public/styles.css.bak.1771283489:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./evidence_core_hits.host.txt:58:./public/index.html.bak.1771130638:3723:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:59:./public/index.html.bak.1771130340:3718:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:60:./public/index.html:3731:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:61:./public/index.html.bak.1771101401:3711:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:62:./public/index.html.bak.1771205279:3724:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:63:./public/app.js.bak.1771269073:18100:    var needle = 'Evidence Core (Live)';
+./evidence_core_hits.host.txt:65:./public/index.html.bak.bak.1771042863.bak.1771042863:3704:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:66:./public/index.html.bak.1771119059:3709:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:67:./public/index.html.bak.1771128906:3709:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:68:./public/styles.css.bak.1771282208:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./evidence_core_hits.host.txt:71:./public/styles.css.bak.1771280635:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./evidence_core_hits.host.txt:74:./public/index.html.bak.1771130025:3718:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:75:./public/index.html.bak.1771254827:3713:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:76:./public/index.html.bak.1771118461:3711:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:77:./public/index.html.bak.1771133650:3724:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_hits.host.txt:78:./public/index.html.bak.1771129822:3709:            <b>Phase 1 — Evidence Core</b>
+./server_patched_example.js:277:// Hash Evidence Machine (PG) — Phase 1: Evidence Core
+./server_patched_example.js:10121:  // Serve a simple in-app test page so you can validate Evidence Core without curl.
+./evidence_core_hits.served_html.txt:1:3731:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:1:./evidence_core_hits.host.txt:1:./server.js:339:// Hash Evidence Machine (PG) — Phase 1: Evidence Core
+./evidence_core_live_hits.host.txt:2:./evidence_core_hits.host.txt:2:./server.js:8381:  // Serve a simple in-app test page so you can validate Evidence Core without curl.
+./evidence_core_live_hits.host.txt:3:./evidence_core_hits.host.txt:3:./public/index.html.bak.1771097497:3711:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:4:./evidence_core_hits.host.txt:4:./public/index.html.bak.1771041795:3710:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:5:./evidence_core_hits.host.txt:5:./server_patched_example.js:277:// Hash Evidence Machine (PG) — Phase 1: Evidence Core
+./evidence_core_live_hits.host.txt:6:./evidence_core_hits.host.txt:6:./server_patched_example.js:10121:  // Serve a simple in-app test page so you can validate Evidence Core without curl.
+./evidence_core_live_hits.host.txt:7:./evidence_core_hits.host.txt:7:./public/index.html.bak.1771101351:3711:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:8:./evidence_core_hits.host.txt:8:./public/index.html.bak.1771120844:3709:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:9:./evidence_core_hits.host.txt:9:./public/styles.css.bak.1771284372:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./evidence_core_live_hits.host.txt:10:./evidence_core_hits.host.txt:12:./public/backups_toolset/index.html.bak_20260208_103021.bak.1771042863:3605:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:11:./evidence_core_hits.host.txt:13:./public/index.html.bak.1771129978:3709:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:12:./evidence_core_hits.host.txt:14:./public/app.js.bak.1771279038:18102:      // Look only inside sidebar, and only for Evidence Core markers
+./evidence_core_live_hits.host.txt:13:./evidence_core_hits.host.txt:15:./public/app.js.bak.1771279038:18103:      var needles = ['Evidence Core (Live)', 'Ingest (Hash', 'Export Evidence Bundle'];
+./evidence_core_live_hits.host.txt:14:./evidence_core_hits.host.txt:17:./public/backups_toolset/index.html.bak_20260208_103021:3601:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:15:./evidence_core_hits.host.txt:18:./public/index.html.bak.1771044655:3710:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:16:./evidence_core_hits.host.txt:19:./public/index.html.bak.1771130888:3723:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:17:./evidence_core_hits.host.txt:20:./public/evidence_ui.js:4:  // Evidence Core UI injector for Breakthrough → Hash Evidence Machine.
+./evidence_core_live_hits.host.txt:18:./evidence_core_hits.host.txt:23:./public/evidence_ui.js:205:          el("div", { style: "font-weight:800; font-size:16px;" }, ["🧾 Evidence Core (Live) — Phase 1"]),
+./evidence_core_live_hits.host.txt:19:./evidence_core_hits.host.txt:24:./public/index.html.bak.1771205694:3724:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:20:./evidence_core_hits.host.txt:25:./public/app.js.bak.1771277819:18089:    // Find by unique text that only the Evidence Core card has
+./evidence_core_live_hits.host.txt:21:./evidence_core_hits.host.txt:26:./public/app.js.bak.1771277819:18090:    var needles = ["Evidence Core (Live)", "Ingest (Hash + Log)", "Export Evidence Bundle"];
+./evidence_core_live_hits.host.txt:22:./evidence_core_hits.host.txt:28:./public/index.html.bak.1771259772:3721:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:23:./evidence_core_hits.host.txt:29:./public/index.html.bak.1771118524:3711:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:24:./evidence_core_hits.host.txt:30:./public/index.html.bak.1771284372:3731:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:25:./evidence_core_hits.host.txt:31:./public/index.html.bak.1771204929:3725:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:26:./evidence_core_hits.host.txt:32:./public/index.html.bak.1771211681:3724:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:27:./evidence_core_hits.host.txt:33:./public/app.js.bak.1771272875:18093:    // Find the Evidence Core card by its unique button text
+./evidence_core_live_hits.host.txt:28:./evidence_core_hits.host.txt:37:./public/styles.css:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./evidence_core_live_hits.host.txt:29:./evidence_core_hits.host.txt:40:./public/index.html.bak.1771041893:3710:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:30:./evidence_core_hits.host.txt:41:./public/styles.css.bak.1771267413:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./evidence_core_live_hits.host.txt:31:./evidence_core_hits.host.txt:44:./public/backups_toolset_tabs/index.html.bak_20260208_110009.bak.1771042863:3716:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:32:./evidence_core_hits.host.txt:45:./public/backups_toolset_tabs/index.html.bak_20260208_110009.bak.1771042863.bak.1771042863:3720:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:33:./evidence_core_hits.host.txt:46:./public/app.js.bak.1771278137:18093:    // Find the unique Evidence Core button inside the sidebar only
+./evidence_core_live_hits.host.txt:34:./evidence_core_hits.host.txt:48:./public/app.js.bak.1771280635:18102:      // Look only inside sidebar, and only for Evidence Core markers
+./evidence_core_live_hits.host.txt:35:./evidence_core_hits.host.txt:49:./public/app.js.bak.1771280635:18103:      var needles = ['Evidence Core (Live)', 'Ingest (Hash', 'Export Evidence Bundle'];
+./evidence_core_live_hits.host.txt:36:./evidence_core_hits.host.txt:51:./public/app.js.bak.1771280635:18171:      // Look only inside sidebar, and only for Evidence Core markers
+./evidence_core_live_hits.host.txt:37:./evidence_core_hits.host.txt:52:./public/app.js.bak.1771280635:18172:      var needles = ['Evidence Core (Live)', 'Ingest (Hash', 'Export Evidence Bundle'];
+./evidence_core_live_hits.host.txt:38:./evidence_core_hits.host.txt:54:./public/index.html.bak.20260213_231414:3710:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:39:./evidence_core_hits.host.txt:55:./public/styles.css.bak.1771283489:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./evidence_core_live_hits.host.txt:40:./evidence_core_hits.host.txt:58:./public/index.html.bak.1771130638:3723:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:41:./evidence_core_hits.host.txt:59:./public/index.html.bak.1771130340:3718:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:42:./evidence_core_hits.host.txt:60:./public/index.html:3731:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:43:./evidence_core_hits.host.txt:61:./public/index.html.bak.1771101401:3711:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:44:./evidence_core_hits.host.txt:62:./public/index.html.bak.1771205279:3724:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:45:./evidence_core_hits.host.txt:63:./public/app.js.bak.1771269073:18100:    var needle = 'Evidence Core (Live)';
+./evidence_core_live_hits.host.txt:46:./evidence_core_hits.host.txt:65:./public/index.html.bak.bak.1771042863.bak.1771042863:3704:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:47:./evidence_core_hits.host.txt:66:./public/index.html.bak.1771119059:3709:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:48:./evidence_core_hits.host.txt:67:./public/index.html.bak.1771128906:3709:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:49:./evidence_core_hits.host.txt:68:./public/styles.css.bak.1771282208:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./evidence_core_live_hits.host.txt:50:./evidence_core_hits.host.txt:71:./public/styles.css.bak.1771280635:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./evidence_core_live_hits.host.txt:51:./evidence_core_hits.host.txt:74:./public/index.html.bak.1771130025:3718:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:52:./evidence_core_hits.host.txt:75:./public/index.html.bak.1771254827:3713:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:53:./evidence_core_hits.host.txt:76:./public/index.html.bak.1771118461:3711:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:54:./evidence_core_hits.host.txt:77:./public/index.html.bak.1771133650:3724:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:55:./evidence_core_hits.host.txt:78:./public/index.html.bak.1771129822:3709:            <b>Phase 1 — Evidence Core</b>
+./evidence_core_live_hits.host.txt:56:./server_patched_example.js:277:// Hash Evidence Machine (PG) — Phase 1: Evidence Core
+./evidence_core_live_hits.host.txt:57:./server_patched_example.js:10121:  // Serve a simple in-app test page so you can validate Evidence Core without curl.
+./evidence_core_live_hits.host.txt:58:./evidence_core_hits.served_html.txt:1:3731:            <b>Phase 1 — Evidence Core</b>
+./server.js:339:// Hash Evidence Machine (PG) — Phase 1: Evidence Core
+./server.js:8381:  // Serve a simple in-app test page so you can validate Evidence Core without curl.
+./public/index.html.bak.1771101351:3711:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771129978:3709:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771097497:3711:            <b>Phase 1 — Evidence Core</b>
+./public/app.js.bak.1771272875:18093:    // Find the Evidence Core card by its unique button text
+./public/index.html.bak.1771205694:3724:            <b>Phase 1 — Evidence Core</b>
+./public/styles.css.bak.1771267413:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./public/index.html.bak.1771128906:3709:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771120844:3709:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.20260213_231414:3710:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771041795:3710:            <b>Phase 1 — Evidence Core</b>
+./public/styles.css.bak.1771284372:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./public/app.js.bak.1771279038:18102:      // Look only inside sidebar, and only for Evidence Core markers
+./public/app.js.bak.1771279038:18103:      var needles = ['Evidence Core (Live)', 'Ingest (Hash', 'Export Evidence Bundle'];
+./public/index.html.bak.1771130638:3723:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771041893:3710:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771118524:3711:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771044655:3710:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771284372:3731:            <b>Phase 1 — Evidence Core</b>
+./public/styles.css:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./public/index.html.bak.1771204929:3725:            <b>Phase 1 — Evidence Core</b>
+./public/backups_toolset_tabs/index.html.bak_20260208_110009.bak.1771042863.bak.1771042863:3720:            <b>Phase 1 — Evidence Core</b>
+./public/app.js.bak.1771269073:18100:    var needle = 'Evidence Core (Live)';
+./public/backups_toolset/index.html.bak_20260208_103021.bak.1771042863:3605:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771259772:3721:            <b>Phase 1 — Evidence Core</b>
+./public/styles.css.bak.1771283489:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./public/styles.css.bak.1771282208:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./public/backups_toolset_tabs/index.html.bak_20260208_110009.bak.1771042863:3716:            <b>Phase 1 — Evidence Core</b>
+./public/backups_toolset/index.html.bak_20260208_103021:3601:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.bak.1771042863.bak.1771042863:3704:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771130340:3718:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771254827:3713:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771211681:3724:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771118461:3711:            <b>Phase 1 — Evidence Core</b>
+./public/app.js.bak.1771277819:18089:    // Find by unique text that only the Evidence Core card has
+./public/app.js.bak.1771277819:18090:    var needles = ["Evidence Core (Live)", "Ingest (Hash + Log)", "Export Evidence Bundle"];
+./public/index.html:3731:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771205279:3724:            <b>Phase 1 — Evidence Core</b>
+./public/app.js.bak.1771280635:18102:      // Look only inside sidebar, and only for Evidence Core markers
+./public/app.js.bak.1771280635:18103:      var needles = ['Evidence Core (Live)', 'Ingest (Hash', 'Export Evidence Bundle'];
+./public/app.js.bak.1771280635:18171:      // Look only inside sidebar, and only for Evidence Core markers
+./public/app.js.bak.1771280635:18172:      var needles = ['Evidence Core (Live)', 'Ingest (Hash', 'Export Evidence Bundle'];
+./public/styles.css.bak.1771280635:1012:/* Try the common containers/classes/ids used by the Evidence Core card */
+./public/index.html.bak.1771119059:3709:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771130888:3723:            <b>Phase 1 — Evidence Core</b>
+./public/app.js.bak.1771278137:18093:    // Find the unique Evidence Core button inside the sidebar only
+./public/evidence_ui.js:4:  // Evidence Core UI injector for Breakthrough → Hash Evidence Machine.
+./public/evidence_ui.js:205:          el("div", { style: "font-weight:800; font-size:16px;" }, ["🧾 Evidence Core (Live) — Phase 1"]),
+./public/index.html.bak.1771133650:3724:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771129822:3709:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771130025:3718:            <b>Phase 1 — Evidence Core</b>
+./public/index.html.bak.1771101401:3711:            <b>Phase 1 — Evidence Core</b>

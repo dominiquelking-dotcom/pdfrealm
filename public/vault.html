@@ -1,0 +1,1594 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PDFRealm – Secure Vault</title>
+    <link rel="icon" href="data:;base64,=" />
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      /* ===== PAGE-LEVEL OVERRIDES ===== */
+      body { margin: 0; overflow-y: auto; min-height: 100vh; display: flex; flex-direction: column; }
+      main.wrap { flex: 1 0 auto; width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+      footer.footer { flex: 0 0 auto; position: static !important; margin-top: 16px; }
+
+      /* ===== HEADER STYLES ===== */
+      .brand-left { display:flex; align-items:center; gap:14px; }
+      .brand-text { font-weight:800; letter-spacing:.2px; }
+      .brand-divider { width:1px; align-self:stretch; background:var(--line); margin:0 10px; opacity:.9; }
+      .left-secure-nav { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+      .nav-chip { border:1px solid var(--line); background:rgba(255,255,255,.04); color:var(--text); border-radius:999px; padding:8px 12px; font-size:.9rem; display:inline-flex; align-items:center; gap:6px; cursor:default; opacity:.9; text-decoration:none; white-space:nowrap; }
+      .nav-chip:hover { background:rgba(255,255,255,.06); }
+      .nav-chip-pill { font-size:.78rem; color:var(--muted); border-radius:999px; padding:3px 8px; border:1px solid var(--line); background:rgba(0,0,0,.3); }
+      .nav-chip-active { border-color:rgba(96,165,250,.8); box-shadow:0 0 0 1px rgba(96,165,250,.4); opacity:1; }
+      .right-nav-cluster { margin-left:auto; display:flex; align-items:center; gap:16px; }
+      .top-nav { display:flex; align-items:center; gap:10px; }
+      .nav-link { border-radius:999px; padding:8px 14px; border:1px solid transparent; background:transparent; font-size:.95rem; font-weight:600; color:var(--muted); cursor:pointer; display:inline-flex; align-items:center; gap:6px; text-decoration:none; }
+      .nav-link:hover { background:rgba(255,255,255,.04); color:var(--text); }
+      .workspace-menu { position:relative; }
+      .workspace-toggle { cursor:pointer; }
+      .workspace-caret { font-size:.8rem; opacity:.8; }
+      .workspace-dropdown { position:absolute; right:0; top:100%; margin-top:8px; background:rgba(15,22,36,.96); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:8px; display:none; flex-direction:column; min-width:280px; z-index:80; }
+      .workspace-item { padding:7px 10px; border-radius:10px; font-size:.92rem; color:var(--muted); text-align:left; border:none; background:transparent; width:100%; cursor:pointer; text-decoration:none; display:block; white-space:nowrap; }
+      .workspace-item:hover { background:rgba(255,255,255,.04); color:var(--text); }
+      .workspace-menu.workspace-open .workspace-dropdown { display:flex; }
+      .dot { display:inline-block; width:10px; height:10px; border-radius:999px; background:rgba(255,255,255,.25); }
+      .dot.ok { background:#22c55e; }
+      .dot.warn { background:#f59e0b; }
+      .dot.bad { background:#ef4444; }
+
+      /* ===== VAULT LAYOUT ===== */
+      .vault-shell { 
+        padding: 20px 24px; 
+        max-width: 1400px; 
+        margin: 0 auto; 
+        display: flex; 
+        flex-direction: column; 
+        gap: 16px; 
+      }
+
+      /* ===== HEADER ROW ===== */
+      .vault-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      /* ===== BREADCRUMBS ===== */
+      .vault-breadcrumbs {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: .95rem;
+        color: var(--muted);
+        flex-wrap: wrap;
+      }
+      .vault-crumb {
+        background: none;
+        border: none;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: .93rem;
+      }
+      .vault-crumb:hover { background: rgba(255,255,255,.06); color: var(--text); }
+      .vault-crumb.active { color: var(--text); font-weight: 600; cursor: default; }
+      .vault-crumb.active:hover { background: none; }
+      .crumb-sep { color: var(--muted); opacity: .5; }
+
+      /* ===== STORAGE BAR ===== */
+      .storage-bar-wrap {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255,255,255,.03);
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .storage-bar-track {
+        flex: 1;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.08);
+        overflow: hidden;
+      }
+      .storage-bar-fill {
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #60a5fa, #34d399);
+        transition: width .4s ease;
+      }
+      .storage-bar-label { font-size: .85rem; color: var(--muted); white-space: nowrap; }
+
+      /* ===== UPLOAD DROP ZONE ===== */
+      .vault-dropzone {
+        border: 2px dashed rgba(255,255,255,.12);
+        border-radius: 14px;
+        padding: 18px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        cursor: pointer;
+        transition: border-color .2s, background .2s;
+        background: rgba(255,255,255,.02);
+      }
+      .vault-dropzone:hover, .vault-dropzone.drag-over {
+        border-color: rgba(96,165,250,.6);
+        background: rgba(96,165,250,.06);
+      }
+      .vault-dropzone .dz-text { font-size: .95rem; color: var(--muted); }
+      .vault-dropzone .dz-text strong { color: var(--text); }
+      .vault-dropzone-btns { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+      /* ===== PROGRESS BAR ===== */
+      .upload-progress {
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.08);
+        overflow: hidden;
+        display: none;
+        margin-top: 8px;
+      }
+      .upload-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #60a5fa, #34d399);
+        transition: width .3s;
+      }
+
+      /* ===== TOOLBAR ===== */
+      .vault-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .vault-toolbar .spacer { flex: 1; }
+      .vault-search {
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,.04);
+        color: var(--text);
+        border-radius: 10px;
+        padding: 8px 12px;
+        font-size: .93rem;
+        outline: none;
+        width: 220px;
+      }
+      .vault-search:focus { border-color: rgba(96,165,250,.5); }
+      .vault-sort {
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,.04);
+        color: var(--text);
+        border-radius: 10px;
+        padding: 8px 12px;
+        font-size: .93rem;
+        outline: none;
+        cursor: pointer;
+      }
+
+      /* ===== FILE LIST ===== */
+      .vault-list-card {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: rgba(15,23,42,.6);
+        overflow: hidden;
+      }
+      .vault-list-head {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255,255,255,.03);
+        font-size: .88rem;
+        font-weight: 600;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: .04em;
+      }
+      .vault-empty {
+        padding: 40px 20px;
+        text-align: center;
+        color: var(--muted);
+        font-size: .95rem;
+      }
+
+      /* Folder rows */
+      .vault-folder-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 16px;
+        border-bottom: 1px solid rgba(255,255,255,.04);
+        cursor: pointer;
+        transition: background .15s;
+      }
+      .vault-folder-row:hover { background: rgba(255,255,255,.03); }
+      .vault-folder-row.drag-over { background: rgba(96,165,250,.08); outline: 1px dashed rgba(96,165,250,.4); }
+      .vault-folder-icon { font-size: 1.3rem; flex-shrink: 0; }
+      .vault-folder-name { flex: 1; font-weight: 600; font-size: .95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .vault-row-actions { display: flex; gap: 6px; align-items: center; opacity: 0; transition: opacity .15s; }
+      .vault-folder-row:hover .vault-row-actions,
+      .vault-file-row:hover .vault-row-actions { opacity: 1; }
+
+      /* File rows */
+      .vault-file-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 16px;
+        border-bottom: 1px solid rgba(255,255,255,.04);
+        transition: background .15s;
+        cursor: grab;
+      }
+      .vault-file-row:last-child { border-bottom: none; }
+      .vault-file-row:hover { background: rgba(255,255,255,.03); }
+      .vault-file-row.dragging { opacity: .5; }
+      .vault-file-icon { font-size: 1.3rem; flex-shrink: 0; }
+      .vault-file-name { flex: 1; font-weight: 600; font-size: .95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+      .vault-file-meta { font-size: .82rem; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+      .vault-file-size { width: 80px; text-align: right; font-size: .82rem; color: var(--muted); flex-shrink: 0; }
+      .vault-file-date { width: 160px; text-align: right; font-size: .82rem; color: var(--muted); flex-shrink: 0; }
+
+      /* Rename inline input */
+      .vault-rename-input {
+        border: 1px solid rgba(96,165,250,.5);
+        background: rgba(15,23,42,.9);
+        color: var(--text);
+        border-radius: 8px;
+        padding: 4px 8px;
+        font-size: .95rem;
+        font-weight: 600;
+        width: 100%;
+        outline: none;
+      }
+
+      /* ===== BUTTONS ===== */
+      .btn-xs {
+        padding: 5px 10px;
+        border-radius: 8px;
+        font-size: .82rem;
+        font-weight: 600;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,.04);
+        color: var(--text);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+      }
+      .btn-xs:hover { background: rgba(255,255,255,.08); }
+      .btn-xs.danger:hover { background: rgba(239,68,68,.15); border-color: rgba(239,68,68,.4); color: #fca5a5; }
+      .btn-xs:disabled { opacity: .4; cursor: not-allowed; }
+
+      /* ===== MODALS ===== */
+      .vlt-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.55);
+        z-index: 200;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+      }
+      .vlt-modal.open { display: flex; }
+      .vlt-modal-card {
+        width: 100%;
+        max-width: 560px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(13,20,38,.98);
+        box-shadow: 0 20px 60px rgba(0,0,0,.6);
+        overflow: hidden;
+      }
+      .vlt-modal-head {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255,255,255,.03);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .vlt-modal-title { font-weight: 800; font-size: 1.05rem; }
+      .vlt-modal-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+      .vlt-modal-footer { padding: 14px 18px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; gap: 10px; }
+      .vlt-field label { display: block; font-size: .88rem; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+      .vlt-field input, .vlt-field textarea, .vlt-field select {
+        width: 100%;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,.04);
+        color: var(--text);
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: .95rem;
+        outline: none;
+        box-sizing: border-box;
+      }
+      .vlt-field input:focus, .vlt-field textarea:focus, .vlt-field select:focus { border-color: rgba(96,165,250,.5); }
+      .vlt-field textarea { min-height: 80px; resize: vertical; }
+
+      /* Preview modal wide */
+      #previewModal .vlt-modal-card { max-width: min(1100px, 96vw); }
+      #previewModal iframe { width: 100%; height: 72vh; border: 0; border-radius: 12px; background: #000; }
+
+      /* ===== STATUS TOAST ===== */
+      #vaultToast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 9999;
+        background: rgba(13,20,38,.96);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 12px 18px;
+        font-size: .93rem;
+        color: var(--text);
+        box-shadow: 0 12px 40px rgba(0,0,0,.5);
+        display: none;
+        max-width: 400px;
+      }
+      #vaultToast.show { display: block; }
+      #vaultToast.error { border-color: rgba(239,68,68,.4); }
+
+      /* ===== ACCOUNT MODAL ===== */
+      .modal { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:300; display:none; align-items:center; justify-content:center; padding:18px; }
+      .modal.open { display:flex; }
+      .modal-card { width:100%; max-width:440px; border:1px solid var(--line); border-radius:18px; background:rgba(13,20,38,.98); box-shadow:0 20px 60px rgba(0,0,0,.6); overflow:hidden; }
+      .modal-head { padding:14px 18px; border-bottom:1px solid var(--line); background:rgba(255,255,255,.03); display:flex; align-items:center; justify-content:space-between; }
+      .modal-body { padding:18px; display:flex; flex-direction:column; gap:12px; }
+      .modal-row { display:flex; gap:10px; flex-wrap:wrap; }
+      .mh { font-weight:800; font-size:1.05rem; }
+
+      @media (max-width: 768px) {
+        .vault-shell { padding: 12px 14px; }
+        .vault-file-date, .vault-file-size { display: none; }
+        .vault-search { width: 140px; }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- HEADER -->
+    <header class="topbar">
+  <div class="topbar-inner">
+    <!-- LEFT: Brand + Nav Chips -->
+    <div class="brand-left">
+      <div class="brand">
+        <div style="height:42px;width:140px;background:url('/logo.png') center/contain no-repeat;flex-shrink:0;"></div>
+      </div>
+
+      <div class="brand-divider"></div>
+
+      <nav class="left-secure-nav" aria-label="Secure">
+        <a href="/vault.html" class="nav-chip nav-chip-active" id="navChipVault">
+          Secure Vault
+          <span class="nav-chip-pill">AES-256</span>
+        </a>
+        <a href="/" class="nav-chip" id="navChipTools">Quick Tools</a>
+      </nav>
+    </div>
+
+    <!-- RIGHT: Industry Packs + Pricing + Calendar + Get App + Account -->
+    <div class="right-nav-cluster">
+      <nav class="top-nav" aria-label="Primary">
+        <div class="workspace-menu" id="industryMenuWrap">
+          <button class="nav-link workspace-toggle" type="button" id="industryToggle">
+            Industry Packs
+            <span class="workspace-caret">▾</span>
+          </button>
+          <div class="workspace-dropdown" id="industryDropdown" role="menu" aria-label="Industry Packs">
+            <a class="workspace-item" role="menuitem" href="/broker.html">Broker TMS Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/carrier.html">Carrier Dashboard</a>
+            <div style="height:1px; background: rgba(255,255,255,0.10); margin: 8px 10px;"></div>
+            <a class="workspace-item" role="menuitem" href="/legal.html">Legal Workspace</a>
+            <a class="workspace-item" role="menuitem" href="/real-estate.html">Real Estate Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/accounting.html">Accounting Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/hr.html">HR Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/marketing.html">Marketing Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/csuite.html">C-Suite Dashboard</a>
+          </div>
+        </div>
+
+        <a href="/pricing.html" class="nav-link">Pricing</a>
+        <button class="nav-link" type="button" id="appDownloadNavBtn" style="background:none;border:none;cursor:pointer;">📱 Get App</button>
+      </nav>
+
+      <!-- Calendar widget button -->
+      <button id="calendarToggleBtn" title="Calendar & Reminders" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text);padding:7px 10px;border-radius:8px;cursor:pointer;font-size:1rem;position:relative;">📅</button>
+
+      <div class="top-actions">
+        <button id="pwa-install-btn" style="display:none;" class="btn btn-secondary" type="button" title="Install PDFRealm as an app">
+          📱 Install App
+        </button>
+        <button
+          id="accountLoginBtn"
+          class="btn"
+          type="button"
+          aria-haspopup="dialog"
+          aria-controls="accountModal"
+        >
+          <span id="accountDot" class="dot"></span>
+          Account
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolset-bar">
+    <nav class="toolset-tabs" id="toolsetTabs" aria-label="Tool Suites">
+      <div class="toolset-tab" data-toolset="standard">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">Standard Tools</button>
+        <div class="toolset-menu" role="menu" aria-label="Standard Tools"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="premium">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">Premium Tools</button>
+        <div class="toolset-menu" role="menu" aria-label="Premium Tools"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="secure">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">Secure Suite</button>
+        <div class="toolset-menu" role="menu" aria-label="Secure Suite"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="governance">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false" disabled title="Coming Soon" style="opacity:0.45; cursor:not-allowed; pointer-events:none;">Document Governance</button>
+        <div class="toolset-menu" role="menu" aria-label="Document Governance"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="docforge">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">DocForge</button>
+        <div class="toolset-menu" role="menu" aria-label="DocForge"></div>
+      </div>
+      <div class="toolset-tab">
+        <a id="aiOperatorLink" class="toolset-btn toolset-btn-breakthrough" href="/?ai=1">AI Operator</a>
+      </div>
+      <div class="toolset-tab" data-toolset="signreqs">
+        <button class="toolset-btn" type="button" id="signReqsToolsetBtn">✍️ Sign Requests</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+    <!-- MAIN -->
+    <main class="wrap">
+      <div class="vault-shell">
+
+        <!-- Top bar: breadcrumbs + actions -->
+        <div class="vault-topbar">
+          <div class="vault-breadcrumbs" id="vaultBreadcrumbs">
+            <button class="vault-crumb active" data-path="">Vault</button>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <button class="btn btn-secondary" id="newFolderBtn" disabled>📁 New Folder</button>
+            <button class="btn btn-secondary" id="refreshBtn" disabled>↺ Refresh</button>
+            <button class="btn btn-secondary" id="emptyTrashBtn" style="display:none;" disabled>🗑 Empty Trash</button>
+          </div>
+        </div>
+
+        <!-- Storage quota bar -->
+        <div class="storage-bar-wrap">
+          <div class="storage-bar-track">
+            <div class="storage-bar-fill" id="storageBarFill" style="width:0%"></div>
+          </div>
+          <div class="storage-bar-label" id="storageLabel">— / — used</div>
+        </div>
+
+        <!-- Upload drop zone -->
+        <div class="vault-dropzone" id="vaultDropzone">
+          <div class="dz-text">
+            <strong>Drop files here to upload</strong>
+            <div style="margin-top:4px;font-size:.85rem;">Drag files onto this area or onto a folder to move them</div>
+          </div>
+          <div class="vault-dropzone-btns">
+            <input type="file" id="fileInput" multiple style="display:none;">
+            <button class="btn btn-primary" id="uploadBtn" disabled>⬆ Upload Files</button>
+          </div>
+        </div>
+        <div class="upload-progress" id="uploadProgress">
+          <div class="upload-progress-fill" id="uploadProgressFill" style="width:0%"></div>
+        </div>
+        <div id="uploadStatus" style="font-size:.88rem;color:var(--muted);min-height:18px;"></div>
+
+        <!-- Toolbar: search + sort -->
+        <div class="vault-toolbar">
+          <span style="font-size:.9rem;color:var(--muted);" id="selectionLabel"></span>
+          <div class="spacer"></div>
+          <input type="text" class="vault-search" id="searchInput" placeholder="Search files…" disabled>
+          <select class="vault-sort" id="sortSelect" disabled>
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="az">A → Z</option>
+            <option value="za">Z → A</option>
+            <option value="sizeDesc">Largest</option>
+            <option value="sizeAsc">Smallest</option>
+          </select>
+        </div>
+
+        <!-- File list card -->
+        <div class="vault-list-card" id="vaultListCard">
+          <div class="vault-list-head">Contents</div>
+          <div id="vaultListBody">
+            <div class="vault-empty">Sign in to view your vault files.</div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div style="display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-bottom:10px;">
+        <a href="/privacy.html" style="color:#475569; text-decoration:none; font-size:0.85rem;">Privacy</a>
+        <a href="/terms.html" style="color:#475569; text-decoration:none; font-size:0.85rem;">Terms</a>
+        <a href="/security.html" style="color:#475569; text-decoration:none; font-size:0.85rem;">Security</a>
+        <a href="/refund-policy.html" style="color:#475569; text-decoration:none; font-size:0.85rem;">Refund Policy</a>
+        <a href="/file-retention.html" style="color:#475569; text-decoration:none; font-size:0.85rem;">File Retention</a>
+        <a href="/support.html" style="color:#475569; text-decoration:none; font-size:0.85rem;">Support</a>
+      </div>
+      <div>© <span id="year"></span> PDFRealm. All rights reserved.</div>
+    </footer>
+
+    <!-- ===== ACCOUNT MODAL ===== -->
+    <div id="accountModal" class="modal">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div class="mh">Account</div>
+          <button class="btn btn-secondary" id="accountModalClose">Close</button>
+        </div>
+        <div class="modal-body">
+          <div>
+            <label style="font-size:.88rem;color:var(--muted);display:block;margin-bottom:6px;">Email</label>
+            <input type="email" id="loginEmail" placeholder="you@example.com" class="input">
+          </div>
+          <div>
+            <label style="font-size:.88rem;color:var(--muted);display:block;margin-bottom:6px;">Password</label>
+            <input type="password" id="loginPassword" placeholder="••••••••" class="input">
+          </div>
+          <div class="modal-row">
+            <button class="btn btn-primary" id="loginSubmitBtn">Sign In</button>
+            <button class="btn btn-secondary" id="logoutBtn">Sign Out</button>
+          </div>
+          <div id="loginStatus" style="font-size:.9rem;color:var(--muted);"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== RENAME MODAL ===== -->
+    <div id="renameModal" class="vlt-modal">
+      <div class="vlt-modal-card">
+        <div class="vlt-modal-head">
+          <div class="vlt-modal-title" id="renameModalTitle">Rename</div>
+          <button class="btn btn-secondary btn-xs" id="renameModalClose">✕</button>
+        </div>
+        <div class="vlt-modal-body">
+          <div class="vlt-field">
+            <label>New name</label>
+            <input type="text" id="renameInput" autocomplete="off">
+          </div>
+        </div>
+        <div class="vlt-modal-footer">
+          <button class="btn btn-secondary" id="renameCancelBtn">Cancel</button>
+          <button class="btn btn-primary" id="renameConfirmBtn">Rename</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MOVE MODAL ===== -->
+    <div id="moveModal" class="vlt-modal">
+      <div class="vlt-modal-card">
+        <div class="vlt-modal-head">
+          <div class="vlt-modal-title">Move File</div>
+          <button class="btn btn-secondary btn-xs" id="moveModalClose">✕</button>
+        </div>
+        <div class="vlt-modal-body">
+          <div id="moveModalFileNames" style="font-size:.88rem;color:var(--muted);"></div>
+          <div class="vlt-field">
+            <label>Destination folder</label>
+            <select id="moveTargetSelect"></select>
+          </div>
+        </div>
+        <div class="vlt-modal-footer">
+          <button class="btn btn-secondary" id="moveCancelBtn">Cancel</button>
+          <button class="btn btn-primary" id="moveConfirmBtn">Move</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== EMAIL MODAL ===== -->
+    <div id="emailModal" class="vlt-modal">
+      <div class="vlt-modal-card">
+        <div class="vlt-modal-head">
+          <div class="vlt-modal-title">Email File Link</div>
+          <button class="btn btn-secondary btn-xs" id="emailModalClose">✕</button>
+        </div>
+        <div class="vlt-modal-body">
+          <div id="emailModalFileName" style="font-size:.88rem;color:var(--muted);"></div>
+          <div class="vlt-field">
+            <label>Recipient email</label>
+            <input type="email" id="emailRecipient" placeholder="recipient@example.com">
+          </div>
+          <div class="vlt-field">
+            <label>Your name or business</label>
+            <input type="text" id="emailSender" placeholder="Your name">
+          </div>
+          <div class="vlt-field">
+            <label>Note (optional)</label>
+            <textarea id="emailNote" placeholder="A short message to the recipient…"></textarea>
+          </div>
+        </div>
+        <div class="vlt-modal-footer">
+          <button class="btn btn-secondary" id="emailCancelBtn">Cancel</button>
+          <button class="btn btn-primary" id="emailConfirmBtn">Send Email</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== DELETE CONFIRM MODAL ===== -->
+    <div id="deleteModal" class="vlt-modal">
+      <div class="vlt-modal-card">
+        <div class="vlt-modal-head">
+          <div class="vlt-modal-title">Delete</div>
+          <button class="btn btn-secondary btn-xs" id="deleteModalClose">✕</button>
+        </div>
+        <div class="vlt-modal-body">
+          <div id="deleteModalMessage" style="font-size:.95rem;"></div>
+        </div>
+        <div class="vlt-modal-footer">
+          <button class="btn btn-secondary" id="deleteCancelBtn">Cancel</button>
+          <button class="btn btn-primary" id="deleteConfirmBtn" style="background:#ef4444;border-color:#ef4444;">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PREVIEW MODAL ===== -->
+    <div id="previewModal" class="vlt-modal">
+      <div class="vlt-modal-card">
+        <div class="vlt-modal-head">
+          <div class="vlt-modal-title" id="previewModalTitle">Preview</div>
+          <button class="btn btn-secondary btn-xs" id="previewModalClose">✕</button>
+        </div>
+        <div class="vlt-modal-body" style="padding:12px;">
+          <iframe id="previewFrame" src="about:blank" title="File preview"></iframe>
+        </div>
+        <div class="vlt-modal-footer">
+          <button class="btn btn-secondary" id="previewDownloadBtn">Download</button>
+          <button class="btn btn-secondary" id="previewCloseBtn">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== STATUS TOAST ===== -->
+    <div id="vaultToast"></div>
+
+    <script>
+    (function () {
+      "use strict";
+
+      // ============================================================
+      // UTILITIES
+      // ============================================================
+      const $ = (id) => document.getElementById(id);
+      const esc = (s) => String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+
+      function fmtBytes(n) {
+        const x = Number(n || 0);
+        if (x < 1024) return `${x} B`;
+        const units = ["KB","MB","GB","TB"];
+        let v = x, u = -1;
+        while (v >= 1024 && u < 3) { v /= 1024; u++; }
+        return `${v.toFixed(v >= 10 ? 1 : 2)} ${units[u]}`;
+      }
+
+      function fmtDate(v) {
+        if (!v) return "";
+        const t = Date.parse(v);
+        if (!isFinite(t)) return String(v);
+        return new Date(t).toLocaleString();
+      }
+
+      function fileIcon(filename) {
+        const ext = String(filename || "").split(".").pop().toLowerCase();
+        if (ext === "pdf") return "📄";
+        if (["png","jpg","jpeg","gif","webp","svg"].includes(ext)) return "🖼️";
+        if (["doc","docx"].includes(ext)) return "📝";
+        if (["xls","xlsx","csv"].includes(ext)) return "📊";
+        if (["ppt","pptx"].includes(ext)) return "📋";
+        if (["zip","rar","7z","tar","gz"].includes(ext)) return "🗜️";
+        if (["mp4","mov","avi","mkv"].includes(ext)) return "🎬";
+        if (["mp3","wav","aac","ogg"].includes(ext)) return "🎵";
+        if (["txt","md","log"].includes(ext)) return "📃";
+        if (["json","xml","html","css","js","ts"].includes(ext)) return "⚙️";
+        return "📁";
+      }
+
+      function canPreview(filename) {
+        const lower = String(filename || "").toLowerCase();
+        return [".pdf",".png",".jpg",".jpeg",".webp",".gif",".svg",".txt",".csv",".json",".md",".log",".html"].some(e => lower.endsWith(e));
+      }
+
+      function isZip(filename) {
+        return String(filename || "").toLowerCase().endsWith(".zip");
+      }
+
+      function normPath(p) {
+        return String(p || "").replace(/^\/+/, "").replace(/\/+$/, "").trim();
+      }
+
+      // ============================================================
+      // STATE
+      // ============================================================
+      const state = {
+        token: null,
+        user: null,
+        currentPath: "",
+        folders: [],
+        allFolders: [],
+        files: [],
+        usedBytes: 0,
+        quotaBytes: 100 * 1024 * 1024 * 1024,
+        busy: false,
+        searchQ: "",
+        sortBy: "newest",
+        dragFileId: null,
+        dragFolderPath: null,
+        // modal state
+        renameTarget: null, // { kind: 'file'|'folder', id, currentName, folderPath }
+        moveTarget: null,   // { ids: [...], names: [...] }
+        emailTarget: null,  // { id, filename }
+        deleteTarget: null, // { kind, id, name, folderPath }
+        previewTarget: null, // { id, filename, url }
+      };
+
+      // ============================================================
+      // AUTH
+      // ============================================================
+      function getToken() {
+        const ls = localStorage.getItem("pdfrealm_token");
+        if (ls) return ls;
+        const m = document.cookie.match(/(?:^|;\s*)pdfrealm_token=([^;]+)/);
+        return m ? decodeURIComponent(m[1]) : null;
+      }
+
+      function setToken(t) {
+        state.token = t || null;
+        if (t) {
+          localStorage.setItem("pdfrealm_token", t);
+          document.cookie = `pdfrealm_token=${encodeURIComponent(t)};path=/;SameSite=Lax`;
+        } else {
+          localStorage.removeItem("pdfrealm_token");
+          document.cookie = "pdfrealm_token=;path=/;expires=Thu,01 Jan 1970 00:00:00 GMT";
+        }
+      }
+
+      function setDot(cls) {
+        const d = $("accountDot");
+        if (!d) return;
+        d.className = "dot" + (cls ? " " + cls : "");
+      }
+
+      async function apiFetch(url, opts = {}) {
+        const headers = new Headers(opts.headers || {});
+        if (state.token) headers.set("Authorization", `Bearer ${state.token}`);
+        if (!headers.has("Content-Type") && opts.body && !(opts.body instanceof FormData)) {
+          headers.set("Content-Type", "application/json");
+        }
+        const res = await fetch(url, { ...opts, headers, cache: "no-store" });
+        const text = await res.text();
+        let data = null;
+        try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
+        if (!res.ok) {
+          const msg = (data && (data.error || data.message)) ? (data.error || data.message) : `HTTP ${res.status}`;
+          const e = new Error(msg);
+          e.status = res.status;
+          throw e;
+        }
+        return data;
+      }
+
+      async function bootstrapAuth() {
+        state.token = getToken();
+        if (!state.token) { setDot("warn"); return; }
+        try {
+          const me = await apiFetch("/api/me");
+          state.user = me.user || me;
+          setDot("ok");
+          setToken(state.token);
+          if ($("loginStatus")) $("loginStatus").textContent = `Signed in as ${state.user.email || "user"}`;
+        } catch (e) {
+          setToken(null); state.user = null; setDot("warn");
+          if ($("loginStatus")) $("loginStatus").textContent = "Session expired.";
+        }
+      }
+
+      // ============================================================
+      // TOAST
+      // ============================================================
+      let toastTimer = null;
+      function toast(msg, isError = false) {
+        const el = $("vaultToast");
+        el.textContent = msg;
+        el.className = "show" + (isError ? " error" : "");
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { el.className = ""; }, 4000);
+      }
+
+      // ============================================================
+      // ENABLE / DISABLE UI
+      // ============================================================
+      function setEnabled(authed) {
+        [$("newFolderBtn"), $("refreshBtn"), $("uploadBtn"), $("searchInput"), $("sortSelect")].forEach(el => {
+          if (el) el.disabled = !authed;
+        });
+      }
+
+      // ============================================================
+      // BREADCRUMBS
+      // ============================================================
+      function renderBreadcrumbs() {
+        const container = $("vaultBreadcrumbs");
+        if (!container) return;
+        const parts = normPath(state.currentPath).split("/").filter(Boolean);
+        let html = `<button class="vault-crumb${!parts.length ? " active" : ""}" data-path="">Vault</button>`;
+        parts.forEach((part, i) => {
+          const p = parts.slice(0, i + 1).join("/");
+          const isLast = i === parts.length - 1;
+          html += `<span class="crumb-sep">/</span><button class="vault-crumb${isLast ? " active" : ""}" data-path="${esc(p)}">${esc(part)}</button>`;
+        });
+        container.innerHTML = html;
+        container.querySelectorAll(".vault-crumb").forEach(btn => {
+          btn.addEventListener("click", () => {
+            if (!btn.classList.contains("active")) navigate(btn.getAttribute("data-path"));
+          });
+        });
+      }
+
+      // ============================================================
+      // STORAGE BAR
+      // ============================================================
+      function renderStorageBar() {
+        const fill = $("storageBarFill");
+        const label = $("storageLabel");
+        const pct = state.quotaBytes ? Math.min(100, Math.round(state.usedBytes / state.quotaBytes * 100)) : 0;
+        if (fill) fill.style.width = `${pct}%`;
+        if (label) label.textContent = `${fmtBytes(state.usedBytes)} / ${fmtBytes(state.quotaBytes)} used (${pct}%)`;
+      }
+
+      // ============================================================
+      // LOAD DATA
+      // ============================================================
+      async function loadVault(path) {
+        if (!state.user) return;
+        try {
+          const folderQ = encodeURIComponent(normPath(path) || "");
+          const [listData, foldersData] = await Promise.all([
+            apiFetch(`/api/vault/list?folder=${folderQ}`),
+            apiFetch("/api/vault/folders")
+          ]);
+
+          state.currentPath = normPath(path);
+          state.files = (listData.items || listData.files || []).map(x => ({
+            id: x.id || x.key,
+            filename: x.filename || x.name || x.key || "file",
+            size: x.size || x.sizeBytes || x.size_bytes || 0,
+            createdAt: x.createdAt || x.created_at || x.lastModified || x.last_modified || null,
+            folderPath: normPath(x.folderPath || x.folder_path || ""),
+          }));
+          state.usedBytes = listData.usedBytes || listData.used_bytes || 0;
+          state.quotaBytes = listData.quotaBytes || listData.quota_bytes || state.quotaBytes;
+
+          // Build folder list from server response
+          const raw = foldersData.folders || foldersData.items || (Array.isArray(foldersData) ? foldersData : []);
+          state.allFolders = raw.map(f => normPath(f.path || f.folderPath || f.name || String(f))).filter(Boolean);
+
+          // Current folder's direct subfolders
+          const prefix = state.currentPath ? state.currentPath + "/" : "";
+          state.folders = state.allFolders.filter(p => {
+            if (!p.startsWith(prefix)) return false;
+            const rest = p.slice(prefix.length);
+            return rest && !rest.includes("/");
+          });
+
+          renderBreadcrumbs();
+          renderStorageBar();
+          renderList();
+          setEnabled(true);
+        } catch (e) {
+          toast("Failed to load vault: " + e.message, true);
+        }
+      }
+
+      function navigate(path) {
+        state.currentPath = normPath(path);
+        loadVault(state.currentPath);
+      }
+
+      // ============================================================
+      // RENDER LIST
+      // ============================================================
+      function filteredFiles() {
+        let items = state.files.slice();
+        if (state.searchQ) {
+          const q = state.searchQ.toLowerCase();
+          items = items.filter(f => (f.filename || "").toLowerCase().includes(q));
+        }
+        switch (state.sortBy) {
+          case "oldest": items.sort((a,b) => Date.parse(a.createdAt||0) - Date.parse(b.createdAt||0)); break;
+          case "az": items.sort((a,b) => (a.filename||"").localeCompare(b.filename||"")); break;
+          case "za": items.sort((a,b) => (b.filename||"").localeCompare(a.filename||"")); break;
+          case "sizeDesc": items.sort((a,b) => (b.size||0) - (a.size||0)); break;
+          case "sizeAsc": items.sort((a,b) => (a.size||0) - (b.size||0)); break;
+          default: items.sort((a,b) => Date.parse(b.createdAt||0) - Date.parse(a.createdAt||0)); break;
+        }
+        return items;
+      }
+
+      function renderList() {
+        const body = $("vaultListBody");
+        if (!body) return;
+
+        if (!state.user) {
+          body.innerHTML = `<div class="vault-empty">Sign in to view your vault files.</div>`;
+          return;
+        }
+
+        const folders = state.folders;
+        const files = filteredFiles();
+
+        if (!folders.length && !files.length) {
+          body.innerHTML = `<div class="vault-empty">This folder is empty. Upload files or create a subfolder.</div>`;
+          return;
+        }
+
+        let html = "";
+
+        // --- Folders ---
+        for (const fp of folders) {
+          const name = fp.split("/").pop();
+          html += `
+            <div class="vault-folder-row" data-folder-path="${esc(fp)}" draggable="true">
+              <div class="vault-folder-icon">📁</div>
+              <div class="vault-folder-name">${esc(name)}</div>
+              <div class="vault-row-actions">
+                <button class="btn-xs" data-act="open-folder" data-path="${esc(fp)}" title="Open">Open</button>
+                <button class="btn-xs" data-act="rename-folder" data-path="${esc(fp)}" data-name="${esc(name)}" title="Rename">Rename</button>
+                <button class="btn-xs" data-act="move-folder" data-path="${esc(fp)}" data-name="${esc(name)}" title="Move">Move</button>
+                <button class="btn-xs danger" data-act="delete-folder" data-path="${esc(fp)}" data-name="${esc(name)}" title="Delete">Delete</button>
+              </div>
+            </div>`;
+        }
+
+        // --- Files ---
+        for (const f of files) {
+          const icon = fileIcon(f.filename);
+          const zip = isZip(f.filename);
+          const preview = canPreview(f.filename);
+          html += `
+            <div class="vault-file-row" data-file-id="${esc(f.id)}" draggable="true">
+              <div class="vault-file-icon">${icon}</div>
+              <div class="vault-file-name">${esc(f.filename)}</div>
+              <div class="vault-file-size">${fmtBytes(f.size)}</div>
+              <div class="vault-file-date">${fmtDate(f.createdAt)}</div>
+              <div class="vault-row-actions">
+                <button class="btn-xs" data-act="download" data-id="${esc(f.id)}" title="Download">↓</button>
+                ${preview ? `<button class="btn-xs" data-act="preview" data-id="${esc(f.id)}" data-name="${esc(f.filename)}" title="Preview">Preview</button>` : ""}
+                <button class="btn-xs" data-act="email" data-id="${esc(f.id)}" data-name="${esc(f.filename)}" title="Email">Email</button>
+                <button class="btn-xs" data-act="move-file" data-id="${esc(f.id)}" data-name="${esc(f.filename)}" title="Move">Move</button>
+                <button class="btn-xs" data-act="rename-file" data-id="${esc(f.id)}" data-name="${esc(f.filename)}" data-folder="${esc(f.folderPath)}" title="Rename">Rename</button>
+                ${zip ? `<button class="btn-xs" data-act="unzip" data-id="${esc(f.id)}" data-name="${esc(f.filename)}" title="Extract ZIP">Extract</button>` : ""}
+                <button class="btn-xs danger" data-act="delete-file" data-id="${esc(f.id)}" data-name="${esc(f.filename)}" data-folder="${esc(f.folderPath)}" title="Delete">Delete</button>
+              </div>
+            </div>`;
+        }
+
+        body.innerHTML = html;
+        bindListEvents();
+      }
+
+      // ============================================================
+      // LIST EVENT DELEGATION
+      // ============================================================
+      function bindListEvents() {
+        const body = $("vaultListBody");
+        if (!body) return;
+
+        // File drag start
+        body.querySelectorAll(".vault-file-row[draggable]").forEach(row => {
+          row.addEventListener("dragstart", e => {
+            state.dragFileId = row.getAttribute("data-file-id");
+            state.dragFolderPath = null;
+            e.dataTransfer.setData("text/plain", JSON.stringify({ kind:"file", id: state.dragFileId }));
+            row.classList.add("dragging");
+          });
+          row.addEventListener("dragend", () => row.classList.remove("dragging"));
+        });
+
+        // Folder drag start
+        body.querySelectorAll(".vault-folder-row[draggable]").forEach(row => {
+          row.addEventListener("dragstart", e => {
+            state.dragFolderPath = row.getAttribute("data-folder-path");
+            state.dragFileId = null;
+            e.dataTransfer.setData("text/plain", JSON.stringify({ kind:"folder", path: state.dragFolderPath }));
+          });
+        });
+
+        // Folder drag over/drop (for moving files/folders)
+        body.querySelectorAll(".vault-folder-row").forEach(row => {
+          row.addEventListener("dragover", e => {
+            e.preventDefault();
+            row.classList.add("drag-over");
+          });
+          row.addEventListener("dragleave", () => row.classList.remove("drag-over"));
+          row.addEventListener("drop", async e => {
+            e.preventDefault();
+            row.classList.remove("drag-over");
+            const targetPath = row.getAttribute("data-folder-path");
+            try {
+              const data = JSON.parse(e.dataTransfer.getData("text/plain") || "{}");
+              if (data.kind === "file" && data.id) {
+                await moveFiles([data.id], targetPath);
+                toast(`Moved to ${targetPath.split("/").pop() || "Vault"}`);
+                await loadVault(state.currentPath);
+              } else if (data.kind === "folder" && data.path) {
+                await moveFolder(data.path, targetPath + "/" + data.path.split("/").pop());
+                await loadVault(state.currentPath);
+              }
+            } catch (err) {
+              toast("Move failed: " + err.message, true);
+            }
+          });
+        });
+
+        // Action buttons
+        body.addEventListener("click", async e => {
+          const btn = e.target.closest("[data-act]");
+          if (!btn) return;
+          e.stopPropagation();
+          const act = btn.getAttribute("data-act");
+
+          if (act === "open-folder") {
+            navigate(btn.getAttribute("data-path"));
+          }
+          else if (act === "rename-folder") {
+            openRenameModal("folder", null, btn.getAttribute("data-name"), btn.getAttribute("data-path"));
+          }
+          else if (act === "move-folder") {
+            openMoveFolderModal(btn.getAttribute("data-path"), btn.getAttribute("data-name"));
+          }
+          else if (act === "delete-folder") {
+            openDeleteModal("folder", null, btn.getAttribute("data-name"), btn.getAttribute("data-path"));
+          }
+          else if (act === "download") {
+            await doDownload(btn.getAttribute("data-id"));
+          }
+          else if (act === "preview") {
+            await doPreview(btn.getAttribute("data-id"), btn.getAttribute("data-name"));
+          }
+          else if (act === "email") {
+            openEmailModal(btn.getAttribute("data-id"), btn.getAttribute("data-name"));
+          }
+          else if (act === "move-file") {
+            openMoveModal([btn.getAttribute("data-id")], [btn.getAttribute("data-name")]);
+          }
+          else if (act === "rename-file") {
+            openRenameModal("file", btn.getAttribute("data-id"), btn.getAttribute("data-name"), btn.getAttribute("data-folder"));
+          }
+          else if (act === "unzip") {
+            await doUnzip(btn.getAttribute("data-id"), btn.getAttribute("data-name"));
+          }
+          else if (act === "delete-file") {
+            openDeleteModal("file", btn.getAttribute("data-id"), btn.getAttribute("data-name"), btn.getAttribute("data-folder"));
+          }
+        });
+
+        // Folder click-to-open (row itself, not buttons)
+        body.querySelectorAll(".vault-folder-row").forEach(row => {
+          row.addEventListener("click", e => {
+            if (e.target.closest("[data-act]")) return;
+            navigate(row.getAttribute("data-folder-path"));
+          });
+        });
+      }
+
+      // ============================================================
+      // UPLOAD
+      // ============================================================
+      async function uploadFiles(files) {
+        if (!files.length || !state.user) return;
+        const prog = $("uploadProgress");
+        const fill = $("uploadProgressFill");
+        const status = $("uploadStatus");
+
+        if (prog) prog.style.display = "block";
+        let done = 0;
+        const setProgress = (n, total) => {
+          if (fill) fill.style.width = `${Math.round(n / total * 100)}%`;
+          if (status) status.textContent = `Uploading ${n} of ${total}…`;
+        };
+
+        try {
+          for (let i = 0; i < files.length; i++) {
+            setProgress(i, files.length);
+            const fd = new FormData();
+            fd.append("file", files[i]);
+            fd.append("folderPath", state.currentPath || "");
+            await apiFetch("/api/vault/upload", { method: "POST", body: fd });
+            done++;
+          }
+          setProgress(files.length, files.length);
+          if (status) status.textContent = `Uploaded ${done} file${done !== 1 ? "s" : ""}.`;
+          toast(`Uploaded ${done} file${done !== 1 ? "s" : ""}.`);
+          await loadVault(state.currentPath);
+        } catch (e) {
+          toast("Upload failed: " + e.message, true);
+          if (status) status.textContent = "Upload failed.";
+        } finally {
+          setTimeout(() => {
+            if (prog) prog.style.display = "none";
+            if (fill) fill.style.width = "0%";
+          }, 1500);
+        }
+      }
+
+      // ============================================================
+      // DOWNLOAD / PREVIEW
+      // ============================================================
+      async function doDownload(id) {
+        try {
+          const data = await apiFetch(`/api/vault/file/${encodeURIComponent(id)}`);
+          const url = data.url || data.signedUrl || data.href;
+          if (!url) throw new Error("No download URL.");
+          window.open(url, "_blank", "noopener");
+        } catch (e) {
+          toast("Download failed: " + e.message, true);
+        }
+      }
+
+      async function doPreview(id, filename) {
+        try {
+          const data = await apiFetch(`/api/vault/file/${encodeURIComponent(id)}`);
+          const url = data.url || data.signedUrl || data.href;
+          if (!url) throw new Error("No preview URL.");
+          state.previewTarget = { id, filename, url };
+          $("previewModalTitle").textContent = filename || "Preview";
+          $("previewFrame").src = url;
+          openModal("previewModal");
+        } catch (e) {
+          toast("Preview failed: " + e.message, true);
+        }
+      }
+
+      // ============================================================
+      // UNZIP
+      // ============================================================
+      async function doUnzip(id, filename) {
+        if (!confirm(`Extract "${filename}"?`)) return;
+        try {
+          toast("Extracting ZIP…");
+          const d = await apiFetch("/api/vault/unzip", {
+            method: "POST",
+            body: JSON.stringify({ id })
+          });
+          const count = d?.extractedCount || d?.count || "?";
+          toast(`Extracted ${count} file(s).`);
+          await loadVault(state.currentPath);
+        } catch (e) {
+          toast("Extract failed: " + e.message, true);
+        }
+      }
+
+      // ============================================================
+      // FILE OPERATIONS: move, rename, delete
+      // ============================================================
+      async function moveFiles(ids, toFolderPath) {
+        await apiFetch("/api/vault/file/move", {
+          method: "POST",
+          body: JSON.stringify({ ids, toFolderPath })
+        });
+      }
+
+      async function renameFile(id, newName) {
+        await apiFetch("/api/vault/file/move", {
+          method: "POST",
+          body: JSON.stringify({ ids: [id], toFolderPath: state.currentPath, newName })
+        });
+      }
+
+      async function deleteFile(id) {
+        await apiFetch(`/api/vault/file/${encodeURIComponent(id)}`, { method: "DELETE" });
+      }
+
+      // ============================================================
+      // FOLDER OPERATIONS
+      // ============================================================
+      async function createFolder(name) {
+        const full = normPath(state.currentPath ? state.currentPath + "/" + name : name);
+        await apiFetch("/api/vault/folder", {
+          method: "POST",
+          body: JSON.stringify({ folderPath: full })
+        });
+      }
+
+      async function moveFolder(fromPath, toPath) {
+        await apiFetch("/api/vault/folder/move", {
+          method: "POST",
+          body: JSON.stringify({ from: fromPath, to: toPath })
+        });
+      }
+
+      async function renameFolder(fromPath, newName) {
+        const parts = normPath(fromPath).split("/");
+        parts[parts.length - 1] = newName;
+        const toPath = parts.join("/");
+        await moveFolder(fromPath, toPath);
+      }
+
+      async function deleteFolder(folderPath, force) {
+        await apiFetch("/api/vault/folder", {
+          method: "DELETE",
+          body: JSON.stringify({ folderPath, force: !!force, hard: true })
+        });
+      }
+
+      async function emailFile(fileId, recipientEmail, senderName, description) {
+        await apiFetch("/api/vault/email", {
+          method: "POST",
+          body: JSON.stringify({ fileId, recipientEmail, senderName, description })
+        });
+      }
+
+      // ============================================================
+      // MODALS
+      // ============================================================
+      function openModal(id) {
+        const m = $(id);
+        if (m) { m.classList.add("open"); m.style.display = "flex"; }
+      }
+      function closeModal(id) {
+        const m = $(id);
+        if (m) { m.classList.remove("open"); m.style.display = "none"; }
+      }
+
+      // --- Rename modal ---
+      function openRenameModal(kind, id, currentName, extra) {
+        state.renameTarget = { kind, id, currentName, extra };
+        $("renameModalTitle").textContent = kind === "folder" ? "Rename Folder" : "Rename File";
+        $("renameInput").value = currentName || "";
+        openModal("renameModal");
+        setTimeout(() => $("renameInput").focus(), 50);
+      }
+
+      async function submitRename() {
+        const newName = ($("renameInput").value || "").trim();
+        if (!newName) return;
+        const t = state.renameTarget;
+        if (!t) return;
+        closeModal("renameModal");
+        try {
+          if (t.kind === "file") {
+            await renameFile(t.id, newName);
+          } else {
+            await renameFolder(t.extra, newName);
+          }
+          toast(`Renamed to "${newName}".`);
+          await loadVault(state.currentPath);
+        } catch (e) {
+          toast("Rename failed: " + e.message, true);
+        }
+      }
+
+      // --- Move (files) modal ---
+      function openMoveModal(ids, names) {
+        state.moveTarget = { ids, names, kind: "file" };
+        $("moveModalFileNames").textContent = `Moving: ${names.join(", ")}`;
+        const sel = $("moveTargetSelect");
+        sel.innerHTML = `<option value="">/ (Vault root)</option>`;
+        state.allFolders.filter(p => p !== state.currentPath).forEach(p => {
+          const opt = document.createElement("option");
+          opt.value = p;
+          opt.textContent = `/${p}`;
+          sel.appendChild(opt);
+        });
+        openModal("moveModal");
+      }
+
+      function openMoveFolderModal(fromPath, name) {
+        state.moveTarget = { ids: null, names: [name], kind: "folder", fromPath };
+        $("moveModalFileNames").textContent = `Moving folder: ${name}`;
+        const sel = $("moveTargetSelect");
+        sel.innerHTML = `<option value="">/ (Vault root)</option>`;
+        state.allFolders.filter(p => p !== fromPath && !p.startsWith(fromPath + "/")).forEach(p => {
+          const opt = document.createElement("option");
+          opt.value = p;
+          opt.textContent = `/${p}`;
+          sel.appendChild(opt);
+        });
+        openModal("moveModal");
+      }
+
+      async function submitMove() {
+        const dest = $("moveTargetSelect").value;
+        const t = state.moveTarget;
+        if (!t) return;
+        closeModal("moveModal");
+        try {
+          if (t.kind === "file") {
+            await moveFiles(t.ids, dest);
+            toast(`Moved ${t.ids.length} file${t.ids.length !== 1 ? "s" : ""}.`);
+          } else {
+            const folderName = t.fromPath.split("/").pop();
+            const newPath = dest ? dest + "/" + folderName : folderName;
+            await moveFolder(t.fromPath, newPath);
+            toast(`Moved folder "${folderName}".`);
+          }
+          await loadVault(state.currentPath);
+        } catch (e) {
+          toast("Move failed: " + e.message, true);
+        }
+      }
+
+      // --- Email modal ---
+      function openEmailModal(id, filename) {
+        state.emailTarget = { id, filename };
+        $("emailModalFileName").textContent = `File: ${filename}`;
+        $("emailRecipient").value = "";
+        $("emailSender").value = "";
+        $("emailNote").value = "";
+        openModal("emailModal");
+        setTimeout(() => $("emailRecipient").focus(), 50);
+      }
+
+      async function submitEmail() {
+        const recipient = ($("emailRecipient").value || "").trim();
+        const sender = ($("emailSender").value || "").trim();
+        if (!recipient || !sender) {
+          toast("Enter recipient email and your name.", true);
+          return;
+        }
+        const t = state.emailTarget;
+        if (!t) return;
+        closeModal("emailModal");
+        try {
+          await emailFile(t.id, recipient, sender, $("emailNote").value || "");
+          toast(`Email sent to ${recipient}.`);
+        } catch (e) {
+          toast("Email failed: " + e.message, true);
+        }
+      }
+
+      // --- Delete confirm modal ---
+      function openDeleteModal(kind, id, name, extra) {
+        state.deleteTarget = { kind, id, name, extra };
+        const msg = kind === "folder"
+          ? `Delete folder "${name}" and all its contents? This cannot be undone.`
+          : `Delete "${name}"? This cannot be undone.`;
+        $("deleteModalMessage").textContent = msg;
+        openModal("deleteModal");
+      }
+
+      async function submitDelete() {
+        const t = state.deleteTarget;
+        if (!t) return;
+        closeModal("deleteModal");
+        try {
+          if (t.kind === "file") {
+            await deleteFile(t.id);
+            toast(`Deleted "${t.name}".`);
+          } else {
+            await deleteFolder(t.extra, true);
+            toast(`Deleted folder "${t.name}".`);
+          }
+          await loadVault(state.currentPath);
+        } catch (e) {
+          toast("Delete failed: " + e.message, true);
+        }
+      }
+
+      // ============================================================
+      // NEW FOLDER
+      // ============================================================
+      async function doNewFolder() {
+        const name = prompt("Folder name:");
+        if (!name) return;
+        try {
+          await createFolder(name.trim());
+          toast(`Created folder "${name}".`);
+          await loadVault(state.currentPath);
+        } catch (e) {
+          toast("Create folder failed: " + e.message, true);
+        }
+      }
+
+      // ============================================================
+      // DROPZONE
+      // ============================================================
+      function initDropzone() {
+        const dz = $("vaultDropzone");
+        const fi = $("fileInput");
+        const uploadBtn = $("uploadBtn");
+
+        if (uploadBtn) uploadBtn.addEventListener("click", () => fi && fi.click());
+        dz.addEventListener("click", () => { if (state.user) fi && fi.click(); });
+
+        if (fi) fi.addEventListener("change", () => {
+          const files = Array.from(fi.files || []);
+          fi.value = "";
+          if (files.length) uploadFiles(files);
+        });
+
+        dz.addEventListener("dragover", e => {
+          e.preventDefault();
+          const hasFiles = Array.from(e.dataTransfer.types || []).includes("Files");
+          if (hasFiles) dz.classList.add("drag-over");
+        });
+        dz.addEventListener("dragleave", () => dz.classList.remove("drag-over"));
+        dz.addEventListener("drop", e => {
+          dz.classList.remove("drag-over");
+          const files = Array.from(e.dataTransfer.files || []);
+          if (files.length) {
+            e.preventDefault();
+            if (state.user) uploadFiles(files);
+          }
+        });
+      }
+
+      // ============================================================
+      // SEARCH / SORT
+      // ============================================================
+      function initSearchSort() {
+        const s = $("searchInput");
+        const so = $("sortSelect");
+        if (s) s.addEventListener("input", () => { state.searchQ = s.value.trim().toLowerCase(); renderList(); });
+        if (so) so.addEventListener("change", () => { state.sortBy = so.value; renderList(); });
+      }
+
+      // ============================================================
+      // HEADER DROPDOWN
+      // ============================================================
+      function initDropdown() {
+        const wrap = $("industryMenuWrap");
+        const toggle = $("industryToggle");
+        if (!wrap || !toggle) return;
+        toggle.addEventListener("click", e => { e.stopPropagation(); wrap.classList.toggle("workspace-open"); });
+        document.addEventListener("click", () => wrap.classList.remove("workspace-open"));
+      }
+
+      // ============================================================
+      // ACCOUNT MODAL
+      // ============================================================
+      function initAccountModal() {
+        const btn = $("accountLoginBtn");
+        const close = $("accountModalClose");
+        const loginBtn = $("loginSubmitBtn");
+        const logoutBtn = $("logoutBtn");
+        const status = $("loginStatus");
+
+        if (btn) btn.addEventListener("click", () => {
+          if (status && state.user) status.textContent = `Signed in as ${state.user.email || "user"}`;
+          openModal("accountModal");
+        });
+        if (close) close.addEventListener("click", () => closeModal("accountModal"));
+
+        if (loginBtn) loginBtn.addEventListener("click", async () => {
+          const email = ($("loginEmail").value || "").trim();
+          const pw = ($("loginPassword").value || "").trim();
+          if (!email || !pw) { if (status) status.textContent = "Email and password required."; return; }
+          if (status) status.textContent = "Signing in…";
+          try {
+            const data = await apiFetch("/api/login", { method: "POST", body: JSON.stringify({ email, password: pw }) });
+            const token = data.token || (data.user && data.user.token);
+            if (!token) throw new Error("Token not returned.");
+            setToken(token);
+            await bootstrapAuth();
+            closeModal("accountModal");
+            setEnabled(true);
+            toast("Signed in!");
+            await loadVault(state.currentPath);
+          } catch (e) {
+            if (status) status.textContent = "Login failed: " + e.message;
+            setDot("bad");
+          }
+        });
+
+        if (logoutBtn) logoutBtn.addEventListener("click", () => {
+          setToken(null);
+          state.user = null;
+          state.files = [];
+          state.folders = [];
+          setDot("warn");
+          setEnabled(false);
+          renderList();
+          closeModal("accountModal");
+          toast("Signed out.");
+        });
+      }
+
+      // ============================================================
+      // MODAL BINDINGS
+      // ============================================================
+      function initModals() {
+        // Rename
+        $("renameModalClose").addEventListener("click", () => closeModal("renameModal"));
+        $("renameCancelBtn").addEventListener("click", () => closeModal("renameModal"));
+        $("renameConfirmBtn").addEventListener("click", submitRename);
+        $("renameInput").addEventListener("keydown", e => { if (e.key === "Enter") submitRename(); });
+
+        // Move
+        $("moveModalClose").addEventListener("click", () => closeModal("moveModal"));
+        $("moveCancelBtn").addEventListener("click", () => closeModal("moveModal"));
+        $("moveConfirmBtn").addEventListener("click", submitMove);
+
+        // Email
+        $("emailModalClose").addEventListener("click", () => closeModal("emailModal"));
+        $("emailCancelBtn").addEventListener("click", () => closeModal("emailModal"));
+        $("emailConfirmBtn").addEventListener("click", submitEmail);
+
+        // Delete
+        $("deleteModalClose").addEventListener("click", () => closeModal("deleteModal"));
+        $("deleteCancelBtn").addEventListener("click", () => closeModal("deleteModal"));
+        $("deleteConfirmBtn").addEventListener("click", submitDelete);
+
+        // Preview
+        $("previewModalClose").addEventListener("click", () => { closeModal("previewModal"); $("previewFrame").src = "about:blank"; });
+        $("previewCloseBtn").addEventListener("click", () => { closeModal("previewModal"); $("previewFrame").src = "about:blank"; });
+        $("previewDownloadBtn").addEventListener("click", () => {
+          if (state.previewTarget) doDownload(state.previewTarget.id);
+        });
+
+        // Close on backdrop click
+        ["renameModal","moveModal","emailModal","deleteModal","previewModal","accountModal"].forEach(id => {
+          const m = $(id);
+          if (m) m.addEventListener("click", e => { if (e.target === m) { closeModal(id); if (id === "previewModal") $("previewFrame").src = "about:blank"; } });
+        });
+
+        // Escape key
+        document.addEventListener("keydown", e => {
+          if (e.key === "Escape") {
+            ["renameModal","moveModal","emailModal","deleteModal","previewModal","accountModal"].forEach(closeModal);
+            $("previewFrame").src = "about:blank";
+          }
+        });
+      }
+
+      // ============================================================
+      // TOP BUTTONS
+      // ============================================================
+      function initTopButtons() {
+        const nfBtn = $("newFolderBtn");
+        const rfBtn = $("refreshBtn");
+        if (nfBtn) nfBtn.addEventListener("click", doNewFolder);
+        if (rfBtn) rfBtn.addEventListener("click", () => loadVault(state.currentPath));
+      }
+
+      // ============================================================
+      // INIT
+      // ============================================================
+      async function init() {
+        const yr = $("year");
+        if (yr) yr.textContent = new Date().getFullYear();
+
+        initDropdown();
+        initAccountModal();
+        initDropzone();
+        initSearchSort();
+        initTopButtons();
+        initModals();
+
+        await bootstrapAuth();
+        if (state.user) {
+          setEnabled(true);
+          await loadVault("");
+        } else {
+          setEnabled(false);
+          renderList();
+        }
+
+        // Auto-refresh on focus
+        window.addEventListener("focus", () => { if (state.user) loadVault(state.currentPath).catch(() => {}); });
+        document.addEventListener("visibilitychange", () => {
+          if (!document.hidden && state.user) loadVault(state.currentPath).catch(() => {});
+        });
+      }
+
+      init().catch(console.error);
+    })();
+    </script>
+  </body>
+</html>

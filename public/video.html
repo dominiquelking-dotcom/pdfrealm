@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PDFRealm — Secure Video</title>
+  <style>
+    :root{
+      --bg:#060b0f; --panel:#0b1220; --panel2:#0f1a20; --line:rgba(255,255,255,.08);
+      --text:#e6f0ff; --muted:rgba(230,240,255,.68);
+      --accent:#2dd4bf; --accent2:#60a5fa; --danger:#ef4444;
+      --shadow: 0 20px 45px rgba(0,0,0,.45);
+      --r:16px;
+    }
+    body{ margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:linear-gradient(180deg,#05080c 0%, #060b0f 30%, #04070b 100%); color:var(--text); }
+    .wrap{ max-width:1100px; margin:0 auto; padding:20px; }
+    .card{ background:linear-gradient(180deg,var(--panel) 0%, var(--panel2) 100%); border:1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding:16px; }
+    h1{ font-size:20px; margin:0 0 8px; }
+    .muted{ color:var(--muted); }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; }
+    .input{ background:rgba(255,255,255,.04); border:1px solid var(--line); color:var(--text); padding:10px 12px; border-radius: 12px; outline:none; }
+    .btn{ border:1px solid var(--line); background:rgba(255,255,255,.06); color:var(--text); padding:10px 12px; border-radius: 12px; cursor:pointer; }
+    .btn.primary{ border-color: rgba(45,212,191,.45); background: rgba(45,212,191,.14); }
+    .pill{ display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius: 999px; border:1px solid var(--line); background: rgba(255,255,255,.04); color: var(--muted); font-size: 12px; }
+    .grid{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:12px; }
+    video{ width:100%; background:#000; border-radius: 14px; min-height: 240px; }
+    #remoteGrid{ display:grid; grid-template-columns: 1fr; gap:10px; }
+    .err{ color: #fecaca; background: rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.22); padding:10px; border-radius: 12px; margin-top:10px;}
+    @media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Secure Video Chat</h1>
+      <div class="muted">This room uses peer-to-peer WebRTC encrypted media. The server only relays signaling.</div>
+
+      <div class="row" style="margin-top:14px;">
+        <input id="name" class="input" placeholder="Your name (optional)" style="min-width:220px;" />
+        <input id="password" class="input" placeholder="Password (if required)" type="password" style="min-width:220px; display:none;" />
+        <button id="joinBtn" class="btn primary" type="button">Join</button>
+        <button id="muteBtn" class="btn" type="button" disabled>Mute</button>
+        <button id="shareBtn" class="btn" type="button" disabled>Share screen</button>
+        <button id="hangBtn" class="btn" type="button" disabled>Hang up</button>
+      </div>
+
+      <div class="row" id="onlineRow" style="margin-top:10px;">
+        <span class="pill">Who’s online</span>
+        <span class="pill" id="onlineCount">0</span>
+        <span id="onlineChips" style="display:flex; gap:6px; flex-wrap:wrap;"></span>
+        <span class="pill" id="status">Idle</span>
+      </div>
+
+      <div id="err" class="err" style="display:none;"></div>
+
+      <div class="grid">
+        <div>
+          <div class="muted" style="margin:6px 0;">You</div>
+          <video id="local" autoplay playsinline muted></video>
+        </div>
+        <div>
+          <div class="muted" style="margin:6px 0;">Others</div>
+          <div id="remoteGrid"></div>
+        </div>
+      </div>
+
+    <div class="card" style="margin-top:12px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <div style="font-weight:700;">Shared Files</div>
+          <div id="filesHint" class="muted" style="font-size:12px;margin-top:2px;">Encrypted (client-side). If the invite link did not include a room key, uploads/downloads are disabled.</div>
+        </div>
+        <div class="row" style="justify-content:flex-end;gap:8px;flex-wrap:wrap;">
+          <input id="filesInput" type="file" style="display:none;" />
+          <button id="filesPickBtn" class="btn" type="button" disabled>Choose file</button>
+          <button id="filesUploadBtn" class="btn" type="button" disabled>Upload</button>
+        </div>
+      </div>
+
+      <div id="filesDropZone" style="margin-top:10px;border:1px dashed rgba(255,255,255,.25);border-radius:12px;padding:12px;cursor:pointer;opacity:.5;pointer-events:none;">
+        <div style="font-weight:600;">Drag & drop a file here</div>
+        <div id="filesDropLabel" class="muted" style="font-size:12px;margin-top:4px;">No file selected.</div>
+      </div>
+
+      <div id="filesList" style="margin-top:12px;display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+
+    </div>
+  </div>
+
+<script>
+(function(){
+  const $ = (id)=>document.getElementById(id);
+  const token = (function(){
+    const p = location.pathname || "";
+    const m = p.match(/\/v\/([^\/?#]+)/);
+    return m ? m[1] : "";
+  })();
+
+  const state = {
+    roomId: null,
+    peerId: null,
+    localStream: null,
+    screenStream: null,
+    pcs: new Map(),
+    remoteEls: new Map(),
+    lastSignalId: 0,
+    pollTimer: null,
+    pollParticipantsTimer: null,
+    muted: false,
+    // File share
+    roomKeyB64: null,
+    roomKeyCrypto: null,
+    pendingFile: null,
+  };
+
+  function showErr(msg){
+    const el=$("err");
+    if(!el) return;
+    el.style.display="block";
+    el.textContent=String(msg||"");
+  }
+  function setStatus(msg){ $("status").textContent=String(msg||""); }
+
+  function ensurePeerId(){
+    if(!state.peerId){
+      state.peerId=(crypto.randomUUID?crypto.randomUUID():Math.random().toString(16).slice(2)+Date.now().toString(16)).replace(/-/g,"").slice(0,16);
+    }
+    return state.peerId;
+  }
+
+  async function api(path, opts){
+    opts = opts || {};
+    // Ensure guest cookie set/used, and support stateless invite auth fallback
+    opts.credentials = "include";
+
+    // Normalize headers object (keep FormData boundaries intact)
+    const hdrs = opts.headers instanceof Headers ? opts.headers : new Headers(opts.headers || {});
+    try{
+      if(String(path||"").startsWith("/api/video/rooms/") && token){
+        hdrs.set("X-Video-Invite", token);
+        const nm = String($("name")?.value || "").trim();
+        if(nm) hdrs.set("X-Guest-Name", nm.slice(0,80));
+      }
+    }catch{}
+    opts.headers = hdrs;
+
+    const r=await fetch(path, opts);
+    const txt=await r.text();
+    if(!r.ok) throw new Error(txt||("HTTP "+r.status));
+    try{ return JSON.parse(txt);}catch{ return {}; }
+  }
+
+  
+  async function apiBinary(path, opts){
+    opts = opts || {};
+    opts.credentials = "include";
+    const hdrs = opts.headers instanceof Headers ? opts.headers : new Headers(opts.headers || {});
+    try{
+      if(String(path||"").startsWith("/api/video/rooms/") && token){
+        hdrs.set("X-Video-Invite", token);
+        const nm = String($("name")?.value || "").trim();
+        if(nm) hdrs.set("X-Guest-Name", nm.slice(0,80));
+      }
+    }catch{}
+    opts.headers = hdrs;
+
+    const r = await fetch(path, opts);
+    if(!r.ok){
+      const txt = await r.text().catch(()=> "");
+      throw new Error(txt || ("HTTP " + r.status));
+    }
+    return await r.arrayBuffer();
+  }
+
+  // -------- client-side file encryption (room key is in URL hash: #k=...) --------
+  function b64urlEncode(bytes) {
+    const bin = Array.from(bytes, b => String.fromCharCode(b)).join("");
+    return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+  }
+  function b64urlDecode(str) {
+    str = String(str || "").replace(/-/g, "+").replace(/_/g, "/");
+    while (str.length % 4) str += "=";
+    const bin = atob(str);
+    const out = new Uint8Array(bin.length);
+    for (let i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i);
+    return out;
+  }
+  function getHashParam(key){
+    const h = (location.hash || "").replace(/^#/, "");
+    const parts = h.split("&").map(s=>s.trim()).filter(Boolean);
+    for (const p of parts){
+      const [k,v] = p.split("=");
+      if (k === key) return decodeURIComponent(v||"");
+    }
+    return "";
+  }
+  async function importRoomKeyFromHash(){
+    const k = getHashParam("k");
+    state.roomKeyB64 = k || null;
+    state.roomKeyCrypto = null;
+    if(!k) return null;
+    const raw = b64urlDecode(k);
+    state.roomKeyCrypto = await crypto.subtle.importKey("raw", raw, { name:"AES-GCM" }, false, ["encrypt","decrypt"]);
+    return state.roomKeyCrypto;
+  }
+  async function getRoomKey(){
+    if(state.roomKeyCrypto) return state.roomKeyCrypto;
+    return await importRoomKeyFromHash();
+  }
+  function setFilesEnabled(on){
+    const inp=$("filesInput"), pick=$("filesPickBtn"), up=$("filesUploadBtn"), dz=$("filesDropZone");
+    if(inp) inp.disabled = !on;
+    if(pick) pick.disabled = !on;
+    if(up) up.disabled = !on;
+    if(dz){ dz.style.opacity = on ? "1" : ".5"; dz.style.pointerEvents = on ? "auto" : "none"; }
+    const hint=$("filesHint");
+    if(hint && !on) hint.textContent = "Encrypted (client-side). This invite link did not include a room key (#k=...). File sharing is disabled.";
+    if(hint && on) hint.textContent = "Encrypted (client-side). Shared files are encrypted locally using the room key.";
+  }
+
+  async function uploadFile(file){
+    if(!state.roomId) throw new Error("Join the room first.");
+    if(!file) throw new Error("Choose a file (or drag & drop) first.");
+    const key = await getRoomKey();
+    if(!key) throw new Error("Missing room key in invite link. Upload disabled.");
+
+    const plain = await file.arrayBuffer();
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt({ name:"AES-GCM", iv }, key, plain);
+
+    const fd = new FormData();
+    fd.append("file", new Blob([ct], { type:"application/octet-stream" }), "blob.bin");
+    fd.append("filename", file.name || "file");
+    fd.append("mime", file.type || "application/octet-stream");
+    fd.append("size", String(file.size || plain.byteLength || 0));
+    fd.append("iv", b64urlEncode(iv));
+    fd.append("nonce", b64urlEncode(iv));
+
+    await api(`/api/video/rooms/${state.roomId}/files`, { method:"POST", body: fd });
+  }
+
+  function escapeHtml(s){
+    return String(s||"").replace(/[&<>"']/g, (c)=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  }
+
+  async function loadFiles(){
+    const list=$("filesList");
+    if(!list) return;
+    if(!state.roomId){
+      list.innerHTML = `<div class="muted" style="font-size:13px;">Join a room to view files.</div>`;
+      setFilesEnabled(false);
+      return;
+    }
+    const key = await getRoomKey();
+    setFilesEnabled(!!key);
+
+    const data = await api(`/api/video/rooms/${state.roomId}/files`, { method:"GET" });
+    const files = (data && data.files) ? data.files : [];
+    if(!files.length){
+      list.innerHTML = `<div class="muted" style="font-size:13px;">No shared files yet.</div>`;
+      return;
+    }
+    list.innerHTML = files.map(f => {
+      const name = escapeHtml(f.filename || "file");
+      const meta = `${Math.round((Number(f.size)||0)/1024)} KB`;
+      return `<div class="row" style="justify-content:space-between;gap:10px;align-items:center;border:1px solid var(--line);padding:10px;border-radius:12px;">
+        <div style="display:flex;flex-direction:column;gap:2px;min-width:0;">
+          <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:520px;">${name}</div>
+          <div class="muted" style="font-size:12px;">${escapeHtml(f.uploader_name||"")} ${escapeHtml(meta)}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn" type="button" data-dl="${escapeHtml(f.id)}">Download</button>
+        </div>
+      </div>`;
+    }).join("");
+
+    // bind download buttons
+    list.querySelectorAll("button[data-dl]").forEach(btn=>{
+      if(btn.__bound) return;
+      btn.__bound = true;
+      btn.addEventListener("click", async ()=>{
+        try{
+          const id = btn.getAttribute("data-dl");
+          const f = files.find(x=>String(x.id)===String(id));
+          if(!f) throw new Error("File not found.");
+          await downloadFile(f);
+        }catch(e){
+          showErr(e?.message || String(e));
+        }
+      });
+    });
+  }
+
+  async function downloadFile(f){
+    const key = await getRoomKey();
+    if(!key) throw new Error("Missing room key in invite link. Download disabled.");
+    const ivB64 = f.iv || f.nonce;
+    if(!ivB64) throw new Error("Missing IV/nonce for this file.");
+    const iv = b64urlDecode(ivB64);
+    const buf = await apiBinary(`/api/video/rooms/${state.roomId}/files/${f.id}`, { method:"GET" });
+    const pt = await crypto.subtle.decrypt({ name:"AES-GCM", iv }, key, buf);
+    const blob = new Blob([pt], { type: f.mime || "application/octet-stream" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = f.filename || "file";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ try{ URL.revokeObjectURL(a.href); }catch{} try{ a.remove(); }catch{} }, 250);
+  }
+
+function iceConfig(){
+    return { iceServers:[{urls:"stun:stun.l.google.com:19302"}] };
+  }
+
+  function getOrCreateRemoteEl(peerId){
+    let el=state.remoteEls.get(peerId);
+    if(el) return el;
+    const grid=$("remoteGrid");
+    el=document.createElement("video");
+    el.autoplay=true; el.playsInline=true;
+    el.style.width="100%"; el.style.borderRadius="14px"; el.style.background="#000"; el.style.minHeight="240px";
+    grid.appendChild(el);
+    state.remoteEls.set(peerId, el);
+    return el;
+  }
+
+  async function ensureLocalMedia(){
+    if(state.localStream) return state.localStream;
+    setStatus("Requesting camera/mic…");
+    const s=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+    state.localStream=s;
+    $("local").srcObject=s;
+    setStatus("Local media ready");
+    return s;
+  }
+
+  async function sendSignal(toPeer, type, payload){
+    await api(`/api/video/rooms/${state.roomId}/signals`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({from_peer:ensurePeerId(), to_peer:toPeer||null, type, payload})
+    });
+  }
+
+  async function ensurePc(remotePeer){
+    let pc=state.pcs.get(remotePeer);
+    if(pc) return pc;
+    const stream=await ensureLocalMedia();
+    pc=new RTCPeerConnection(iceConfig());
+    state.pcs.set(remotePeer, pc);
+    stream.getTracks().forEach(t=>pc.addTrack(t, stream));
+    pc.ontrack=(ev)=>{ const el=getOrCreateRemoteEl(remotePeer); el.srcObject=ev.streams[0]; };
+    pc.onicecandidate=(ev)=>{ if(ev.candidate) sendSignal(remotePeer,"candidate",ev.candidate).catch(()=>{}); };
+    pc.onconnectionstatechange=()=>{
+      if(["failed","closed","disconnected"].includes(pc.connectionState)){
+        try{pc.close();}catch{}
+        state.pcs.delete(remotePeer);
+        const el=state.remoteEls.get(remotePeer);
+        if(el && el.parentNode) el.parentNode.removeChild(el);
+        state.remoteEls.delete(remotePeer);
+      }
+    };
+    return pc;
+  }
+
+  async function makeOffer(remotePeer){
+    const pc=await ensurePc(remotePeer);
+    const offer=await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    await sendSignal(remotePeer,"offer",offer);
+  }
+
+  async function handleSignal(s){
+    const me=ensurePeerId();
+    if(s.from_peer===me) return;
+    if(s.to_peer && s.to_peer!==me) return;
+    const remote=s.from_peer;
+    const pc=await ensurePc(remote);
+    if(s.type==="offer"){
+      await pc.setRemoteDescription(s.payload);
+      const ans=await pc.createAnswer();
+      await pc.setLocalDescription(ans);
+      await sendSignal(remote,"answer",ans);
+    } else if(s.type==="answer"){
+      await pc.setRemoteDescription(s.payload);
+    } else if(s.type==="candidate"){
+      try{ await pc.addIceCandidate(s.payload);}catch{}
+    }
+  }
+
+  async function pollSignals(){
+    const data=await api(`/api/video/rooms/${state.roomId}/signals?since_id=${encodeURIComponent(String(state.lastSignalId||0))}`,{method:"GET"});
+    const sigs=data.signals||[];
+    for(const s of sigs){
+      if(s.id>state.lastSignalId) state.lastSignalId=s.id;
+      await handleSignal(s);
+    }
+  }
+
+  function renderOnline(list){
+    const chips=$("onlineChips"), count=$("onlineCount");
+    chips.innerHTML="";
+    const uniq=[], seen=new Set();
+    for(const a of (list||[])){
+      const key=a.actor_kind+":"+a.actor_id;
+      if(seen.has(key)) continue;
+      seen.add(key);
+      uniq.push(a);
+    }
+    count.textContent=String(uniq.length);
+    for(const a of uniq){
+      const span=document.createElement("span");
+      span.className="pill";
+      span.textContent=a.actor_name || (a.actor_kind==="guest"?"Guest":"Member");
+      chips.appendChild(span);
+    }
+  }
+
+  async function touchPresence(){
+    await api(`/api/video/rooms/${state.roomId}/presence`,{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({peer_id:ensurePeerId(), actor_name:null})
+    });
+  }
+
+  async function refreshParticipants(){
+    const data=await api(`/api/video/rooms/${state.roomId}/participants`,{method:"GET"});
+    renderOnline(data.participants||[]);
+    const me=ensurePeerId();
+    const peers=(data.participants||[]).map(p=>p.peer_id).filter(Boolean).filter(p=>p!==me);
+    const set=new Set(peers);
+    for(const existing of Array.from(state.pcs.keys())){
+      if(!set.has(existing)){
+        try{ state.pcs.get(existing).close(); }catch{}
+        state.pcs.delete(existing);
+      }
+    }
+    for(const rp of peers){
+      if(!state.pcs.has(rp)){
+        if(String(me) < String(rp)) makeOffer(rp).catch(()=>{});
+        else ensurePc(rp).catch(()=>{});
+      }
+    }
+  }
+
+  function stopAll(){
+    if(state.pollTimer) clearInterval(state.pollTimer);
+    if(state.pollParticipantsTimer) clearInterval(state.pollParticipantsTimer);
+    state.pollTimer=null; state.pollParticipantsTimer=null;
+    for(const pc of state.pcs.values()){ try{pc.close();}catch{} }
+    state.pcs.clear();
+    for(const el of state.remoteEls.values()){ try{ el.parentNode.removeChild(el);}catch{} }
+    state.remoteEls.clear();
+    if(state.screenStream){ try{state.screenStream.getTracks().forEach(t=>t.stop());}catch{} state.screenStream=null; }
+    if(state.localStream){ try{state.localStream.getTracks().forEach(t=>t.stop());}catch{} state.localStream=null; }
+    $("local").srcObject=null;
+    $("muteBtn").disabled=true; $("shareBtn").disabled=true; $("hangBtn").disabled=true;
+    setStatus("Idle");
+  }
+
+  function toggleMute(){
+    state.muted=!state.muted;
+    $("muteBtn").textContent=state.muted?"Unmute":"Mute";
+    if(state.localStream) state.localStream.getAudioTracks().forEach(t=>t.enabled=!state.muted);
+  }
+
+  async function shareScreen(){
+    if(!state.localStream) return;
+    if(state.screenStream){
+      try{state.screenStream.getTracks().forEach(t=>t.stop());}catch{}
+      state.screenStream=null;
+      const cam=state.localStream.getVideoTracks()[0];
+      for(const pc of state.pcs.values()){
+        const sender=pc.getSenders().find(s=>s.track && s.track.kind==="video");
+        if(sender && cam) sender.replaceTrack(cam).catch(()=>{});
+      }
+      $("local").srcObject=state.localStream;
+      return;
+    }
+    try{
+      const ds=await navigator.mediaDevices.getDisplayMedia({video:true,audio:false});
+      state.screenStream=ds;
+      const tr=ds.getVideoTracks()[0];
+      for(const pc of state.pcs.values()){
+        const sender=pc.getSenders().find(s=>s.track && s.track.kind==="video");
+        if(sender && tr) sender.replaceTrack(tr).catch(()=>{});
+      }
+      $("local").srcObject=ds;
+      tr.onended=()=>shareScreen().catch(()=>{});
+    }catch{}
+  }
+
+  async function join(){
+    try{
+      if(!token) return showErr("Missing invite token in URL.");
+      setStatus("Checking invite…");
+      const meta=await api(`/api/video-invite/${encodeURIComponent(token)}/meta`,{method:"GET"});
+      if(meta.requires_password){
+        $("password").style.display="inline-block";
+      }
+      const name=String($("name").value||"").trim();
+      const pw=$("password").style.display==="none" ? null : String($("password").value||"");
+      setStatus("Joining…");
+      const jr=await api(`/api/video-invite/${encodeURIComponent(token)}/join`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({guest_name:name||null, password:pw||null})
+      });
+      state.roomId=jr.room_id || meta.room_id;
+      await loadFiles(); // enable & load encrypted shared files
+
+      await ensureLocalMedia();
+      await touchPresence();
+      $("muteBtn").disabled=false; $("shareBtn").disabled=false; $("hangBtn").disabled=false;
+      $("muteBtn").onclick=toggleMute;
+      $("shareBtn").onclick=()=>shareScreen().catch(()=>{});
+      $("hangBtn").onclick=stopAll;
+      state.pollTimer=setInterval(()=>pollSignals().catch(()=>{}),1200);
+      state.pollParticipantsTimer=setInterval(async ()=>{
+        await touchPresence().catch(()=>{});
+        await refreshParticipants().catch(()=>{});
+      },2500);
+      await refreshParticipants();
+      setStatus("Live");
+    }catch(e){
+      showErr(String(e?.message||e));
+      setStatus("Error");
+    }
+  }
+
+  
+  // ---- File share UI bindings ----
+  (function bindFileShareUI(){
+    const inp=$("filesInput"), pick=$("filesPickBtn"), up=$("filesUploadBtn"), dz=$("filesDropZone"), dl=$("filesDropLabel");
+
+    const setSelected = (f)=>{
+      state.pendingFile = f || null;
+      if(dl) dl.textContent = f ? `Selected: ${f.name} (${Math.round((f.size||0)/1024)} KB)` : "No file selected.";
+    };
+
+    if(pick && !pick.__bound){
+      pick.__bound = true;
+      pick.addEventListener("click", ()=>{ try{ inp && inp.click(); }catch{} });
+    }
+    if(inp && !inp.__bound){
+      inp.__bound = true;
+      inp.addEventListener("change", ()=>{ const f = inp && inp.files ? inp.files[0] : null; setSelected(f); });
+    }
+    if(dz && !dz.__bound){
+      dz.__bound = true;
+      const highlight=(on)=>{ try{ dz.style.borderColor = on ? "rgba(255,255,255,.55)" : "rgba(255,255,255,.25)"; dz.style.background = on ? "rgba(255,255,255,.06)" : "transparent"; }catch{} };
+      dz.addEventListener("click", ()=>{ try{ inp && inp.click(); }catch{} });
+      dz.addEventListener("dragover", (e)=>{ e.preventDefault(); highlight(true); });
+      dz.addEventListener("dragleave", ()=>highlight(false));
+      dz.addEventListener("drop", (e)=>{
+        e.preventDefault(); highlight(false);
+        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0] ? e.dataTransfer.files[0] : null;
+        if(f) setSelected(f);
+      });
+    }
+    if(up && !up.__bound){
+      up.__bound = true;
+      up.addEventListener("click", async ()=>{
+        try{
+          const f = state.pendingFile || (inp && inp.files ? inp.files[0] : null);
+          await uploadFile(f);
+          if(inp) inp.value="";
+          setSelected(null);
+          await loadFiles();
+          setStatus("File uploaded.");
+        }catch(e){
+          showErr(e?.message || String(e));
+        }
+      });
+    }
+  })();
+$("joinBtn").onclick=join;
+})();
+</script>
+</body>
+</html>

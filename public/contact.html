@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contact &mdash; PDFRealm</title>
+  <meta name="description" content="Contact PDFRealm for support, billing, security, or general inquiries.">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .page-content { max-width: 680px; margin: 60px auto; padding: 0 20px 60px; }
+    .page-content h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .page-content .subtitle { color: var(--muted); font-size: 1.05rem; margin-bottom: 48px; }
+    .page-content h2 { font-size: 1.1rem; font-weight: 700; margin: 32px 0 12px; }
+    .contact-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 40px; }
+    .contact-card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 16px 20px; }
+    .contact-card .label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+    .contact-card a { color: #3b82f6; text-decoration: none; font-weight: 600; font-size: 0.95rem; }
+    .contact-form { display: flex; flex-direction: column; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+    .form-group input, .form-group textarea {
+      background: #1e293b; border: 1px solid #334155; border-radius: 8px;
+      padding: 12px 14px; color: var(--text); font-size: 0.95rem; font-family: inherit;
+    }
+    .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #3b82f6; }
+    .form-group textarea { min-height: 120px; resize: vertical; }
+    .btn-submit { background: #3b82f6; color: #fff; border: none; padding: 14px 32px; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; align-self: flex-start; }
+    .btn-submit:hover { opacity: 0.88; }
+    @media (max-width: 500px) { .contact-cards { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand-left">
+        <a href="/" style="text-decoration:none;">
+          <div style="height:42px;width:140px;background:url('/logo.png') center/contain no-repeat;"></div>
+        </a>
+      </div>
+      <div class="right-nav-cluster">
+        <nav class="top-nav">
+          <a href="/" class="nav-link">Tools</a>
+          <a href="/pricing.html" class="nav-link">Pricing</a>
+          <a href="/support.html" class="nav-link">Support</a>
+        </nav>
+        <button id="accountLoginBtn" class="btn" type="button">Account</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="page-content">
+      <h1>Contact Us</h1>
+      <p class="subtitle">Reach out &mdash; we respond within 24-48 hours on business days.</p>
+      <div class="contact-cards">
+        <div class="contact-card"><div class="label">General</div><a href="mailto:hello@pdfrealm.com">hello@pdfrealm.com</a></div>
+        <div class="contact-card"><div class="label">Support</div><a href="mailto:support@pdfrealm.com">support@pdfrealm.com</a></div>
+        <div class="contact-card"><div class="label">Security</div><a href="mailto:security@pdfrealm.com">security@pdfrealm.com</a></div>
+        <div class="contact-card"><div class="label">Billing</div><a href="mailto:billing@pdfrealm.com">billing@pdfrealm.com</a></div>
+      </div>
+      <h2>Send a Message</h2>
+      <form class="contact-form" id="contactForm">
+        <div class="form-group">
+          <label for="cname">Name</label>
+          <input type="text" id="cname" name="name" placeholder="Your name" required>
+        </div>
+        <div class="form-group">
+          <label for="cemail">Email</label>
+          <input type="email" id="cemail" name="email" placeholder="you@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="cmessage">Message</label>
+          <textarea id="cmessage" name="message" placeholder="How can we help?" required></textarea>
+        </div>
+        <button type="submit" class="btn-submit">Send Message</button>
+      </form>
+    </div>
+  </main>
+  <footer style="background:#0a0f1a; border-top:1px solid #1e293b; padding:32px 20px; text-align:center; color:#334155; font-size:0.85rem;">
+    <div style="margin-bottom:16px; display:flex; gap:20px; justify-content:center; flex-wrap:wrap;">
+      <a href="/privacy.html" style="color:#475569; text-decoration:none;">Privacy</a>
+      <a href="/terms.html" style="color:#475569; text-decoration:none;">Terms</a>
+      <a href="/security.html" style="color:#475569; text-decoration:none;">Security</a>
+      <a href="/refund-policy.html" style="color:#475569; text-decoration:none;">Refund Policy</a>
+      <a href="/file-retention.html" style="color:#475569; text-decoration:none;">File Retention</a>
+      <a href="/support.html" style="color:#475569; text-decoration:none;">Support</a>
+    </div>
+    &copy; 2025 PDFRealm. All rights reserved.
+  </footer>
+  <script>
+  document.getElementById('contactForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var name = document.getElementById('cname').value;
+    var email = document.getElementById('cemail').value;
+    var message = document.getElementById('cmessage').value;
+    var subject = encodeURIComponent('Contact from PDFRealm.com');
+    var body = encodeURIComponent('Name: ' + name + '\nEmail: ' + email + '\n\n' + message);
+    window.location.href = 'mailto:hello@pdfrealm.com?subject=' + subject + '&body=' + body;
+  });
+  </script>
+</body>
+</html>

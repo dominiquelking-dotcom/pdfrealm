@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PDFRealm – Pricing</title>
+
+    <link rel="icon" href="data:;base64,=" />
+    <link rel="stylesheet" href="/styles.css" />
+
+    <style>
+      body { margin: 0; }
+      main.wrap { max-width: 100%; margin: 0; }
+
+      /* Page layout */
+      .pricing-wrap {
+        width: min(1100px, calc(100vw - 32px));
+        margin: 0 auto;
+        padding: 18px 0 28px;
+      }
+
+      .pricing-hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 14px;
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(15, 23, 42, 0.70);
+        box-shadow: var(--shadow);
+      }
+
+      .pricing-hero h1 {
+        margin: 0;
+        font-size: 1.6rem;
+        letter-spacing: .2px;
+      }
+
+      .pricing-hero p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        max-width: 760px;
+        line-height: 1.35;
+      }
+
+      .pricing-badges {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .badge {
+        border-radius: 999px;
+        padding: 6px 10px;
+        border: 1px solid rgba(148, 163, 184, 0.45);
+        color: var(--muted);
+        background: rgba(0,0,0,0.15);
+        font-size: 0.85rem;
+        white-space: nowrap;
+      }
+
+      .badge-strong {
+        border-color: rgba(96, 165, 250, 0.65);
+        color: var(--text);
+      }
+
+      /* ---- Pricing Cards ---- */
+      .plan-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 14px;
+        margin-top: 14px;
+      }
+
+      @media (max-width: 1100px) { .plan-cards { grid-template-columns: repeat(2, 1fr); } }
+      @media (max-width: 600px)  { .plan-cards { grid-template-columns: 1fr; } }
+
+      .plan-card {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(15, 23, 42, 0.70);
+        box-shadow: var(--shadow);
+        padding: 20px 18px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        position: relative;
+      }
+
+      .plan-card.popular {
+        border-color: rgba(96, 165, 250, 0.65);
+        box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.25), var(--shadow);
+      }
+
+      .plan-badge {
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #3b82f6;
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 3px 12px;
+        border-radius: 999px;
+        letter-spacing: .4px;
+        white-space: nowrap;
+      }
+
+      .plan-card .plan-name {
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--text);
+        margin: 0;
+      }
+
+      .plan-card .plan-price {
+        font-size: 2rem;
+        font-weight: 900;
+        color: var(--text);
+        line-height: 1;
+      }
+
+      .plan-card .plan-price span {
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--muted);
+      }
+
+      .plan-card .plan-desc {
+        color: var(--muted);
+        font-size: 0.88rem;
+        line-height: 1.4;
+        flex: 1;
+      }
+
+      .plan-card .plan-features {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .plan-card .plan-features li {
+        font-size: 0.88rem;
+        color: var(--muted);
+        padding-left: 18px;
+        position: relative;
+      }
+
+      .plan-card .plan-features li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: #34d399;
+        font-weight: 700;
+      }
+
+      .plan-card .plan-cta {
+        margin-top: 4px;
+      }
+
+      .btn-plan {
+        width: 100%;
+        padding: 11px 14px;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        transition: opacity .15s;
+      }
+
+      .btn-plan:hover { opacity: 0.88; }
+
+      .btn-plan-primary {
+        background: #3b82f6;
+        color: #fff;
+      }
+
+      .btn-plan-secondary {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid var(--line) !important;
+        color: var(--text);
+      }
+
+      .btn-plan-outline {
+        background: transparent;
+        border: 1px solid rgba(96, 165, 250, 0.5) !important;
+        color: #93c5fd;
+      }
+
+      /* Tables */
+      .table-card {
+        margin-top: 14px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(15, 23, 42, 0.70);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .table-card .head {
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255,255,255,0.03);
+      }
+
+      .table-card .head h2 {
+        margin: 0;
+        font-size: 1.05rem;
+      }
+
+      .table-card .head .sub {
+        color: var(--muted);
+        font-size: 0.92rem;
+        margin: 0;
+      }
+
+      table.pricing {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+      }
+
+      table.pricing th, table.pricing td {
+        padding: 12px 12px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+        vertical-align: top;
+        text-align: left;
+      }
+
+      table.pricing th {
+        color: var(--muted);
+        font-weight: 700;
+        font-size: 0.9rem;
+        background: rgba(0,0,0,0.10);
+      }
+
+      .muted { color: var(--muted); }
+      .small { font-size: 0.88rem; }
+
+      @media (max-width: 980px) {
+        .pricing-hero { flex-direction: column; align-items: flex-start; }
+        .pricing-badges { justify-content: flex-start; }
+      }
+
+      /* Header alignment: reuse vault.html style without changing global styles.css */
+      .brand-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .brand-text {
+        font-weight: 800;
+        letter-spacing: 0.2px;
+      }
+
+      .brand-divider {
+        width: 1px;
+        align-self: stretch;
+        background: var(--line);
+        margin: 0 10px;
+        opacity: 0.9;
+      }
+
+      .left-secure-nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .nav-chip {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: default;
+        opacity: 0.9;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .nav-chip:hover { background: rgba(255, 255, 255, 0.06); }
+      .nav-chip-pill {
+        font-size: 0.78rem;
+        color: var(--muted);
+        border-radius: 999px;
+        padding: 3px 8px;
+        border: 1px solid var(--line);
+        background: rgba(0, 0, 0, 0.3);
+      }
+      .nav-chip-active {
+        border-color: rgba(96, 165, 250, 0.8);
+        box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.4);
+        opacity: 1;
+      }
+
+      .right-nav-cluster {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .top-nav {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .nav-link {
+        border-radius: 999px;
+        padding: 8px 14px;
+        border: 1px solid transparent;
+        background: transparent;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--muted);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+      }
+
+      .nav-link:hover { background: rgba(255, 255, 255, 0.04); color: var(--text); }
+      .nav-link-active {
+        border-color: var(--line);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+      }
+
+      .workspace-menu { position: relative; }
+      .workspace-toggle { cursor: pointer; }
+      .workspace-caret { font-size: 0.8rem; opacity: 0.8; }
+
+      .workspace-dropdown {
+        position: absolute;
+        right: 0;
+        top: 100%;
+        margin-top: 8px;
+        background: rgba(15, 22, 36, 0.96);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+        padding: 8px;
+        display: none;
+        flex-direction: column;
+        min-width: 280px;
+        z-index: 80;
+      }
+
+      .workspace-item {
+        padding: 8px 10px;
+        border-radius: 10px;
+        font-size: 0.92rem;
+        color: var(--muted);
+        text-align: left;
+        border: none;
+        background: transparent;
+        width: 100%;
+        cursor: pointer;
+        text-decoration: none;
+        display: block;
+        white-space: nowrap;
+      }
+
+      .workspace-item:hover { background: rgba(255, 255, 255, 0.04); color: var(--text); }
+      .workspace-menu.workspace-open .workspace-dropdown { display: flex; }
+
+      @media (max-width: 980px) {
+        .brand-left { flex-wrap: wrap; }
+        .right-nav-cluster { gap: 10px; }
+        .workspace-dropdown { right: auto; left: 0; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- HEADER (match vault.html style) -->
+    <header class="topbar">
+  <div class="topbar-inner">
+    <!-- LEFT: Brand + Nav Chips -->
+    <div class="brand-left">
+      <div class="brand">
+        <div style="height:42px;width:140px;background:url('/logo.png') center/contain no-repeat;flex-shrink:0;"></div>
+      </div>
+
+      <div class="brand-divider"></div>
+
+      <nav class="left-secure-nav" aria-label="Secure">
+        <a href="/vault.html" class="nav-chip" id="navChipVault">
+          Secure Vault
+          <span class="nav-chip-pill">AES-256</span>
+        </a>
+        <a href="/" class="nav-chip" id="navChipTools">Quick Tools</a>
+      </nav>
+    </div>
+
+    <!-- RIGHT: Industry Packs + Pricing + Security + Support + Account -->
+    <div class="right-nav-cluster">
+      <nav class="top-nav" aria-label="Primary">
+        <div class="workspace-menu" id="industryMenuWrap" style="display:none">
+          <button class="nav-link workspace-toggle" type="button" id="industryToggle">
+            Industry Packs
+            <span class="workspace-caret">&#9662;</span>
+          </button>
+          <div class="workspace-dropdown" id="industryDropdown" role="menu" aria-label="Industry Packs">
+            <a class="workspace-item" role="menuitem" href="/broker.html">Broker TMS Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/carrier.html">Carrier Dashboard</a>
+            <div style="height:1px; background: rgba(255,255,255,0.10); margin: 8px 10px;"></div>
+            <a class="workspace-item" role="menuitem" href="/legal.html">Legal Workspace</a>
+            <a class="workspace-item" role="menuitem" href="/real-estate.html">Real Estate Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/accounting.html">Accounting Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/hr.html">HR Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/marketing.html">Marketing Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/csuite.html">C-Suite Dashboard</a>
+          </div>
+        </div>
+
+        <a href="/pricing.html" class="nav-link nav-link-active">Pricing</a>
+        <a href="/security.html" class="nav-link">Security</a>
+        <a href="/support.html" class="nav-link">Support</a>
+        <button class="nav-link" type="button" id="appDownloadNavBtn" style="display:none">&#128241; Get App</button>
+      </nav>
+
+      <!-- Calendar widget button -->
+      <button id="calendarToggleBtn" title="Calendar &amp; Reminders" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text);padding:7px 10px;border-radius:8px;cursor:pointer;font-size:1rem;position:relative;">&#128197;</button>
+
+      <div class="top-actions">
+        <button id="pwa-install-btn" style="display:none;" class="btn btn-secondary" type="button" title="Install PDFRealm as an app">
+          &#128241; Install App
+        </button>
+        <button
+          id="accountLoginBtn"
+          class="btn"
+          type="button"
+          aria-haspopup="dialog"
+          aria-controls="accountModal"
+        >
+          <span id="accountDot" class="dot"></span>
+          Account
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolset-bar">
+    <nav class="toolset-tabs" id="toolsetTabs" aria-label="Tool Suites">
+      <div class="toolset-tab" data-toolset="standard">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">Standard Tools</button>
+        <div class="toolset-menu" role="menu" aria-label="Standard Tools"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="premium">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">Premium Tools</button>
+        <div class="toolset-menu" role="menu" aria-label="Premium Tools"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="secure">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">Secure Suite</button>
+        <div class="toolset-menu" role="menu" aria-label="Secure Suite"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="governance" style="display:none">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false" disabled title="Coming Soon" style="opacity:0.45; cursor:not-allowed; pointer-events:none;">Document Governance</button>
+        <div class="toolset-menu" role="menu" aria-label="Document Governance"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="docforge" style="display:none">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">DocForge</button>
+        <div class="toolset-menu" role="menu" aria-label="DocForge"></div>
+      </div>
+      <div class="toolset-tab" style="display:none">
+        <a id="aiOperatorLink" class="toolset-btn toolset-btn-breakthrough" href="/?ai=1">AI Operator</a>
+      </div>
+      <div class="toolset-tab" data-toolset="signreqs">
+        <button class="toolset-btn" type="button" id="signReqsToolsetBtn">&#9997;&#65039; Sign Requests</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+    <main class="wrap">
+      <div class="pricing-wrap">
+
+        <!-- HERO -->
+        <section class="pricing-hero">
+          <div>
+            <h1>Simple, honest pricing</h1>
+            <p>Upload and preview free. Pay only when your file is ready to download.</p>
+          </div>
+          <div class="pricing-badges">
+            <span class="badge badge-strong">No subscription required to try</span>
+            <span class="badge">Secure checkout by Stripe</span>
+            <span class="badge">Cancel anytime</span>
+          </div>
+        </section>
+
+        <!-- PLAN CARDS -->
+        <section class="plan-cards" id="planCards">
+
+          <!-- Free Preview -->
+          <div class="plan-card">
+            <p class="plan-name">Free Preview</p>
+            <div class="plan-price">$0 <span>/ forever</span></div>
+            <p class="plan-desc">Upload, preview, and try any tool — no account needed.</p>
+            <ul class="plan-features">
+              <li>Upload &amp; preview any tool</li>
+              <li>1 free export included</li>
+              <li>No credit card required</li>
+            </ul>
+            <div class="plan-cta">
+              <a href="/" class="btn-plan btn-plan-secondary" style="display:block;text-align:center;text-decoration:none;">Start Free &rarr;</a>
+            </div>
+          </div>
+
+          <!-- Pay Once -->
+          <div class="plan-card">
+            <p class="plan-name">Pay Once</p>
+            <div class="plan-price">$1.99 <span>/ export</span></div>
+            <p class="plan-desc">One file. No subscription. Pay when you download.</p>
+            <ul class="plan-features">
+              <li>One file, no subscription</li>
+              <li>All standard tools</li>
+              <li>No account required</li>
+              <li>Instant download after payment</li>
+            </ul>
+            <div class="plan-cta">
+              <button class="btn-plan btn-plan-outline" onclick="doCheckout('ppe')">Buy One Export &rarr;</button>
+            </div>
+          </div>
+
+          <!-- Pro Monthly -->
+          <div class="plan-card popular">
+            <div class="plan-badge">&#11088; Most Popular</div>
+            <p class="plan-name">Pro</p>
+            <div class="plan-price">$8.99 <span>/ month</span></div>
+            <p class="plan-desc">Unlimited exports across all tools. Best for regular use.</p>
+            <ul class="plan-features">
+              <li>Unlimited exports</li>
+              <li>OCR, redaction, signing</li>
+              <li>Priority processing</li>
+              <li>Email support</li>
+            </ul>
+            <div class="plan-cta">
+              <button class="btn-plan btn-plan-primary" onclick="doCheckout('pro_monthly')">Subscribe &mdash; $8.99/mo</button>
+            </div>
+          </div>
+
+          <!-- Pro Annual -->
+          <div class="plan-card">
+            <p class="plan-name">Pro Annual</p>
+            <div class="plan-price">$59 <span>/ year</span></div>
+            <p class="plan-desc">Everything in Pro, billed annually. Save 45% vs monthly.</p>
+            <ul class="plan-features">
+              <li>Everything in Pro</li>
+              <li>Save 45% vs monthly</li>
+              <li>Priority support</li>
+            </ul>
+            <div class="plan-cta">
+              <button class="btn-plan btn-plan-outline" onclick="doCheckout('pro_annual')">Subscribe &mdash; $59/yr</button>
+            </div>
+          </div>
+
+          <!-- Secure Workspace -->
+          <div class="plan-card">
+            <p class="plan-name">Secure Workspace</p>
+            <div class="plan-price">$29 <span>/ month</span></div>
+            <p class="plan-desc">Vault + Secure Send + signing workflows for professionals.</p>
+            <ul class="plan-features">
+              <li>Everything in Pro</li>
+              <li>AES-256 encrypted vault</li>
+              <li>Secure Send (e2e file sharing)</li>
+              <li>E-signature workflows</li>
+              <li>50GB secure storage</li>
+            </ul>
+            <div class="plan-cta">
+              <button class="btn-plan btn-plan-outline" onclick="doCheckout('workspace')">Get Workspace &rarr;</button>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- COMPARISON TABLE -->
+        <section class="table-card" style="margin-top:24px;">
+          <div class="head">
+            <div>
+              <h2>Plan comparison</h2>
+              <p class="sub">Pick the plan that fits how you work.</p>
+            </div>
+          </div>
+          <table class="pricing" aria-label="Plan comparison">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Free</th>
+                <th>Pay Once</th>
+                <th>Pro ($8.99)</th>
+                <th>Workspace ($29)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>All PDF tools</td><td>Preview only</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
+              <tr><td>Exports</td><td>1 free</td><td>1 per payment</td><td>Unlimited</td><td>Unlimited</td></tr>
+              <tr><td>OCR &amp; Redaction</td><td>&mdash;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
+              <tr><td>E-signatures</td><td>&mdash;</td><td>&mdash;</td><td>&#10003;</td><td>&#10003;</td></tr>
+              <tr><td>Encrypted Vault</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&#10003;</td></tr>
+              <tr><td>Secure Send</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&#10003;</td></tr>
+              <tr><td>Storage</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>50GB</td></tr>
+              <tr><td>Account required</td><td>No</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- TRUST STRIP -->
+    <div style="background:#0f172a; border-top:1px solid #1e293b; padding:24px; text-align:center;">
+      <div style="display:flex; gap:32px; justify-content:center; flex-wrap:wrap; color:#475569; font-size:0.85rem;">
+        <span>&#128274; AES-256 Encryption</span>
+        <span>&#127760; Files auto-deleted after processing</span>
+        <span>&#128179; Secure checkout by Stripe</span>
+        <span>&#9889; No account required to preview</span>
+        <span>&#128203; <a href="/privacy.html" style="color:#475569;">Privacy Policy</a></span>
+        <span>&#128196; <a href="/terms.html" style="color:#475569;">Terms</a></span>
+        <span>&#128737;&#65039; <a href="/security.html" style="color:#475569;">Security</a></span>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer style="background:#0a0f1a; border-top:1px solid #1e293b; padding:40px 20px;">
+      <div style="max-width:1100px; margin:0 auto; display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:32px; color:#475569; font-size:0.9rem;">
+        <div>
+          <div style="font-weight:700; color:#94a3b8; margin-bottom:12px;">Popular Tools</div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <a href="/compress-pdf.html" style="color:#475569; text-decoration:none;">Compress PDF</a>
+            <a href="/merge-pdf.html" style="color:#475569; text-decoration:none;">Merge PDF</a>
+            <a href="/sign-pdf.html" style="color:#475569; text-decoration:none;">Sign PDF</a>
+            <a href="/redact-pdf.html" style="color:#475569; text-decoration:none;">Redact PDF</a>
+            <a href="/protect-pdf.html" style="color:#475569; text-decoration:none;">Protect PDF</a>
+          </div>
+        </div>
+        <div>
+          <div style="font-weight:700; color:#94a3b8; margin-bottom:12px;">Company</div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <a href="/pricing.html" style="color:#475569; text-decoration:none;">Pricing</a>
+            <a href="/about.html" style="color:#475569; text-decoration:none;">About</a>
+            <a href="/support.html" style="color:#475569; text-decoration:none;">Support</a>
+            <a href="/contact.html" style="color:#475569; text-decoration:none;">Contact</a>
+          </div>
+        </div>
+        <div>
+          <div style="font-weight:700; color:#94a3b8; margin-bottom:12px;">Trust &amp; Legal</div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <a href="/privacy.html" style="color:#475569; text-decoration:none;">Privacy Policy</a>
+            <a href="/terms.html" style="color:#475569; text-decoration:none;">Terms of Service</a>
+            <a href="/security.html" style="color:#475569; text-decoration:none;">Security</a>
+            <a href="/refund-policy.html" style="color:#475569; text-decoration:none;">Refund Policy</a>
+            <a href="/file-retention.html" style="color:#475569; text-decoration:none;">File Retention</a>
+          </div>
+        </div>
+        <div>
+          <div style="font-weight:700; color:#94a3b8; margin-bottom:12px;">Beta / Labs</div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <a href="/legal.html" style="color:#475569; text-decoration:none;">Legal Workspace</a>
+            <a href="/broker.html" style="color:#475569; text-decoration:none;">Freight Broker Docs</a>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center; color:#334155; font-size:0.8rem; margin-top:32px; border-top:1px solid #1e293b; padding-top:20px;">
+        &copy; <span id="year2"></span> PDFRealm. All rights reserved.
+      </div>
+    </footer>
+
+    <!-- Account Modal -->
+    <div id="accountModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div class="mh">Account</div>
+          <button id="accountModalClose" class="btn btn-secondary" type="button">Close</button>
+        </div>
+        <div class="modal-body">
+          <div class="card">
+            <label for="loginEmail">Email</label>
+            <input id="loginEmail" type="email" placeholder="you@example.com" />
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" />
+            <div class="modal-row">
+              <button id="loginSubmitBtn" class="btn btn-primary" type="button">Login</button>
+              <button id="subscribeMonthlyBtn" class="btn btn-secondary" type="button" onclick="doCheckout('pro_monthly')">Subscribe &mdash; $8.99/mo</button>
+              <button id="subscribeYearlyBtn" class="btn btn-secondary" type="button" onclick="doCheckout('pro_annual')">Subscribe &mdash; $59/yr</button>
+            </div>
+            <div id="loginStatus" style="margin-top:10px; color: var(--muted); font-size: 0.95rem;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        var y = document.getElementById("year");
+        if (y) y.textContent = new Date().getFullYear();
+        var y2 = document.getElementById("year2");
+        if (y2) y2.textContent = new Date().getFullYear();
+      })();
+
+      async function doCheckout(plan) {
+        try {
+          const r = await fetch('/api/stripe/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ plan: plan })
+          });
+          const d = await r.json();
+          if (d && d.url) { window.location.href = d.url; return; }
+          if (d && d.checkoutUrl) { window.location.href = d.checkoutUrl; return; }
+        } catch(e) {}
+        // fallback: show account modal
+        var m = document.getElementById('accountModal');
+        if (m) { m.setAttribute('aria-hidden','false'); m.style.display='flex'; }
+      }
+
+      // Account modal close
+      (function () {
+        var closeBtn = document.getElementById('accountModalClose');
+        var modal = document.getElementById('accountModal');
+        var loginBtn = document.getElementById('accountLoginBtn');
+        if (closeBtn && modal) {
+          closeBtn.addEventListener('click', function () {
+            modal.setAttribute('aria-hidden', 'true');
+            modal.style.display = 'none';
+          });
+        }
+        if (loginBtn && modal) {
+          loginBtn.addEventListener('click', function () {
+            modal.setAttribute('aria-hidden', 'false');
+            modal.style.display = 'flex';
+          });
+        }
+      })();
+
+      // Industry Packs dropdown behavior
+      (function () {
+        var wrap = document.getElementById("industryMenuWrap");
+        var toggle = document.getElementById("industryToggle");
+        if (!wrap || !toggle) return;
+        toggle.addEventListener("click", function (e) {
+          e.stopPropagation();
+          wrap.classList.toggle("workspace-open");
+        });
+        document.addEventListener("click", function () {
+          wrap.classList.remove("workspace-open");
+        });
+      })();
+    </script>
+
+  </body>
+</html>

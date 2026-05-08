@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PDFRealm Pricing — Secure PDF Tools</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #1a1a2e;
+      --surface:   #16213e;
+      --card:      #0f3460;
+      --accent:    #6c63ff;
+      --accent2:   #7c73ff;
+      --text:      #e8e8f0;
+      --muted:     #8888aa;
+      --border:    rgba(108,99,255,0.2);
+      --success:   #4caf80;
+      --warn:      #f5a623;
+    }
+
+    html { font-size: 16px; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      padding: 3rem 1rem 1rem;
+      background: linear-gradient(180deg, #0d0d24 0%, var(--bg) 100%);
+    }
+    header .logo {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #6c63ff, #a89cff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -1px;
+    }
+    header .tagline {
+      color: var(--muted);
+      font-size: .95rem;
+      margin-top: .25rem;
+    }
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-top: 1.5rem;
+    }
+    header p.subtitle {
+      color: var(--muted);
+      max-width: 520px;
+      margin: .5rem auto 0;
+    }
+
+    /* Toggle */
+    .billing-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .75rem;
+      margin: 2rem auto 1rem;
+    }
+    .billing-toggle span { color: var(--text); font-size: .95rem; }
+    .toggle-pill {
+      position: relative;
+      width: 52px;
+      height: 28px;
+      background: var(--card);
+      border-radius: 14px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      transition: background .2s;
+    }
+    .toggle-pill.annual { background: var(--accent); }
+    .toggle-pill::after {
+      content: '';
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform .2s;
+    }
+    .toggle-pill.annual::after { transform: translateX(24px); }
+    .save-badge {
+      background: #2a4a2a;
+      color: var(--success);
+      font-size: .75rem;
+      font-weight: 700;
+      padding: .2rem .5rem;
+      border-radius: 20px;
+    }
+
+    /* Manage link */
+    .manage-link {
+      text-align: center;
+      margin-bottom: .5rem;
+    }
+    .manage-link a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: .9rem;
+    }
+    .manage-link a:hover { text-decoration: underline; }
+
+    /* Cards grid */
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      justify-content: center;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem 1.75rem;
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: transform .15s, border-color .15s;
+    }
+    .card:hover { transform: translateY(-3px); border-color: var(--accent); }
+    .card.popular {
+      border-color: var(--accent);
+      background: linear-gradient(160deg, #1e1a40 0%, var(--surface) 100%);
+    }
+
+    .badge-popular {
+      position: absolute;
+      top: -13px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: #fff;
+      font-size: .72rem;
+      font-weight: 700;
+      padding: .3rem .9rem;
+      border-radius: 20px;
+      white-space: nowrap;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+
+    .card-tier {
+      font-size: .85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+      margin-bottom: .4rem;
+    }
+    .card-title { font-size: 1.4rem; font-weight: 700; }
+
+    .price-block { margin: 1.25rem 0 .5rem; }
+    .price-amount {
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .price-period {
+      font-size: .85rem;
+      color: var(--muted);
+      margin-top: .15rem;
+    }
+    .price-alt {
+      font-size: .85rem;
+      color: var(--muted);
+      margin-top: .1rem;
+    }
+
+    .cancel-notice {
+      font-size: .8rem;
+      color: var(--muted);
+      margin: .6rem 0 1rem;
+      font-style: italic;
+    }
+
+    .features {
+      list-style: none;
+      margin: .75rem 0 1.5rem;
+      flex: 1;
+    }
+    .features li {
+      display: flex;
+      gap: .5rem;
+      margin-bottom: .45rem;
+      font-size: .88rem;
+      align-items: flex-start;
+    }
+    .features li::before {
+      content: '✓';
+      color: var(--success);
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: .05rem;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: .85rem 1rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn:hover { opacity: .88; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #9489ff);
+      color: #fff;
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .error-msg {
+      color: #ff7070;
+      font-size: .82rem;
+      margin-top: .5rem;
+      min-height: 1.1rem;
+      text-align: center;
+    }
+
+    /* Feature comparison table */
+    .comparison-section {
+      max-width: 860px;
+      margin: 1rem auto 3rem;
+      padding: 0 1rem;
+    }
+    .comparison-section h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 1.2rem;
+      text-align: center;
+    }
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .9rem;
+    }
+    .comparison-table th {
+      background: var(--surface);
+      color: var(--accent);
+      font-weight: 700;
+      padding: .75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .comparison-table td {
+      padding: .65rem 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: var(--text);
+    }
+    .comparison-table tr:last-child td { border-bottom: none; }
+    .comparison-table tbody tr:hover td { background: rgba(108,99,255,0.05); }
+    .check { color: var(--success); font-weight: 700; }
+    .dash  { color: var(--muted); }
+
+    /* Add-on section */
+    .addon-section {
+      max-width: 860px;
+      margin: 0 auto 3rem;
+      padding: 0 1rem;
+    }
+    .addon-section h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 1.2rem;
+      text-align: center;
+    }
+    .addon-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem 1.75rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .addon-info h3 { font-size: 1.1rem; font-weight: 700; }
+    .addon-info p  { color: var(--muted); font-size: .9rem; margin-top: .25rem; }
+    .addon-price   { font-size: 1.6rem; font-weight: 800; color: var(--accent); }
+    .addon-price small { font-size: .85rem; color: var(--muted); }
+
+    /* Stripe badge */
+    .stripe-badge {
+      text-align: center;
+      color: var(--muted);
+      font-size: .82rem;
+      margin-bottom: 2.5rem;
+    }
+    .stripe-badge svg { vertical-align: middle; margin-right: .3rem; }
+
+    /* Footer notes */
+    .footer-notes {
+      text-align: center;
+      color: var(--muted);
+      font-size: .82rem;
+      max-width: 600px;
+      margin: 0 auto 2rem;
+      padding: 0 1rem;
+    }
+    .footer-notes a { color: var(--accent); text-decoration: none; }
+    .footer-notes a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <!-- LEFT: Brand + Nav Chips -->
+    <div class="brand-left">
+      <div class="brand">
+        <div style="height:42px;width:140px;background:url('/logo.png') center/contain no-repeat;flex-shrink:0;"></div>
+      </div>
+
+      <div class="brand-divider"></div>
+
+      <nav class="left-secure-nav" aria-label="Secure">
+        <a href="/vault.html" class="nav-chip" id="navChipVault">
+          Secure Vault
+          <span class="nav-chip-pill">AES-256</span>
+        </a>
+        <a href="/" class="nav-chip" id="navChipTools">Quick Tools</a>
+      </nav>
+    </div>
+
+    <!-- RIGHT: Industry Packs + Pricing + Calendar + Get App + Account -->
+    <div class="right-nav-cluster">
+      <nav class="top-nav" aria-label="Primary">
+        <div class="workspace-menu" id="industryMenuWrap">
+          <button class="nav-link workspace-toggle" type="button" id="industryToggle">
+            Industry Packs
+            <span class="workspace-caret">▾</span>
+          </button>
+          <div class="workspace-dropdown" id="industryDropdown" role="menu" aria-label="Industry Packs">
+            <a class="workspace-item" role="menuitem" href="/broker.html">Broker TMS Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/carrier.html">Carrier Dashboard</a>
+            <div style="height:1px; background: rgba(255,255,255,0.10); margin: 8px 10px;"></div>
+            <a class="workspace-item" role="menuitem" href="/legal.html">Legal Workspace</a>
+            <a class="workspace-item" role="menuitem" href="/real-estate.html">Real Estate Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/accounting.html">Accounting Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/hr.html">HR Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/marketing.html">Marketing Dashboard</a>
+            <a class="workspace-item" role="menuitem" href="/csuite.html">C-Suite Dashboard</a>
+          </div>
+        </div>
+
+        <a href="/pricing.html" class="nav-link">Pricing</a>
+        <button class="nav-link" type="button" id="appDownloadNavBtn" style="background:none;border:none;cursor:pointer;">📱 Get App</button>
+      </nav>
+
+      <!-- Calendar widget button -->
+      <button id="calendarToggleBtn" title="Calendar & Reminders" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text);padding:7px 10px;border-radius:8px;cursor:pointer;font-size:1rem;position:relative;">📅</button>
+
+      <div class="top-actions">
+        <button id="pwa-install-btn" style="display:none;" class="btn btn-secondary" type="button" title="Install PDFRealm as an app">
+          📱 Install App
+        </button>
+        <button
+          id="accountLoginBtn"
+          class="btn"
+          type="button"
+          aria-haspopup="dialog"
+          aria-controls="accountModal"
+        >
+          <span id="accountDot" class="dot"></span>
+          Account
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolset-bar">
+    <nav class="toolset-tabs" id="toolsetTabs" aria-label="Tool Suites">
+      <div class="toolset-tab" data-toolset="standard">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">Standard Tools</button>
+        <div class="toolset-menu" role="menu" aria-label="Standard Tools"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="premium">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">Premium Tools</button>
+        <div class="toolset-menu" role="menu" aria-label="Premium Tools"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="secure">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">Secure Suite</button>
+        <div class="toolset-menu" role="menu" aria-label="Secure Suite"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="governance">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false" disabled title="Coming Soon" style="opacity:0.45; cursor:not-allowed; pointer-events:none;">Document Governance</button>
+        <div class="toolset-menu" role="menu" aria-label="Document Governance"></div>
+      </div>
+      <div class="toolset-tab" data-toolset="docforge">
+        <button class="toolset-btn" type="button" aria-haspopup="menu" aria-expanded="false">DocForge</button>
+        <div class="toolset-menu" role="menu" aria-label="DocForge"></div>
+      </div>
+      <div class="toolset-tab">
+        <a id="aiOperatorLink" class="toolset-btn toolset-btn-breakthrough" href="/?ai=1">AI Operator</a>
+      </div>
+      <div class="toolset-tab" data-toolset="signreqs">
+        <button class="toolset-btn" type="button" id="signReqsToolsetBtn">✍️ Sign Requests</button>
+      </div>
+      <div class="toolset-tab">
+        <a class="toolset-btn" href="/carrier.html" style="border-color:rgba(106,168,255,0.45);color:rgba(106,168,255,0.95);text-decoration:none;">🔒 Carrier Lockbox</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<div class="billing-toggle" role="group" aria-label="Billing period">
+  <span id="label-monthly">Monthly</span>
+  <div class="toggle-pill" id="billing-toggle" role="switch" aria-checked="false" tabindex="0"></div>
+  <span id="label-annual">Annual</span>
+  <span class="save-badge">Save 35%</span>
+</div>
+
+<div class="manage-link">
+  <a href="/api/stripe/portal" id="manage-sub-link">Manage your subscription →</a>
+</div>
+
+<div class="cards" id="cards-container">
+
+  <!-- Pay-Per-Export -->
+  <div class="card" id="card-ppe">
+    <div class="card-tier">One-time</div>
+    <div class="card-title">Pay Per Export</div>
+    <div class="price-block">
+      <div class="price-amount">$2.99</div>
+      <div class="price-period">24-hour access pass</div>
+    </div>
+    <ul class="features">
+      <li>Full access to all export tools for 24 hours</li>
+      <li>Merge, split, compress, rotate &amp; more</li>
+      <li>Watermark, stamp, redact, bates numbering</li>
+      <li>Convert images to PDF</li>
+      <li>No subscription required</li>
+    </ul>
+    <button class="btn btn-outline" data-plan="ppe">Buy 24h Access — $2.99</button>
+    <div class="error-msg" id="err-ppe"></div>
+  </div>
+
+  <!-- Pro -->
+  <div class="card popular" id="card-pro">
+    <div class="badge-popular">⭐ Most Popular</div>
+    <div class="card-tier">Pro</div>
+    <div class="card-title">Pro</div>
+    <div class="price-block">
+      <div class="price-amount" id="pro-price">$12.99</div>
+      <div class="price-period" id="pro-period">/month</div>
+      <div class="price-alt" id="pro-alt">or $99/yr — save $56.88</div>
+    </div>
+    <div class="cancel-notice">Cancel anytime from your account settings — no questions asked.</div>
+    <ul class="features">
+      <li>Everything in Pay-Per-Export</li>
+      <li>Unlimited exports — no time limit</li>
+      <li>Vault storage (up to 100 GB)</li>
+      <li>Priority processing</li>
+      <li>Secure PDF sharing links</li>
+      <li>OCR text extraction</li>
+      <li>You can cancel anytime from Stripe — no emails, no runaround.</li>
+    </ul>
+    <button class="btn btn-primary" id="btn-pro" data-plan-monthly="pro_monthly" data-plan-annual="pro_annual">
+      Start Pro — $12.99/mo
+    </button>
+    <div class="error-msg" id="err-pro"></div>
+  </div>
+
+  <!-- Business -->
+  <div class="card" id="card-business">
+    <div class="card-tier">Business</div>
+    <div class="card-title">Business</div>
+    <div class="price-block">
+      <div class="price-amount" id="biz-price">$34.99</div>
+      <div class="price-period" id="biz-period">/month</div>
+      <div class="price-alt" id="biz-alt">or $279/yr — save $140.88</div>
+    </div>
+    <div class="cancel-notice">Cancel anytime from your account settings — no questions asked.</div>
+    <ul class="features">
+      <li>Everything in Pro</li>
+      <li>Vault storage (up to 1 TB)</li>
+      <li>Team collaboration (coming soon)</li>
+      <li>API access</li>
+      <li>Advanced security features</li>
+      <li>Dedicated support</li>
+      <li>You can cancel anytime from Stripe — no emails, no runaround.</li>
+    </ul>
+    <button class="btn btn-outline" id="btn-biz" data-plan-monthly="business_monthly" data-plan-annual="business_annual">
+      Start Business — $34.99/mo
+    </button>
+    <div class="error-msg" id="err-biz"></div>
+  </div>
+
+</div>
+
+<!-- Feature comparison table -->
+<section class="comparison-section">
+  <h2>Full Feature Comparison</h2>
+  <table class="comparison-table">
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>Pay Per Export</th>
+        <th>Pro</th>
+        <th>Business</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Merge PDFs</td>           <td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Split &amp; extract pages</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Compress PDF</td>         <td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Rotate pages</td>         <td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Watermark &amp; stamp</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Redact / bates</td>       <td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Image → PDF</td>          <td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>PDF → Word</td>           <td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Unlimited exports</td>    <td class="dash">24h only</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Vault storage</td>        <td class="dash">—</td><td>100 GB</td><td>1 TB</td></tr>
+      <tr><td>OCR extraction</td>       <td class="dash">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>Secure share links</td>   <td class="dash">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+      <tr><td>API access</td>           <td class="dash">—</td><td class="dash">—</td><td class="check">✓</td></tr>
+      <tr><td>Priority support</td>     <td class="dash">—</td><td class="dash">—</td><td class="check">✓</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Vault Add-on -->
+<section class="addon-section">
+  <h2>Add-ons</h2>
+  <div class="addon-card">
+    <div class="addon-info">
+      <h3>🗄️ Vault Storage +1TB</h3>
+      <p>Add 1TB of secure encrypted vault storage to any active subscription.</p>
+    </div>
+    <div>
+      <div class="addon-price">$15<small>/mo</small></div>
+    </div>
+    <button class="btn btn-outline" style="width:auto; padding:.7rem 1.4rem;" id="btn-vault-addon" data-plan="vault_addon">
+      Add Vault Storage
+    </button>
+    <div class="error-msg" id="err-vault"></div>
+  </div>
+</section>
+
+<!-- Stripe badge -->
+<div class="stripe-badge">
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 28 28" fill="#8888aa">
+    <path d="M14 0C6.3 0 0 6.3 0 14s6.3 14 14 14 14-6.3 14-14S21.7 0 14 0zm3.9 10.5c-.6-.3-1.3-.5-2.1-.5-1.6 0-2.7.8-2.7 2.2 0 .8.5 1.3 1.7 1.8l1.3.5c1.7.7 2.4 1.6 2.4 3.1 0 2-1.7 3.4-4.4 3.4-1.2 0-2.4-.3-3.2-.7l.5-1.8c.7.4 1.7.7 2.8.7 1.7 0 2.8-.8 2.8-2.2 0-.9-.5-1.4-1.8-1.9l-1.3-.5c-1.5-.6-2.3-1.6-2.3-3 0-1.8 1.6-3.3 4.1-3.3 1 0 1.9.2 2.6.5l-.4 1.7z"/>
+  </svg>
+  Payments secured by Stripe — industry-standard TLS encryption on every transaction
+</div>
+
+<div class="footer-notes">
+  <p>You can cancel anytime directly from Stripe — no emails, no runaround.<br>
+  Already subscribed? <a href="/api/stripe/portal">Manage your subscription here</a>.</p>
+</div>
+
+<script>
+  // ── Billing toggle ──────────────────────────────────────────────────────────
+  let isAnnual = false;
+  const toggle = document.getElementById('billing-toggle');
+
+  function updatePrices() {
+    const proPrice  = document.getElementById('pro-price');
+    const proPeriod = document.getElementById('pro-period');
+    const proAlt    = document.getElementById('pro-alt');
+    const btnPro    = document.getElementById('btn-pro');
+    const bizPrice  = document.getElementById('biz-price');
+    const bizPeriod = document.getElementById('biz-period');
+    const bizAlt    = document.getElementById('biz-alt');
+    const btnBiz    = document.getElementById('btn-biz');
+
+    if (isAnnual) {
+      proPrice.textContent  = '$99';
+      proPeriod.textContent = '/year';
+      proAlt.textContent    = '≈ $8.25/mo — save $56.88';
+      btnPro.textContent    = 'Start Pro — $99/yr';
+      btnPro.dataset.plan   = 'pro_annual';
+
+      bizPrice.textContent  = '$279';
+      bizPeriod.textContent = '/year';
+      bizAlt.textContent    = '≈ $23.25/mo — save $140.88';
+      btnBiz.textContent    = 'Start Business — $279/yr';
+      btnBiz.dataset.plan   = 'business_annual';
+    } else {
+      proPrice.textContent  = '$12.99';
+      proPeriod.textContent = '/month';
+      proAlt.textContent    = 'or $99/yr — save $56.88';
+      btnPro.textContent    = 'Start Pro — $12.99/mo';
+      btnPro.dataset.plan   = 'pro_monthly';
+
+      bizPrice.textContent  = '$34.99';
+      bizPeriod.textContent = '/month';
+      bizAlt.textContent    = 'or $279/yr — save $140.88';
+      btnBiz.textContent    = 'Start Business — $34.99/mo';
+      btnBiz.dataset.plan   = 'business_monthly';
+    }
+  }
+
+  toggle.addEventListener('click', () => {
+    isAnnual = !isAnnual;
+    toggle.classList.toggle('annual', isAnnual);
+    toggle.setAttribute('aria-checked', String(isAnnual));
+    updatePrices();
+  });
+  toggle.addEventListener('keydown', (e) => {
+    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle.click(); }
+  });
+
+  // ── Checkout ────────────────────────────────────────────────────────────────
+  async function startCheckout(plan, errId) {
+    const errEl = document.getElementById(errId);
+    if (errEl) errEl.textContent = '';
+
+    try {
+      const resp = await fetch('/api/stripe/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan })
+      });
+      const data = await resp.json();
+      if (!data.ok || !data.url) {
+        if (errEl) errEl.textContent = data.error || 'Checkout failed. Please try again.';
+        return;
+      }
+      window.location.href = data.url;
+    } catch (e) {
+      if (errEl) errEl.textContent = 'Network error. Please try again.';
+    }
+  }
+
+  // PPE
+  document.querySelector('[data-plan="ppe"]').addEventListener('click', () => {
+    startCheckout('ppe', 'err-ppe');
+  });
+
+  // Pro (dynamic plan)
+  document.getElementById('btn-pro').addEventListener('click', (e) => {
+    const plan = e.currentTarget.dataset.plan || 'pro_monthly';
+    startCheckout(plan, 'err-pro');
+  });
+
+  // Business (dynamic plan)
+  document.getElementById('btn-biz').addEventListener('click', (e) => {
+    const plan = e.currentTarget.dataset.plan || 'business_monthly';
+    startCheckout(plan, 'err-biz');
+  });
+
+  // Vault add-on
+  document.getElementById('btn-vault-addon').addEventListener('click', () => {
+    startCheckout('vault_addon', 'err-vault');
+  });
+
+  // Manage subscription link — open portal or redirect to login
+  document.getElementById('manage-sub-link').addEventListener('click', async (e) => {
+    e.preventDefault();
+    try {
+      const r = await fetch('/api/stripe/portal');
+      const d = await r.json();
+      if (d.ok && d.url) window.location.href = d.url;
+      else window.location.href = '/account';
+    } catch {
+      window.location.href = '/account';
+    }
+  });
+</script>
+
+    <script src="/calendar.js"></script>
+  </body>
+</html>

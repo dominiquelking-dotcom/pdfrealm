@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PDFStudio</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; background:#0b1020; color:#e7ecff; }
+    .bar{
+      display:flex; gap:10px; align-items:center; padding:12px 14px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      background:rgba(8,12,24,.85);
+      position:sticky; top:0; z-index:20; flex-wrap:wrap;
+    }
+    .bar .sp { flex:1; }
+    .pill { padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10); font-size:12px; }
+    .btn{
+      cursor:pointer; border-radius:10px; padding:8px 10px;
+      border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.06);
+      color:#e7ecff; font-weight:700; letter-spacing:.2px;
+      display:inline-flex; align-items:center; gap:8px; user-select:none;
+    }
+    .btn:hover { background:rgba(255,255,255,.10); }
+    .btn.primary { background:#2f6df6; border-color:rgba(255,255,255,.10); }
+    .btn.primary:hover { filter:brightness(1.05); }
+    .btn.tool-active { outline:2px solid rgba(47,109,246,.75); }
+    .btn.danger { background: rgba(239,68,68,.18); border-color: rgba(239,68,68,.35); }
+    .btn.danger:hover { background: rgba(239,68,68,.26); }
+    .btn:disabled { opacity:.55; cursor:not-allowed; }
+    .seg { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .label { font-size:12px; opacity:.85; }
+    input[type=file] { color:#e7ecff; }
+    select{
+      border-radius:10px; padding:8px 10px;
+      border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.06);
+      color:#e7ecff; font-weight:700;
+    }
+    select option { background:#0b1020; color:#e7ecff; }
+
+    .tool-color { width:34px; height:34px; padding:0; justify-content:center; }
+    .tool-range { width: 140px; }
+    .thin-range { width: 120px; }
+
+    .wrap { display:grid; grid-template-columns: 240px 1fr; height: calc(100vh - 58px); }
+    .thumbs { overflow:auto; padding:10px; border-right:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.02); }
+    .thumbs .pdf-thumb{
+      width:100%; display:block; margin:0 0 10px; padding:8px;
+      border-radius:12px; border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.04);
+      cursor:pointer; text-align:left;
+    }
+    .thumbs .pdf-thumb.active { outline:2px solid rgba(47,109,246,.8); }
+    .thumbs .meta { display:flex; justify-content:space-between; opacity:.85; font-size:12px; margin-bottom:6px; gap:8px; }
+    .thumbs .meta .doc { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:150px; }
+
+    .canvas { overflow:auto; padding:14px; position: relative; }
+    .page-layer {
+      position: relative;
+      display: inline-block;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      background: #0a0f1d;
+      touch-action: none;
+    }
+    canvas.pdf-base { display:block; max-width:100%; height:auto; background:#0a0f1d; }
+    canvas.pdf-overlay { position:absolute; inset:0; width:100%; height:100%; }
+
+    /* Embed mode */
+    body.embed .ps-upload,
+    body.embed #pdfStudioDownloadBtn,
+    body.embed #pdfStudioTemplateBtn { display:none !important; }
+    #pdfStudioDoneBtn { display:none; }
+    body.embed #pdfStudioDoneBtn { display:inline-flex; }
+
+    /* Tool-specific controls */
+    #formControls, #imageControls { display:none; }
+    body.form-tool #formControls { display:flex; }
+    body.image-tool #imageControls { display:flex; }
+
+    /* Hidden file inputs */
+    .hidden-input { position:absolute; left:-9999px; width:1px; height:1px; opacity:0; }
+  </style>
+
+  <script src="/vendor/pdfjs/pdf.min.js"></script>
+  <script src="/vendor/pdf-lib/pdf-lib.min.js"></script>
+</head>
+<body>
+  <div class="bar">
+    <div class="pill">PDFStudio</div>
+
+    <div class="ps-upload">
+      <input id="pdfStudioUploadInput" type="file" accept="application/pdf" />
+    </div>
+
+    <div class="seg">
+      <span class="label">Tools</span>
+      <button class="btn" type="button" data-tool="pan">Pan</button>
+      <button class="btn" type="button" data-tool="pen">Pen</button>
+      <button class="btn" type="button" data-tool="highlight">Highlighter</button>
+      <button class="btn" type="button" data-tool="text">Text</button>
+      <button class="btn" type="button" data-tool="rect">Box</button>
+      <button class="btn" type="button" data-tool="editText">Edit Text</button>
+      <button class="btn" type="button" data-tool="form">Form</button>
+      <button class="btn" type="button" data-tool="image">Image</button>
+
+      <input class="btn tool-color" id="toolColor" type="color" value="#ffffff" title="Color" />
+      <input class="tool-range" id="toolSize" type="range" min="1" max="18" step="1" value="3" />
+    </div>
+
+    <div class="seg" id="formControls">
+      <span class="label">Field</span>
+      <select id="formType">
+        <option value="text">Text</option>
+        <option value="checkbox">Checkbox</option>
+        <option value="dropdown">Dropdown</option>
+      </select>
+      <button class="btn" id="formFillToggle" type="button" aria-pressed="false">Fill: Off</button>
+    </div>
+
+    <div class="seg" id="imageControls">
+      <span class="label">Stamp</span>
+      <button class="btn" id="imagePickBtn" type="button">Choose Image</button>
+      <input id="imagePickInput" class="hidden-input" type="file" accept="image/png,image/jpeg" />
+      <span class="pill" id="imagePickedName">None</span>
+      <span class="label">Opacity</span>
+      <input class="thin-range" id="imageOpacity" type="range" min="0.1" max="1" step="0.05" value="0.9" />
+    </div>
+
+    <div class="seg">
+      <span class="label">Pages</span>
+      <button class="btn" id="pageRotateLeft" type="button">⟲</button>
+      <button class="btn" id="pageRotateRight" type="button">⟳</button>
+      <button class="btn danger" id="pageDelete" type="button">Delete</button>
+      <button class="btn" id="pageExtract" type="button">Extract</button>
+      <button class="btn" id="pageMergeBtn" type="button">Merge PDF</button>
+      <input id="pageMergeInput" class="hidden-input" type="file" accept="application/pdf" />
+    </div>
+
+    <button class="btn" id="pdfStudioUndoBtn" type="button" disabled>Undo</button>
+    <button class="btn" id="pdfStudioRedoBtn" type="button" disabled>Redo</button>
+    <button class="btn danger" id="pdfStudioClearPageBtn" type="button">Clear Page</button>
+
+    <div class="seg">
+      <button class="btn" id="pdfStudioTemplateBtn" type="button">Templates</button>
+      <button class="btn" id="pdfStudioZoomOutBtn" type="button">-</button>
+      <button class="btn" id="pdfStudioZoomInBtn" type="button">+</button>
+      <div class="pill" id="pdfStudioPageInfo">—</div>
+    </div>
+
+    <div class="sp"></div>
+
+    <div class="pill" id="pdfStudioFilename">No file</div>
+    <button class="btn" id="pdfStudioDownloadBtn" type="button">Download</button>
+    <button class="btn primary" id="pdfStudioDoneBtn" type="button">Done</button>
+  </div>
+
+  <div class="wrap">
+    <div class="thumbs" id="pdfStudioThumbs"></div>
+    <div class="canvas" id="pdfStudioCanvasContainer"></div>
+  </div>
+</body>
+</html>

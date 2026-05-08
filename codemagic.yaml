@@ -1,0 +1,36 @@
+workflows:
+  android-release:
+    name: PDFRealm Android Release
+    max_build_duration: 60
+    environment:
+      node: 22.22.1
+      java: 21
+    scripts:
+      - name: Install dependencies
+        script: npm ci
+      - name: Create minimal web dir
+        script: |
+          mkdir -p out
+          cat > out/index.html << 'HTML'
+          <!DOCTYPE html><html><head><meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>PDFRealm</title></head>
+          <body><script>window.location.href='https://pdfrealm.com';</script></body></html>
+          HTML
+      - name: Install Capacitor CLI
+        script: npm install -g @capacitor/cli
+      - name: Add Android platform
+        script: |
+          npx cap add android || true
+          ls android/ || (echo "android dir missing" && exit 1)
+      - name: Sync Capacitor
+        script: npx cap sync android --inline
+      - name: Set Gradle permissions
+        script: chmod +x android/gradlew
+      - name: Build Android AAB
+        script: |
+          cd android
+          ./gradlew bundleRelease --stacktrace 2>&1 | tail -50
+    artifacts:
+      - android/app/build/outputs/bundle/release/app-release.aab
+      - android/app/build/outputs/apk/**/*.apk

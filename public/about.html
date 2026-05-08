@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PDFRealm – About</title>
+    <link rel="icon" href="data:;base64,=" />
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      body { margin: 0; }
+      .about-wrap {
+        width: min(900px, calc(100vw - 32px));
+        margin: 0 auto;
+        padding: 32px 0 48px;
+      }
+      .about-card {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(15, 23, 42, 0.70);
+        box-shadow: var(--shadow);
+        padding: 40px 40px;
+        margin-bottom: 14px;
+      }
+      .about-card h1 { margin: 0 0 12px; font-size: 2rem; }
+      .about-card h2 { font-size: 1.15rem; margin: 24px 0 8px; }
+      .about-card p, .about-card li { color: var(--muted); line-height: 1.65; font-size: 0.97rem; }
+      .about-card ul { padding-left: 20px; }
+      .about-card .lead { font-size: 1.1rem; color: var(--text); line-height: 1.5; }
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-top: 14px;
+      }
+      @media (max-width: 700px) { .feature-grid { grid-template-columns: 1fr; } }
+      .feature-item {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255,255,255,0.03);
+        padding: 16px 18px;
+      }
+      .feature-icon { font-size: 1.5rem; margin-bottom: 8px; }
+      .feature-item h3 { margin: 0 0 6px; font-size: 0.97rem; }
+      .feature-item p { margin: 0; font-size: 0.88rem; color: var(--muted); }
+      .cta-row { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+      .btn-about-primary {
+        padding: 12px 24px; border-radius: 12px; background: #3b82f6;
+        color: #fff; font-weight: 700; font-size: 0.97rem; border: none;
+        cursor: pointer; text-decoration: none; display: inline-block;
+      }
+      .btn-about-secondary {
+        padding: 12px 24px; border-radius: 12px;
+        background: rgba(255,255,255,0.06); border: 1px solid var(--line);
+        color: var(--text); font-weight: 600; font-size: 0.97rem;
+        cursor: pointer; text-decoration: none; display: inline-block;
+      }
+      .btn-about-primary:hover, .btn-about-secondary:hover { opacity: 0.85; }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand-left">
+          <div class="brand">
+            <div style="height:42px;width:140px;background:url('/logo.png') center/contain no-repeat;flex-shrink:0;"></div>
+          </div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:14px;align-items:center;">
+          <a href="/pricing.html" style="color:var(--muted);font-size:0.95rem;text-decoration:none;">Pricing</a>
+          <a href="/" style="color:var(--muted);font-size:0.95rem;text-decoration:none;">← Tools</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <div class="about-wrap">
+        <div class="about-card">
+          <h1>Built for people who live in PDFs</h1>
+          <p class="lead">PDFRealm is a complete PDF platform — fast tools, secure storage, and industry-specific workspaces that automate the paperwork-heavy parts of your business.</p>
+
+          <p>We built PDFRealm because existing PDF tools are either too simple (just a converter) or too expensive and complex (enterprise suites you need training for). PDFRealm hits the sweet spot: professional-grade features, clean UI, transparent pricing.</p>
+
+          <h2>What makes PDFRealm different</h2>
+          <div class="feature-grid">
+            <div class="feature-item">
+              <div class="feature-icon">⚡</div>
+              <h3>Fast, no-friction tools</h3>
+              <p>Merge, split, compress, sign, encrypt, redact — all in one place. No installs, no plugins.</p>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">🔒</div>
+              <h3>AES-256 Secure Vault</h3>
+              <p>Your documents are encrypted at rest. Share securely with expiring links and access controls.</p>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">🏭</div>
+              <h3>Industry Workspaces</h3>
+              <p>Pre-built workflows for freight brokers, legal teams, real estate, accounting, HR, and more.</p>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">✍️</div>
+              <h3>PDF Studio (AI editor)</h3>
+              <p>Intelligent document editing with AI — form fill, smart summarize, and batch operations.</p>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">📦</div>
+              <h3>DocForge templates</h3>
+              <p>Generate compliant, branded documents from templates. Built for repeatable paperwork.</p>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">🤝</div>
+              <h3>Team collaboration</h3>
+              <p>Shared vaults, approval workflows, and team permissions — designed for how teams actually work.</p>
+            </div>
+          </div>
+
+          <div class="cta-row">
+            <a href="/" class="btn-about-primary">Try PDFRealm Free →</a>
+            <a href="/pricing.html" class="btn-about-secondary">View Pricing</a>
+          </div>
+        </div>
+
+        <div class="about-card" style="padding:24px 40px;">
+          <h2 style="margin-top:0;">Who uses PDFRealm</h2>
+          <ul>
+            <li><strong>Freight brokers</strong> — carrier packets, rate confirmations, BOLs, driver management</li>
+            <li><strong>Law firms &amp; legal ops</strong> — intake forms, discovery documents, filing packets</li>
+            <li><strong>Real estate agents</strong> — title documents, closing packets, disclosure forms</li>
+            <li><strong>Accounting &amp; finance teams</strong> — receipt capture, categorized reports, audit trails</li>
+            <li><strong>HR departments</strong> — onboarding docs, offer letters, compliance checklists</li>
+            <li><strong>Individuals</strong> — anyone who regularly works with PDFs and wants a better tool</li>
+          </ul>
+        </div>
+
+        <div class="about-card" style="padding:24px 40px;">
+          <h2 style="margin-top:0;">Contact</h2>
+          <p>Have questions, feedback, or partnership inquiries? We'd love to hear from you.</p>
+          <p>
+            General: <a href="mailto:hello@pdfrealm.com" style="color:#93c5fd;">hello@pdfrealm.com</a><br>
+            Support: <a href="mailto:support@pdfrealm.com" style="color:#93c5fd;">support@pdfrealm.com</a><br>
+            Privacy: <a href="mailto:privacy@pdfrealm.com" style="color:#93c5fd;">privacy@pdfrealm.com</a>
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div>© <span id="year"></span> PDFRealm. All rights reserved. &nbsp;|&nbsp;
+        <a href="/privacy.html" style="color:var(--muted);">Privacy</a> &nbsp;|&nbsp;
+        <a href="/terms.html" style="color:var(--muted);">Terms</a> &nbsp;|&nbsp;
+        <a href="/about.html" style="color:var(--muted);">About</a>
+      </div>
+    </footer>
+    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+  </body>
+</html>

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>File Retention Policy &mdash; PDFRealm</title>
+  <meta name="description" content="How long PDFRealm keeps your files. Temporary files deleted after session. Vault files kept until you delete them.">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .page-content { max-width: 760px; margin: 60px auto; padding: 0 20px 60px; }
+    .page-content h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .page-content .subtitle { color: var(--muted); font-size: 1.05rem; margin-bottom: 48px; }
+    .page-content h2 { font-size: 1.15rem; font-weight: 700; margin: 36px 0 12px; color: var(--text); }
+    .page-content p, .page-content li { color: var(--muted); line-height: 1.7; }
+    .page-content ul { padding-left: 20px; margin: 8px 0; }
+    .page-content li { margin-bottom: 6px; }
+    .page-content a { color: #3b82f6; text-decoration: none; }
+    .retention-table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+    .retention-table th { background: #1e293b; padding: 12px 16px; text-align: left; font-size: 0.85rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .retention-table td { padding: 14px 16px; border-bottom: 1px solid #1e293b; color: var(--muted); font-size: 0.95rem; }
+    .retention-table tr:last-child td { border-bottom: none; }
+    .retention-table .hl { color: var(--text); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand-left">
+        <a href="/" style="text-decoration:none;">
+          <div style="height:42px;width:140px;background:url('/logo.png') center/contain no-repeat;"></div>
+        </a>
+      </div>
+      <div class="right-nav-cluster">
+        <nav class="top-nav">
+          <a href="/" class="nav-link">Tools</a>
+          <a href="/pricing.html" class="nav-link">Pricing</a>
+          <a href="/support.html" class="nav-link">Support</a>
+        </nav>
+        <button id="accountLoginBtn" class="btn" type="button">Account</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="page-content">
+      <h1>File Retention Policy</h1>
+      <p class="subtitle">We keep your files only as long as necessary. Here is exactly how long.</p>
+      <table class="retention-table">
+        <thead><tr><th>File Type</th><th>Retention Period</th></tr></thead>
+        <tbody>
+          <tr><td class="hl">Temporary processing files</td><td>Deleted automatically after your session ends, or within 24 hours of processing</td></tr>
+          <tr><td class="hl">Vault files</td><td>Retained until you delete them or close your account</td></tr>
+          <tr><td class="hl">Secure Send files</td><td>Deleted when the link expires (set by sender; default 7 days)</td></tr>
+          <tr><td class="hl">Files after account deletion</td><td>Permanently deleted within 30 days of account closure</td></tr>
+        </tbody>
+      </table>
+      <h2>Temporary Processing Files</h2>
+      <p>When you use any PDFRealm tool (compress, merge, OCR, convert, etc.), your file is uploaded to our servers for processing. These temporary files are <strong>not stored permanently</strong>. They are automatically deleted as soon as your session ends, or within 24 hours of processing &mdash; whichever comes first.</p>
+      <h2>Vault Files</h2>
+      <p>If you have a PDFRealm account and choose to save a file to your Vault, that file is retained securely in encrypted storage (Backblaze B2, AES-256) until:</p>
+      <ul>
+        <li>You manually delete the file from your Vault, or</li>
+        <li>You close / delete your account</li>
+      </ul>
+      <h2>Secure Send Files</h2>
+      <p>Files shared via Secure Send are temporarily stored with an expiration timer. The expiration period is set by the sender at the time of sharing (default: 7 days). When the link expires, the file is <strong>permanently and automatically deleted</strong> from our servers.</p>
+      <h2>Account Deletion</h2>
+      <p>When you delete your PDFRealm account, all Vault files associated with your account are scheduled for permanent deletion. This process completes within <strong>30 days</strong> of account closure. Once deleted, files are <strong>not recoverable</strong>. We do not retain backups of deleted files beyond the deletion window.</p>
+      <h2>Questions?</h2>
+      <p>For questions about your files or data, contact <a href="mailto:support@pdfrealm.com">support@pdfrealm.com</a> or see our <a href="/security.html">Security page</a>.</p>
+    </div>
+  </main>
+  <footer style="background:#0a0f1a; border-top:1px solid #1e293b; padding:32px 20px; text-align:center; color:#334155; font-size:0.85rem;">
+    <div style="margin-bottom:16px; display:flex; gap:20px; justify-content:center; flex-wrap:wrap;">
+      <a href="/privacy.html" style="color:#475569; text-decoration:none;">Privacy</a>
+      <a href="/terms.html" style="color:#475569; text-decoration:none;">Terms</a>
+      <a href="/security.html" style="color:#475569; text-decoration:none;">Security</a>
+      <a href="/refund-policy.html" style="color:#475569; text-decoration:none;">Refund Policy</a>
+      <a href="/file-retention.html" style="color:#475569; text-decoration:none;">File Retention</a>
+      <a href="/support.html" style="color:#475569; text-decoration:none;">Support</a>
+    </div>
+    &copy; 2025 PDFRealm. All rights reserved.
+  </footer>
+</body>
+</html>

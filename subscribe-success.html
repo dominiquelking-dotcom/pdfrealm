@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Subscription Activated</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body { font-family: system-ui, Arial; padding: 24px; max-width: 720px; margin: 0 auto; }
+      .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; }
+      label { display:block; margin-top: 12px; }
+      input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ccc; margin-top: 6px; }
+      button { margin-top: 14px; padding: 10px 14px; border-radius: 10px; border: 1px solid #222; background: #111; color: #fff; cursor: pointer; }
+      .muted { color: #666; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Subscription activated</h1>
+      <p class="muted">Set a password to create your subscriber login. This is the only way accounts are created.</p>
+
+      <label>Password
+        <input id="pw" type="password" placeholder="Create a password" />
+      </label>
+
+      <label>Confirm Password
+        <input id="pw2" type="password" placeholder="Confirm password" />
+      </label>
+
+      <p id="status" class="muted"></p>
+      <button id="submitBtn">Create Subscriber Login</button>
+    </div>
+
+    <script>
+      const params = new URLSearchParams(location.search);
+      const session_id = params.get("session_id");
+
+      const pw = document.getElementById("pw");
+      const pw2 = document.getElementById("pw2");
+      const statusEl = document.getElementById("status");
+      const submitBtn = document.getElementById("submitBtn");
+
+      submitBtn.addEventListener("click", async () => {
+        statusEl.textContent = "";
+        if (!session_id) return (statusEl.textContent = "Missing session_id.");
+        if (!pw.value || pw.value.length < 6) return (statusEl.textContent = "Password must be at least 6 characters.");
+        if (pw.value !== pw2.value) return (statusEl.textContent = "Passwords do not match.");
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Creating…";
+
+        try {
+          const res = await fetch("/api/subscription/claim", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id, password: pw.value })
+          });
+
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || "Could not create subscriber login.");
+
+          statusEl.textContent = "Done. You are now logged in and unlimited.";
+          setTimeout(() => { window.location.href = "/"; }, 900);
+        } catch (e) {
+          statusEl.textContent = "Error: " + e.message;
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Create Subscriber Login";
+        }
+      });
+    </script>
+  </body>
+</html>

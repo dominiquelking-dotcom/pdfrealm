@@ -1,0 +1,12 @@
+<!-- Drop these into pdfstudio.html (recommended local vendor includes) -->
+
+<!-- Fabric + pdf-lib -->
+<script src="/vendor/fabric/fabric.min.js"></script>
+<script src="/vendor/pdf-lib/pdf-lib.min.js"></script>
+
+<!-- PDF.js ESM (and worker) -->
+<script type="module">
+  import * as pdfjsLib from "/vendor/pdfjs/pdf.min.mjs";
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "/vendor/pdfjs/pdf.worker.min.mjs";
+  window.pdfjsLib = pdfjsLib;
+</script>

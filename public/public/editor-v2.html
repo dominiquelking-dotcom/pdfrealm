@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PDFRealm Editor v2</title>
+  <style>
+    :root{
+      --bg:#0b0f14; --panel:#121825; --line:rgba(255,255,255,.10);
+      --txt:#e9eef7; --muted:rgba(233,238,247,.70);
+      --btn:rgba(255,255,255,.06); --btnH:rgba(255,255,255,.10);
+      --accent: rgba(120,180,255,0.95);
+    }
+    *{ box-sizing:border-box; }
+    body{ margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; background:var(--bg); color:var(--txt); }
+    header{
+      display:flex; gap:10px; align-items:center; padding:10px 12px;
+      border-bottom:1px solid var(--line); background:rgba(255,255,255,.03);
+      position:sticky; top:0; z-index:10; flex-wrap:wrap;
+    }
+    header .spacer{ margin-left:auto; }
+    .chip{ color:var(--muted); font-size:12px; padding:6px 10px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.03); }
+
+    button{ background:var(--btn); color:var(--txt); border:1px solid var(--line); padding:8px 10px; border-radius:10px; cursor:pointer; }
+    button:hover{ background:var(--btnH); }
+    button.tool.active{ outline:2px solid var(--accent); outline-offset: 1px; }
+    button.thumb{ width:100%; text-align:left; margin:0 0 8px 0; }
+    button.thumb.active{ outline:2px solid rgba(120,180,255,.65); outline-offset: 2px; }
+    button.thumb[draggable="true"]{ cursor:grab; }
+
+    input[type="file"]{ color:var(--muted); }
+    input[type="color"], select, input[type="range"], input[type="number"], input[type="text"]{
+      background:rgba(255,255,255,.04); color:var(--txt);
+      border:1px solid var(--line); border-radius:10px; padding:6px 8px;
+    }
+    label.small{ color:var(--muted); font-size:12px; display:flex; gap:6px; align-items:center; }
+
+    .toolbar{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .toolbar .group{ display:flex; gap:8px; align-items:center; padding:6px; border:1px solid var(--line); border-radius:14px; background:rgba(255,255,255,.02); }
+    .toolbar .sep{ width:1px; height:26px; background:var(--line); margin:0 4px; }
+
+    main{ display:grid; grid-template-columns: 340px 1fr; height: calc(100vh - 64px); }
+    aside{ border-right:1px solid var(--line); background:var(--panel); overflow:auto; padding:10px; }
+    .card{ border:1px solid var(--line); border-radius:14px; padding:10px; margin-bottom:10px; background:rgba(255,255,255,.03); }
+    .card h3{ margin:0 0 6px 0; font-size:14px; }
+    .card small{ color:var(--muted); display:block; }
+    .fields{ display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+    .fieldrow{ display:grid; grid-template-columns: 1fr 140px; gap:8px; align-items:center; }
+    .fieldrow code{ color:rgba(233,238,247,.85); font-size:11px; opacity:.85; }
+
+    .stage{ position:relative; overflow:auto; }
+    #pages{ padding: 10px 0 40px; }
+    .page{
+      position:relative;
+      margin:18px auto;
+      width: fit-content;
+      border-radius:14px;
+      background:white;
+      box-shadow: 0 10px 40px rgba(0,0,0,.55);
+    }
+    canvas.render{ display:block; border-radius:14px; }
+    canvas.overlay{
+      position:absolute; left:0; top:0;
+      width:100%; height:100%;
+      border-radius:14px;
+      pointer-events:auto;
+    }
+    .pageLabel{
+      position:absolute; left:10px; top:10px;
+      background:rgba(0,0,0,.55); color:rgba(233,238,247,.85);
+      border:1px solid rgba(255,255,255,.14);
+      padding:4px 8px; border-radius:999px;
+      font-size:12px;
+      user-select:none;
+    }
+
+    .hud{
+      position:fixed; right:14px; bottom:14px;
+      background:rgba(0,0,0,.55); border:1px solid var(--line);
+      padding:10px 12px; border-radius:14px;
+      color:var(--muted); font-size:12px; max-width: 860px;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 900px){
+      main{ grid-template-columns: 1fr; }
+      aside{ display:none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>Editor v2</strong>
+    <span id="docName" class="chip">No file loaded</span>
+    <span id="opsCount" class="chip">Ops: 0</span>
+    <span id="saveStatus" class="chip">Not saved</span>
+    <button id="restoreLast" type="button" title="Restore last autosaved session">Restore Last</button>
+    <span id="selInfo" class="chip">0 pages selected</span>
+
+    <div class="toolbar">
+      <div class="group" aria-label="Tools">
+        <button class="tool active" type="button" data-tool="select" title="Select (V)">Select</button>
+        <button class="tool" type="button" data-tool="hand" title="Hand/Pan (Space)">Hand</button>
+        <span class="sep"></span>
+        <button class="tool" type="button" data-tool="highlight" title="Highlight (H)">Highlight</button>
+        <button class="tool" type="button" data-tool="ink" title="Draw/Ink (D)">Ink</button>
+        <button class="tool" type="button" data-tool="rect" title="Rect (R)">Rect</button>
+        <span class="sep"></span>
+        <button class="tool" type="button" data-tool="patch" title="Mask + retype (X)">Patch</button>
+        <button class="tool" type="button" data-tool="redact" title="Redaction mark (Q)">Redact</button>
+        <span class="sep"></span>
+        <button class="tool" type="button" data-tool="text" title="Text (T)">Text</button>
+        <button class="tool" type="button" data-tool="image" title="Image (I)">Image</button>
+        <button class="tool" type="button" data-tool="sign" title="Signature (S)">Sign</button>
+        <span class="sep"></span>
+        <button class="tool" type="button" data-tool="form_text" title="Form Text Field">FormText</button>
+        <button class="tool" type="button" data-tool="form_check" title="Form Checkbox">FormCheck</button>
+
+        <input id="imgPick" type="file" accept="image/*" style="display:none" />
+        <button id="imgChoose" type="button">Choose Img</button>
+        <input id="sigPick" type="file" accept="image/*" style="display:none" />
+        <button id="sigChoose" type="button">Choose Sig</button>
+        <input id="assetReplacePick" type="file" accept="image/*" style="display:none" />
+        <button id="assetReplaceBtn" type="button">Replace Asset</button>
+      </div>
+
+      <div class="group" aria-label="Page Ops">
+        <button id="pgRotateL" type="button">Rotate ⟲</button>
+        <button id="pgRotateR" type="button">Rotate ⟳</button>
+        <button id="pgDelete"  type="button">Delete Pages</button>
+        <button id="pgDup"     type="button">Duplicate</button>
+        <button id="pgBlank"   type="button">Insert Blank</button>
+        <button id="pgExtract" type="button">Extract → PDF</button>
+        <button id="pgExport"  type="button">Export PDF</button>
+        <button id="pgExportFlat" type="button">Export Flattened</button>
+        <button id="pgApplyRedact" type="button">Apply Redactions</button>
+        <button id="pgSecureRaster" type="button" title="Rasterize pages into images (removes underlying text objects)">Secure Redact (Rasterize)</button>
+        <button id="pgVerifyRaster" type="button" title="Verify extracted text is empty / strings not present (after raster export)">Verify Raster PDF</button>
+
+      
+        <input id="mergePick" type="file" accept="application/pdf" multiple style="display:none" />
+        <button id="mergeBtn" type="button" title="Append one or more PDFs to the current document">Merge PDFs</button>
+
+        <button id="exportZipBtn" type="button" title="Export pages as images in a ZIP (uses current render; shift-click to exclude marks)">Pages → ZIP</button>
+        <select id="zipScope" title="Which pages to export">
+          <option value="selected" selected>Selected</option>
+          <option value="all">All</option>
+        </select>
+        <select id="zipFormat" title="Image format">
+          <option value="png" selected>PNG</option>
+          <option value="jpg">JPG</option>
+        </select>
+</div>
+
+      <div class="group" aria-label="Inspector">
+        <label class="small">Color <input id="color" type="color" value="#ffea00" /></label>
+        <label class="small">Width
+          <select id="width">
+            <option value="2">2</option>
+            <option value="4" selected>4</option>
+            <option value="6">6</option>
+            <option value="8">8</option>
+          </select>
+        </label>
+        <label class="small">Opacity <input id="opacity" type="range" min="0.1" max="1" step="0.05" value="0.35" /></label>
+        <label class="small">Font
+          <select id="font">
+            <option value="system">System</option>
+            <option value="serif">Serif</option>
+            <option value="mono">Mono</option>
+          </select>
+        </label>
+        <label class="small">Size <input id="fontSize" type="number" min="8" max="96" step="1" value="18" style="width:78px" /></label>
+        <button id="applyStyle" type="button">Apply</button>
+        <button id="editText" type="button">Edit</button>
+      </div>
+
+      <div class="group" aria-label="History">
+        <button id="undo" type="button">Undo</button>
+        <button id="redo" type="button">Redo</button>
+        <button id="copyObj" type="button" title="Copy selected object">Copy</button>
+        <button id="pasteObj" type="button" title="Paste copied object">Paste</button>
+        <button id="dupObj" type="button" title="Duplicate selected object">Duplicate</button>
+
+        <button id="delObj" type="button">Delete Obj</button>
+        <button id="clearMarks" type="button">Clear Marks</button>
+      </div>
+      <div class="group" aria-label="Project">
+        <button id="exportProject" type="button" title="Export PDF + marks into a single project file">Export Project</button>
+        <input id="importProject" type="file" accept="application/json" style="display:none" />
+        <button id="importProjectBtn" type="button" title="Import a previously exported project file">Import Project</button>
+      
+        <div class="group" aria-label="Contract">
+        <button id="exportContract" type="button" title="Server contract: original PDF + op log (+ optional snapshot)">Export Contract</button>
+        <input id="importContract" type="file" accept="application/json" style="display:none" />
+        <button id="importContractBtn" type="button" title="Import a contract (loads PDF + snapshot)">Import Contract</button>
+        <button id="clearOps" type="button" title="Clear operation log">Clear Ops</button>
+      
+        <button id="rebuildFromOps" type="button" title="Rebuild current PDF by replaying page ops from the original">Rebuild (Replay)</button>
+        <button id="exportFromOps" type="button" title="Apply page ops to original PDF, then flatten current marks and download">Export From Ops</button>
+
+        <button id="serverExportBtn" type="button" title="POST contract to /api/pdf/apply and download PDF">Server Export</button>
+
+        <button id="serverSecureRasterBtn" type="button" title="Server true secure redaction: apply ops+marks then rasterize (removes text)">Server Secure Raster</button>
+
+
+        <button id="serverOptimizeBtn" type="button" title="Apply ops+marks on server then compress">Server Optimize</button>
+        <select id="optPreset" title="Compression preset">
+          <option value="screen">screen (smallest)</option>
+          <option value="ebook" selected>ebook (balanced)</option>
+          <option value="printer">printer (higher)</option>
+          <option value="prepress">prepress (highest)</option>
+        </select>
+        <label class="small" style="display:flex;gap:6px;align-items:center">
+          <input id="optLinearize" type="checkbox" />
+          Linearize
+        </label>
+
+
+
+        <button id="serverVerifyBtn" type="button" title="Verify extracted text and needle strings on the server">Server Verify</button>
+        <select id="serverVerifyMode" title="Verify mode">
+          <option value="applied" selected>applied</option>
+          <option value="secure_raster">secure_raster</option>
+        </select>
+        <input id="serverVerifyNeedles" type="text" placeholder="needles (comma separated)" style="width:220px" />
+
+
+
+        <button id="serverSecureRasterSelectiveBtn" type="button"
+          title="Server TRUE secure raster on redaction pages only. Shift-click = rasterize selected pages.">Server Secure Raster (Selective)</button>
+
+
+
+        <button id="serverExtractZipBtn" type="button" title="Server extract pages into a ZIP (PDF or PNG)">Server Extract ZIP</button>
+        <select id="srvZipScope" title="Scope">
+          <option value="selected" selected>Selected</option>
+          <option value="all">All</option>
+        </select>
+        <select id="srvZipFmt" title="Format">
+          <option value="pdf" selected>PDF</option>
+          <option value="png">PNG</option>
+        </select>
+        <input id="srvZipDpi" type="number" min="72" max="600" step="1" value="200" title="PNG DPI (only for PNG)" style="width:88px" />
+
+
+
+        <button id="serverRedactPackageBtn" type="button" title="Server builds a ZIP: redacted.pdf + report.json (hashes + verify)">Redaction Package</button>
+        <select id="redactPkgMode" title="Redaction mode">
+          <option value="selective_raster" selected>selective_raster</option>
+          <option value="full_raster">full_raster</option>
+          <option value="no_raster">no_raster</option>
+        </select>
+        <input id="redactPkgDpi" type="number" min="72" max="600" step="1" value="200" title="Raster DPI" style="width:88px" />
+        <input id="redactPkgNeedles" type="text" placeholder="verify needles (comma separated)" style="width:240px" />
+
+
+
+        <label class="small" style="display:flex;gap:6px;align-items:center">
+          <input id="srvFlattenForms" type="checkbox" />
+          Flatten Forms
+        </label>
+        <button id="serverExportFlatFormsBtn" type="button" title="Server Export with flattenForms=true">Server Export (Flatten Forms)</button>
+
+
+
+        <button id="serverTrueRedactBtn" type="button" title="TRUE redaction: remove text/objects under Redact boxes (server)">Server True Redact</button>
+
+
+
+        <button id="serverTrueRedactPkgBtn" type="button" title="ZIP: true-redacted.pdf + report.json (hashes + verify)">True Redaction Package</button>
+        <input id="trueRedactPkgNeedles" type="text" placeholder="verify needles (comma separated)" style="width:240px" />
+
+
+
+        <label class="small" style="display:flex;gap:6px;align-items:center">
+          <input id="useOpAnn" type="checkbox" />
+          Use OpLog Annotations
+        </label>
+
+
+
+        <button id="rebuildAnnOpsBtn" type="button" title="Rebuild marks from OpLog (useful if state drifts)">Rebuild Marks (OpLog)</button>
+        <button id="compactOpsBtn" type="button" title="Replace many ann_* ops with a single ann_snapshot op">Compact Ops (Snapshot)</button>
+
+
+
+        <button id="srvTextReplaceBtn" type="button" title="Replace text in the PDF on the server (records OpLog op)">Server Text Replace</button>
+        <input id="srvFindText" type="text" placeholder="find…" style="width:180px" />
+        <input id="srvReplaceText" type="text" placeholder="replace with…" style="width:200px" />
+        <label class="small" style="display:flex;gap:6px;align-items:center">
+          <input id="srvMatchCase" type="checkbox" />
+          Match case
+        </label>
+        <label class="small" style="display:flex;gap:6px;align-items:center">
+          <input id="srvWholeWord" type="checkbox" />
+          Whole word
+        </label>
+        <select id="srvReplaceScope" title="Replace scope">
+          <option value="all" selected>All pages</option>
+          <option value="selected">Selected pages</option>
+        </select>
+
+
+
+        <button id="srvRectReplaceBtn" type="button" title="Uses selected box bbox to replace underlying content + insert text (records op)">Replace Text (Selected Box)</button>
+        <input id="srvRectReplaceText" type="text" placeholder="replacement text…" style="width:260px" />
+
+
+
+        <button id="textPickToggle" type="button" title="Toggle: click on PDF to pick a word bbox">Text Pick (Toggle)</button>
+        <span id="textPickStatus" class="chip">Pick: off</span>
+        <input id="textPickReplace" type="text" placeholder="replacement…" style="width:220px" />
+        <button id="textPickApply" type="button" title="Replace the picked word using its bbox (records op)">Replace Picked</button>
+
+
+
+        <button id="serverVerifyV2Btn" type="button" title="Deep verify: pdftotext + raw bytes + qpdf qdf scan">Server Verify v2</button>
+        <select id="serverVerifyV2Mode" title="Verify v2 mode">
+          <option value="applied" selected>applied</option>
+          <option value="secure_raster">secure_raster</option>
+          <option value="true_redact">true_redact</option>
+        </select>
+        <input id="serverVerifyV2Needles" type="text" placeholder="needles (comma separated)" style="width:240px" />
+
+
+
+        <div style="height:6px">
+
+        <label class="small" style="display:flex;gap:6px;align-items:center">
+          <input id="annGuardToggle" type="checkbox" checked />
+          Ann Guard (auto snapshot)
+        </label>
+        <button id="annSnapshotNowBtn" type="button" title="Write ann_snapshot op from current marks">Snapshot Now</button>
+
+
+
+        <label class="small" style="display:flex;gap:6px;align-items:center">
+          <input id="useJobs" type="checkbox" />
+          Use Jobs (async)
+        </label>
+
+</div>
+        <div class="chip">Forms v2</div>
+        <button id="formsCreateDropdownBtn" type="button" title="Use selected box to create a Dropdown field">Create Dropdown (Selected Box)</button>
+        <input id="formsDropdownName" type="text" placeholder="dropdown field name" style="width:220px" />
+        <input id="formsDropdownOptions" type="text" placeholder="options (comma separated)" style="width:260px" />
+
+        <button id="formsCreateRadioOptionBtn" type="button" title="Use selected box to add ONE radio option to a group">Add Radio Option (Selected Box)</button>
+        <input id="formsRadioGroupName" type="text" placeholder="radio group name" style="width:220px" />
+        <input id="formsRadioOptionValue" type="text" placeholder="option value (e.g. Yes)" style="width:220px" />
+
+        <button id="formsSetFieldBtn" type="button" title="Record a form_set op for server apply">Set Field Value (OpLog)</button>
+        <input id="formsSetName" type="text" placeholder="field name" style="width:180px" />
+        <select id="formsSetType" title="field type">
+          <option value="text" selected>text</option>
+          <option value="checkbox">checkbox</option>
+          <option value="dropdown">dropdown</option>
+          <option value="radio">radio</option>
+        </select>
+        <input id="formsSetValue" type="text" placeholder="value (text/option) or true/false" style="width:220px" />
+
+</div>
+</div>
+
+
+      <div class="group" aria-label="Data">
+        <button id="exportJson" type="button">Export JSON</button>
+        <input id="importJson" type="file" accept="application/json" />
+      </div>
+    </div>
+
+    <span class="spacer"></span>
+    <input id="fileInput" type="file" accept="application/pdf" />
+    <button id="zoomOut" type="button">-</button>
+    <button id="zoomIn" type="button">+</button>
+    <button id="fitWidth" type="button">Fit</button>
+  </header>
+
+  <main>
+    <aside>
+      <div class="card">
+        <h3>Pages</h3>
+        <small>Click to select. Ctrl/Cmd multi. Shift range.</small>
+        <small>Drag thumbnails to reorder.</small>
+      </div>
+
+      <div class="card">
+        <h3>Diagnostics</h3>
+        <small>Quick sanity checks for libs + server endpoints.</small>
+        <div class="toolbar" style="margin-top:8px">
+          <div class="group" style="padding:6px">
+            <button id="diagRun" type="button">Run Diagnostics</button>
+          </div>
+
+      <div class="card" id="layersCard">
+        <h3>Layers</h3>
+        <small>Marks on the active page. Click to select. Use hotkeys too.</small>
+        <div id="layersList" class="fields" style="margin-top:8px"></div>
+        <div class="toolbar" style="margin-top:8px">
+          <div class="group" style="padding:6px; display:flex; gap:8px; flex-wrap:wrap">
+            <button id="layerUpBtn" type="button" title="Bring selected mark forward">Up</button>
+            <button id="layerDownBtn" type="button" title="Send selected mark backward">Down</button>
+            <button id="layerDeleteBtn" type="button" title="Delete selected mark">Delete</button>
+          </div>
+        </div>
+        <div class="hint" style="margin-top:8px">
+          Hotkeys: Ctrl/Cmd+Z undo, Ctrl/Cmd+Y redo, Del delete, V select, H highlight, R rect, I ink, T text, X redact, P patch, Ctrl/Cmd+S export.
+        </div>
+      </div>
+
+        </div>
+        <div id="diagOut" class="fields"></div>
+      </div>
+
+      <div id="thumbs"></div>
+
+      <div class="card">
+        <h3>Redaction Verify</h3>
+        <small>Checks extracted text for strings. Burn-in redaction won’t remove text from text-based PDFs.</small>
+        <div class="fields">
+          <input id="verifyStrings" type="text" placeholder="comma separated strings to check" />
+          <button id="verifyBtn" type="button">Verify Text Not Present</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Forms</h3>
+        <small>Fill existing fields or build new ones. “Build Fields” writes AcroForm fields into the PDF.</small>
+        <div class="toolbar" style="margin-top:8px">
+          <div class="group" style="padding:6px">
+            <button id="formsLoad" type="button">Load Fields</button>
+            <button id="formsApply" type="button">Apply Values</button>
+            <button id="formsBuild" type="button">Build Fields</button>
+          </div>
+        </div>
+        <div id="formFields" class="fields"></div>
+      </div>
+
+      
+      <div class="card">
+        <h3>Find</h3>
+        <small>Search extracted text and jump to matches. (Text-based PDFs only.)</small>
+        <div class="fields">
+          <input id="findQuery" type="text" placeholder="search…" />
+          <div class="toolbar">
+            <div class="group" style="padding:6px">
+              <button id="findPrev" type="button">Prev</button>
+              <button id="findNext" type="button">Next</button>
+              <button id="findClear" type="button">Clear</button>
+            </div>
+          </div>
+          <div id="findResults" class="fields"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Outline</h3>
+        <small>Load bookmarks/outline (if present) and jump.</small>
+        <div class="toolbar" style="margin-top:8px">
+          <div class="group" style="padding:6px">
+            <button id="outlineLoad" type="button">Load Outline</button>
+          </div>
+        </div>
+        <div id="outlineList" class="fields"></div>
+      </div>
+<div class="card">
+        <h3>Notes</h3>
+        <small><b>Patch</b> auto-samples background from the PDF render under the box.</small>
+        <small><b>Replace Asset</b> works on selected Image/Signature.</small>
+      </div>
+    </aside>
+
+    <section class="stage" id="stage">
+      <div id="pages"></div>
+    </section>
+  </main>
+
+  <div class="hud" id="hud">Ready.</div>
+
+  <script src="/assets/editor-vendor.js"></script>
+  <script src="/assets/editor-app.js"></script>
+</body>
+</html>

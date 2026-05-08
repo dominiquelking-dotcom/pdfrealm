@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Security &amp; Privacy &mdash; PDFRealm</title>
+  <meta name="description" content="How PDFRealm protects your files: HTTPS encryption, AES-256 vault storage, temporary file deletion, and more.">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .page-content { max-width: 760px; margin: 60px auto; padding: 0 20px 60px; }
+    .page-content h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .page-content .subtitle { color: var(--muted); font-size: 1.05rem; margin-bottom: 48px; }
+    .page-content h2 { font-size: 1.2rem; font-weight: 700; margin: 36px 0 12px; color: var(--text); }
+    .page-content p, .page-content li { color: var(--muted); line-height: 1.7; }
+    .page-content ul { padding-left: 20px; margin: 8px 0; }
+    .page-content li { margin-bottom: 6px; }
+    .badge-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 24px 0; }
+    .badge { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 10px 16px; font-size: 0.85rem; color: var(--muted); }
+    .badge strong { color: var(--text); display: block; margin-bottom: 2px; }
+    .contact-box { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px 24px; margin-top: 36px; }
+    .contact-box a { color: #3b82f6; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand-left">
+        <a href="/" style="text-decoration:none;">
+          <div style="height:42px;width:140px;background:url('/logo.png') center/contain no-repeat;"></div>
+        </a>
+      </div>
+      <div class="right-nav-cluster">
+        <nav class="top-nav">
+          <a href="/" class="nav-link">Tools</a>
+          <a href="/pricing.html" class="nav-link">Pricing</a>
+          <a href="/support.html" class="nav-link">Support</a>
+        </nav>
+        <button id="accountLoginBtn" class="btn" type="button">Account</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="page-content">
+      <h1>Security &amp; Privacy</h1>
+      <p class="subtitle">How we protect your files, your data, and your privacy.</p>
+      <div class="badge-row">
+        <div class="badge"><strong>HTTPS / TLS</strong>Encrypted in transit</div>
+        <div class="badge"><strong>AES-256</strong>Encrypted at rest</div>
+        <div class="badge"><strong>Auto-Delete</strong>Temp files removed after session</div>
+        <div class="badge"><strong>No AI Training</strong>Files never used for training</div>
+      </div>
+      <h2>Encryption in Transit</h2>
+      <p>All connections to PDFRealm are encrypted using HTTPS/TLS. Your files are never transmitted over unencrypted connections. We enforce HTTPS site-wide with HSTS headers.</p>
+      <h2>Processing: Browser vs. Server</h2>
+      <p>Some PDF operations run entirely in your browser (client-side), meaning your file never leaves your device. Others require server-side processing for higher fidelity or format conversion.</p>
+      <ul>
+        <li><strong>Browser-side:</strong> Basic PDF viewing, annotation previews, page reordering</li>
+        <li><strong>Server-side:</strong> Compression, OCR, format conversion (PDF to Word, etc.), merge, split, redaction, password protection</li>
+      </ul>
+      <p>For server-side tools, files are uploaded over HTTPS, processed on our servers, and deleted automatically after your session (or within 24 hours of processing).</p>
+      <h2>Vault: Encryption at Rest</h2>
+      <p>Files saved to your PDFRealm Vault are stored encrypted using AES-256 encryption. Vault storage is hosted on Backblaze B2, a SOC 2-compliant cloud storage provider. Encryption keys are managed server-side and never exposed to third parties.</p>
+      <h2>File Retention</h2>
+      <ul>
+        <li><strong>Temporary processing files:</strong> Deleted automatically after your session ends, or within 24 hours of processing &mdash; whichever comes first.</li>
+        <li><strong>Vault files:</strong> Retained until you delete them or close your account.</li>
+        <li><strong>Secure Send files:</strong> Deleted when the link expires (expiration set by the sender; default is 7 days).</li>
+        <li><strong>After account deletion:</strong> All vault files are permanently deleted within 30 days.</li>
+      </ul>
+      <h2>Secure Send</h2>
+      <p>Files shared via Secure Send are stored temporarily with an expiration timer. When the link expires, the file is permanently deleted from our servers. Recipients cannot access files after expiration. Senders can set custom expiration times.</p>
+      <h2>No AI Training</h2>
+      <p>Your files are <strong>never</strong> used to train AI models or any machine learning systems. When you use AI-powered features, your file is sent to OpenAI's API solely to fulfill your request and is not retained or used for training by OpenAI under their current data processing policies.</p>
+      <h2>Subprocessors</h2>
+      <ul>
+        <li><strong>Stripe</strong> &mdash; Payment processing. PDFRealm never stores your credit card details. All payment data is handled by Stripe's PCI-compliant infrastructure.</li>
+        <li><strong>Backblaze B2</strong> &mdash; Vault file storage. Files are encrypted before upload.</li>
+        <li><strong>OpenAI</strong> &mdash; AI features only, and only when you explicitly initiate an AI action. Your files are not shared with OpenAI for any other purpose.</li>
+      </ul>
+      <h2>Analytics &amp; Logging</h2>
+      <p>PDFRealm does not log personally identifiable information (PII) in analytics. Usage analytics track aggregate events (tool usage counts, page views) without linking them to individual users or files.</p>
+      <h2>Vulnerability Disclosure</h2>
+      <div class="contact-box">
+        <p style="margin:0;">Found a security issue? Please report it responsibly to <a href="mailto:security@pdfrealm.com">security@pdfrealm.com</a>. We aim to acknowledge reports within 48 hours and resolve confirmed vulnerabilities promptly.</p>
+      </div>
+    </div>
+  </main>
+  <footer style="background:#0a0f1a; border-top:1px solid #1e293b; padding:32px 20px; text-align:center; color:#334155; font-size:0.85rem;">
+    <div style="margin-bottom:16px; display:flex; gap:20px; justify-content:center; flex-wrap:wrap;">
+      <a href="/privacy.html" style="color:#475569; text-decoration:none;">Privacy</a>
+      <a href="/terms.html" style="color:#475569; text-decoration:none;">Terms</a>
+      <a href="/security.html" style="color:#475569; text-decoration:none;">Security</a>
+      <a href="/refund-policy.html" style="color:#475569; text-decoration:none;">Refund Policy</a>
+      <a href="/file-retention.html" style="color:#475569; text-decoration:none;">File Retention</a>
+      <a href="/support.html" style="color:#475569; text-decoration:none;">Support</a>
+    </div>
+    &copy; 2025 PDFRealm. All rights reserved.
+  </footer>
+</body>
+</html>
